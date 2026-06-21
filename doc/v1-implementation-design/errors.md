@@ -13,6 +13,7 @@
 | --- | --- | --- |
 | `invalid-card-suit` | 传入非 `spades/hearts/diamonds/clubs` | `createCard` / `createCardId` |
 | `invalid-card-rank` | 传入非 `A/2-10/J/Q/K` | `createCard` / `getPointValue` / `getPokerValue` / `createCardId` |
+| `duplicate-card-in-deck` | 牌堆中存在重复实体牌 ID | `shuffleDeck` |
 | `invalid-rng-value` | `rng()` 返回 NaN / Infinity / 负数 / ≥1 | `shuffleDeck` |
 | `invalid-draw-count` | `count` 非整数、为负或超过 `cards.length` | `drawCards` |
 | `unknown-card-id` | `effectiveCards` 中存在不在 `drawPile` 也不在 `discardPile` 的 ID | `moveEffectiveCardsToDiscard` |
@@ -123,3 +124,11 @@ type ErrorPayload = {
 ```
 
 UI 层根据 `code` 决定展示策略（toast / inline 提示 / 阻断操作）；`message` 仅用于辅助展示，不参与规则判断。
+
+## 12. Global / Unknown
+
+| 错误码 | 触发条件 | 抛出位置 |
+| --- | --- | --- |
+| `unexpected-error` | 捕获到非 AppError 的 Error / string / unknown | `normalizeError` / `installGlobalErrorHandlers` |
+
+全局错误捕捉统一通过 `src/app/global-errors.ts` 安装 `window.error` 与 `unhandledrejection` 监听器。新增浏览器级错误入口时，必须复用 `normalizeError`，并把新增错误码登记到本文档。
