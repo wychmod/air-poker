@@ -1,1 +1,14 @@
+.DS_Store
 .idea/
+.worktrees/
+
+node_modules/
+dist/
+dist-ssr/
+coverage/
+
+playwright-report/
+test-results/
+
+*.local
+*.tsbuildinfo
