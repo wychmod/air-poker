@@ -14,7 +14,7 @@ export default defineConfig({
       ],
       reporter: ['text', 'html'],
     },
-    environment: 'jsdom',
+    environment: 'node',
     globals: true,
     passWithNoTests: true,
     setupFiles: ['./src/tests/setup.ts'],

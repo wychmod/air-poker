@@ -40,10 +40,11 @@
 ## A 的口径（V1 钉死）
 
 - 点数求和中 A = 1，由 `Card.pointValue` 提供。
-- 牌型比较中 A = 14（最强），2 = 2（最弱）。
-- **V1 不实现低 A 顺子**：`A-2-3-4-5` 不判为顺子。唯一允许 A 参与的顺子是 `A-K-Q-J-10`（高 A 顺子），作为 Royal Straight Flush 的识别条件之一。
-- **`K-A-2-3-4` 不算顺子**（A 不能同时作高和低）。
-- **`2-3-4-5-6` 算顺子**（2 是合法低端）。
+- 牌型比较中 A 默认按 14（最强），2 = 2（最弱）。
+- 顺子判定采用德州规则：A 可在 `A-K-Q-J-10` 中作为高 A，也可在 `A-2-3-4-5` 中作为低 A。
+- **`A-2-3-4-5` 算顺子**；比较 Straight / Straight Flush 时最高牌按 5 处理。
+- **`K-A-2-3-4` 不算顺子**（A 不能把 K 和 2 环绕连接）。
+- **`2-3-4-5-6` 算顺子**（最高牌为 6）。
 - **`Q-K-A-2-3` 不算顺子**（同 K-A-2-3-4，不连续）。
 
 皇家同花顺定义（V1 固定）：
@@ -98,7 +99,7 @@ type HandCompareResult = -1 | 0 | 1
 `categoryRank` 越大越强（10 > 0）。`tiebreakers` 长度按牌型定：
 
 - Flush：5（5 张牌 pokerValue 降序）。
-- Straight：1（最高牌 pokerValue；高 A 顺子 = 14）。
+- Straight：1（顺子最高牌；A-K-Q-J-10 = 14，A-2-3-4-5 = 5）。
 - Royal Straight Flush：0（与 Straight Flush 同牌型时已用 categoryRank 区分；不进入 tiebreakers 比较）。
 - Four of a Kind：2（四条点数 + 剩余高牌）。
 - Full House：2（三条点数 + 对子点数）。
@@ -235,7 +236,7 @@ type HandCompareResult = -1 | 0 | 1
 3. **再判 Four of a Kind**（4 张同 rank）→ 返回四条。
 4. **再判 Full House**（3+2）→ 返回葫芦。
 5. **再判 Flush**（5 张同花）→ 返回同花。
-6. **再判 Straight**（5 张连续；高 A 顺子 = A-K-Q-J-10；不判 A-2-3-4-5）→ 返回顺子。
+6. **再判 Straight**（5 张连续；A-K-Q-J-10 为高 A 顺子；A-2-3-4-5 为低 A 顺子且最高牌按 5；不允许 K-A-2-3-4 环绕）→ 返回顺子。
 7. **再判 Three of a Kind**（3 张同 rank）→ 返回三条。
 8. **再判 Two Pair**（两个对子）→ 返回两对。
 9. **再判 One Pair**（一个对子）→ 返回一对。
@@ -272,8 +273,9 @@ type HandCompareResult = -1 | 0 | 1
 - 覆盖 10 种标准牌型。
 - Royal Straight Flush 强于 Straight Flush（A-K-Q-J-10 同花 vs 9-8-7-6-5 同花）。
 - A/K/Q/J/10 同花识别为 Royal Straight Flush。
-- A-2-3-4-5 不识别为顺子（按 `High Card` 处理）。
+- A-2-3-4-5 识别为 Straight，tiebreaker 为 `[5]`。
 - K-A-2-3-4 不识别为顺子。
+- Q-K-A-2-3 不识别为顺子。
 - 2-3-4-5-6 识别为顺子（`pokerValue` 集合 `{2,3,4,5,6}`，最高 6）。
 - 同牌型按 tiebreaker 比较（含 Flush 5 张降序、Straight 最高牌等子项）。
 - 4 张有效牌可判四条、三条、两对、一对、高牌；**不可**误判为 Full House / Flush / Straight。
@@ -291,3 +293,7 @@ type HandCompareResult = -1 | 0 | 1
 - 不要在 evaluator 内处理点数和是否等于目标值；那是 HandSolver 的职责。
 - 不要让 UI 根据 label 判断胜负；胜负只能通过结构化 compare 函数得到。
 - `label` 只是展示文本，不能作为逻辑分支依据。
+
+## 修订记录
+
+- **2026-06-22**：顺子判定改为德州规则：A-2-3-4-5 算低 A 顺子，最高牌按 5；K-A-2-3-4 / Q-K-A-2-3 仍不算顺子。

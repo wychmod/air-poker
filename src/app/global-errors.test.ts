@@ -1,9 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { installGlobalErrorHandlers, reportGlobalError } from './global-errors';
 
 describe('app/global-errors', () => {
   const cleanups: Array<() => void> = [];
+
+  beforeEach(() => {
+    vi.stubGlobal('window', new EventTarget());
+  });
 
   afterEach(() => {
     while (cleanups.length > 0) {
@@ -14,13 +18,17 @@ describe('app/global-errors', () => {
   it('captures window error events as normalized payloads', () => {
     const onError = vi.fn();
     cleanups.push(installGlobalErrorHandlers(onError));
+    const event = new Event('error');
+    Object.defineProperties(event, {
+      error: {
+        value: new Error('Render failed'),
+      },
+      message: {
+        value: 'Render failed',
+      },
+    });
 
-    window.dispatchEvent(
-      new ErrorEvent('error', {
-        error: new Error('Render failed'),
-        message: 'Render failed',
-      }),
-    );
+    window.dispatchEvent(event);
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({
