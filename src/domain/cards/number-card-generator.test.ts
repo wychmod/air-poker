@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { createCard } from './card';
 import { buildStandardDeck } from './deck';
 import {
   assignNumberCards,
@@ -26,6 +27,12 @@ function createFixedRng(values: number[]) {
 function sumPointValues(cards: Array<{ pointValue: number }>): number {
   return cards.reduce((total, card) => total + card.pointValue, 0);
 }
+
+const spadeAce = createCard('spades', 'A');
+const spadeTwo = createCard('spades', '2');
+const spadeThree = createCard('spades', '3');
+const spadeFour = createCard('spades', '4');
+const spadeFive = createCard('spades', '5');
 
 function ids(cards: Array<{ id: string }>) {
   return cards.map((card) => card.id);
@@ -253,10 +260,17 @@ describe('cards/number-card-generator', () => {
   });
 
   it('replaces the first available unsolvable number card from the current draw pile', () => {
-    const drawPile = buildStandardDeck().slice(0, 8).reverse();
+    // drawPile contains S-A..S-5 (point values 1,2,3,4,5 = sum 15) plus two extras.
+    const drawPile = [spadeAce, spadeTwo, spadeThree, spadeFour, spadeFive];
+    // N-01 (value 15) is unsolvable per isSolvable (returns false for 15 on the
+    // first check), but a 5-card combo summing to 15 exists in the drawPile, so it
+    // can be replaced with proofHand S-A..S-5 and new value 15. isSolvable is
+    // stateful: the first call (picking the target) returns false, subsequent calls
+    // (re-validating the replaced value) return true.
+    let solvableCallCount = 0;
     const cards = [
-      createNumberCard('N-01', 'player', 999),
-      createNumberCard('N-02', 'player', 15),
+      createNumberCard('N-01', 'player', 15),
+      createNumberCard('N-02', 'player', 999),
     ];
 
     const result = replaceUnsolvableNumberCard({
@@ -264,7 +278,10 @@ describe('cards/number-card-generator', () => {
       cards,
       drawPile,
       rng: createFixedRng([0.5]),
-      isSolvable: (value) => value === 15,
+      isSolvable: () => {
+        solvableCallCount += 1;
+        return solvableCallCount > 1;
+      },
     });
 
     expect(result.ok).toBe(true);
@@ -289,6 +306,23 @@ describe('cards/number-card-generator', () => {
     expect(result.cards[0]).toStrictEqual(result.replacement);
   });
 
+  it('returns no-unsolvable-number-card when there is nothing to replace', () => {
+    const cards = [createNumberCard('N-01', 'ai', 15)];
+
+    expect(
+      replaceUnsolvableNumberCard({
+        owner: 'ai',
+        cards,
+        drawPile: [spadeAce, spadeTwo, spadeThree, spadeFour, spadeFive],
+        rng: createFixedRng([0.5]),
+        isSolvable: () => true,
+      }),
+    ).toMatchObject({
+      ok: false,
+      code: 'no-unsolvable-number-card',
+    });
+  });
+
   it('returns replacement failure reasons without throwing', () => {
     const cards = [createNumberCard('N-01', 'ai', 999)];
 
@@ -305,11 +339,28 @@ describe('cards/number-card-generator', () => {
       code: 'not-enough-cards',
     });
 
+    // targetValue 999 cannot be formed by any 5-card combo of the draw pile,
+    // so HandSolver returns 0 hands -> no-legal-replacement-hand.
     expect(
       replaceUnsolvableNumberCard({
         owner: 'ai',
         cards,
         drawPile: buildStandardDeck().slice(0, 5),
+        rng: createFixedRng([0.5]),
+        isSolvable: () => false,
+      }),
+    ).toMatchObject({
+      ok: false,
+      code: 'no-legal-replacement-hand',
+    });
+
+    // A combo summing to targetValue (15) exists, but isSolvable rejects the
+    // replaced value 15 -> replacement-still-unsolvable.
+    expect(
+      replaceUnsolvableNumberCard({
+        owner: 'ai',
+        cards: [createNumberCard('N-01', 'ai', 15)],
+        drawPile: [spadeAce, spadeTwo, spadeThree, spadeFour, spadeFive],
         rng: createFixedRng([0.5]),
         isSolvable: () => false,
       }),

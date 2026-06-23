@@ -29,7 +29,8 @@
 | `number-card-not-found` | `numberCardId` 不在指定方列表 | `markNumberCardUsed` |
 | `number-card-already-used` | `status !== "available"` 的牌再标记 used | `markNumberCardUsed` |
 | `not-enough-cards` | 共享牌库不足 5 张 | `replaceUnsolvableNumberCard` |
-| `no-legal-replacement-hand` | 共享牌库无任何 5 张可解组合 | `replaceUnsolvableNumberCard` |
+| `no-unsolvable-number-card` | `cards` 中没有 `available` 且不可解的数字牌可替换 | `replaceUnsolvableNumberCard` |
+| `no-legal-replacement-hand` | 共享牌库无任何点数和等于目标值的 5 张组合 | `replaceUnsolvableNumberCard` |
 | `replacement-still-unsolvable` | 替换后仍不可解 | `replaceUnsolvableNumberCard` |
 | `initial-hand-unsolvable` | 开局数字牌中存在不可解的牌（达到重试上限仍失败） | `initializeNewGame` 包装 |
 
@@ -98,7 +99,7 @@
 | 错误码 | 触发条件 | 抛出位置 |
 | --- | --- | --- |
 | `storage-unavailable` | localStorage 抛错 | `saveSettings` / `saveLastResult` |
-| `invalid-seed` | seed 为空或非字符串/数字 | `createSeededRng` |
+| `invalid-seed` | seed 为空、非字符串/数字，或 number 为非有限值（NaN / Infinity） | `createSeededRng` |
 | `crypto-unavailable` | `crypto.getRandomValues` 不可用 | `createRuntimeSeed`（内部降级，不抛出） |
 
 ## 10. UI（10 文档）

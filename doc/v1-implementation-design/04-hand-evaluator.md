@@ -101,7 +101,7 @@ type HandCompareResult = -1 | 0 | 1
 - Flush：5（5 张牌 pokerValue 降序）。
 - Straight：1（顺子最高牌；A-K-Q-J-10 = 14，A-2-3-4-5 = 5）。
 - Royal Straight Flush：0（与 Straight Flush 同牌型时已用 categoryRank 区分；不进入 tiebreakers 比较）。
-- Four of a Kind：2（四条点数 + 剩余高牌）。
+- Four of a Kind：5 张时为 2（四条点数 + 剩余高牌）；4 张全为四条时为 1（无剩余高牌，见降级表）。
 - Full House：2（三条点数 + 对子点数）。
 - Three of a Kind：3（三条点数 + 剩余 2 张高牌降序）。
 - Two Pair：3（高对子 + 低对子 + 剩余高牌）。
@@ -253,7 +253,7 @@ type HandCompareResult = -1 | 0 | 1
 | effectiveCardCount | 牌型 | tiebreakers 规则 |
 | --- | --- | --- |
 | 5 | 全部 10 种 | 见核心类型段 |
-| 4 | Four of a Kind | `[四条点数, 剩余高牌]`（长度 2） |
+| 4 | Four of a Kind | `[四条点数]`（长度 1；4 张全为四条，无剩余高牌） |
 | 4 | Three of a Kind | `[三条点数, 剩余高牌]`（长度 2） |
 | 4 | Two Pair | `[高对子点数, 低对子点数]`（长度 2；4 张中两对 + 没有剩余） |
 | 4 | One Pair | `[对子点数, 剩余 2 张高牌降序]`（长度 3） |

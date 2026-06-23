@@ -1,5 +1,6 @@
 import type { Card } from './card';
 import { buildStandardDeck, shuffleDeck, uniqueCards, type Rng } from './deck';
+import { createSelectableCards, solveHands } from '../hand/hand-solver';
 
 export type NumberCardId = `N-${string}`;
 export type NumberCardOwner = 'player' | 'ai';
@@ -33,6 +34,7 @@ export type NumberCardErrorCode =
   | 'number-card-not-found'
   | 'number-card-already-used'
   | 'not-enough-cards'
+  | 'no-unsolvable-number-card'
   | 'no-legal-replacement-hand'
   | 'replacement-still-unsolvable';
 
@@ -114,7 +116,10 @@ export type ReplaceNumberCardResult =
       replacement: NumberCard;
     }
   | FailureResult<
-      'not-enough-cards' | 'no-legal-replacement-hand' | 'replacement-still-unsolvable'
+      | 'not-enough-cards'
+      | 'no-unsolvable-number-card'
+      | 'no-legal-replacement-hand'
+      | 'replacement-still-unsolvable'
     >;
 
 const NUMBER_CARD_COUNT = 10;
@@ -123,9 +128,6 @@ const BURN_CARD_COUNT = 2;
 const DEFAULT_MAX_ATTEMPTS = 200;
 const DEFAULT_BALANCE_THRESHOLD = 30;
 const FULL_DECK_POINT_TOTAL = 364;
-const standardCardOrder = new Map(
-  buildStandardDeck().map((card, index) => [card.id, index]),
-);
 
 function createFailure<Code extends NumberCardErrorCode>(
   code: Code,
@@ -165,10 +167,6 @@ function cardsHaveSameIds(left: Card[], right: Card[]): boolean {
   return leftIds.every((id, index) => id === rightIds[index]);
 }
 
-function compareCardsByStandardOrder(left: Card, right: Card): number {
-  return standardCardOrder.get(left.id)! - standardCardOrder.get(right.id)!;
-}
-
 function validateSourceDeck(cards: Card[]): boolean {
   return cards.length === 52 && uniqueCards(cards);
 }
@@ -199,15 +197,15 @@ function enumerateFiveCardIndexes(length: number): number[][] {
   return groups;
 }
 
-function createDefaultReplacementHands(_targetValue: number, drawPile: Card[]): Card[][] {
-  const sortedDrawPile = [...drawPile].sort(compareCardsByStandardOrder);
-  const hands: Card[][] = [];
+function createDefaultReplacementHands(targetValue: number, drawPile: Card[]): Card[][] {
+  const selectableCards = createSelectableCards(drawPile, []);
+  const result = solveHands({
+    targetValue,
+    selectableCards,
+    mode: 'lowerAvailability',
+  });
 
-  for (const indexes of enumerateFiveCardIndexes(sortedDrawPile.length)) {
-    hands.push(indexes.map((index) => sortedDrawPile[index]!));
-  }
-
-  return hands;
+  return result.hands.map((hand) => hand.effectiveCards);
 }
 
 export function createNumberCardsFromDeck(
@@ -257,7 +255,9 @@ export function assignNumberCards(
     const aiTotal = totalValue - playerTotal;
     const difference = Math.abs(playerTotal - aiTotal);
     const key = numberCardIds(
-      [...playerCards].sort((left, right) => left.id.localeCompare(right.id)),
+      [...playerCards].sort((left, right) =>
+        left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
+      ),
     );
 
     if (
@@ -531,7 +531,7 @@ export function replaceUnsolvableNumberCard(
 
   if (targetIndex === -1) {
     return createFailure(
-      'no-legal-replacement-hand',
+      'no-unsolvable-number-card',
       'There is no available unsolvable number card to replace',
     );
   }

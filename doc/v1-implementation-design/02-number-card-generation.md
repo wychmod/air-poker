@@ -208,7 +208,8 @@ type ReplaceUnsolvableInput = {
 失败方式（对应 `errors.md` §2）：
 
 - `not-enough-cards`：`drawPile.length < 5`。
-- `no-legal-replacement-hand`：`drawPile.length ≥ 5` 但 `HandSolver` 返回 0 组合。
+- `no-unsolvable-number-card`：`cards` 中没有 `status === "available"` 且 `isSolvable(value, drawPile) === false` 的数字牌可替换（无可替换目标，调用方应视为无需补牌）。
+- `no-legal-replacement-hand`：`drawPile.length ≥ 5` 但 `HandSolver` 在 `targetValue` 下返回 0 组合（共享牌库无任何点数和等于目标值的 5 张组合）。
 - `replacement-still-unsolvable`：替换后的 `value` 仍不满足 `isSolvable`。
 
 失败时由 `07-game-state-and-round-flow.md` 的状态机根据"是否双方都不可解"决定进入提前结算或继续到下一回合。
@@ -246,7 +247,8 @@ type ReplaceUnsolvableInput = {
 补牌重算失败条件：
 
 - 当前共享牌库不足 5 张（`not-enough-cards`）。
-- 当前共享牌库不存在任何 5 张组合（`no-legal-replacement-hand`）。
+- 没有可替换的不可解数字牌（`no-unsolvable-number-card`）。
+- 当前共享牌库不存在点数和等于 `targetValue` 的 5 张组合（`no-legal-replacement-hand`）。
 - 替换后仍不可解（`replacement-still-unsolvable`）。
 
 失败时由状态机进入提前结算。补牌重算与生成期校验都使用 `HandSolver` `lowerAvailability` 口径：只允许 `usage = "unused"` 牌参与，不能把未来弃牌区用过牌算作下层可解依据。

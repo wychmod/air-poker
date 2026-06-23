@@ -78,4 +78,19 @@ describe('app/rng', () => {
     expect(runtime.rng()).toBeGreaterThanOrEqual(0);
     expect(runtime.rng()).toBeLessThan(1);
   });
+
+  it('rejects non-finite number seeds with invalid-seed', () => {
+    expectErrorCode(() => createSeededRng(Number.NaN), 'invalid-seed');
+    expectErrorCode(() => createSeededRng(Number.POSITIVE_INFINITY), 'invalid-seed');
+    expectErrorCode(() => createSeededRng(Number.NEGATIVE_INFINITY), 'invalid-seed');
+  });
+
+  it('accepts finite number seeds and produces a stable sequence', () => {
+    const first = createSeededRng(42);
+    const second = createSeededRng(42);
+
+    expect(Array.from({ length: 5 }, () => first())).toStrictEqual(
+      Array.from({ length: 5 }, () => second()),
+    );
+  });
 });

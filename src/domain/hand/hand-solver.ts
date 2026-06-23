@@ -104,7 +104,18 @@ function solveKey(hand: SolvedHand): string {
 }
 
 function compareSolvedHands(left: SolvedHand, right: SolvedHand): number {
-  return solveKey(left).localeCompare(solveKey(right));
+  const leftKey = solveKey(left);
+  const rightKey = solveKey(right);
+
+  if (leftKey < rightKey) {
+    return -1;
+  }
+
+  if (leftKey > rightKey) {
+    return 1;
+  }
+
+  return 0;
 }
 
 function canUseCard(item: SelectableCard, mode: SolveMode): boolean {
