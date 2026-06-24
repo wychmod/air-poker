@@ -223,6 +223,22 @@ src/
 
 Fold 后仍按双方内部锁定成手判断灾厄；弃牌方视为本回合输家。
 
+灾厄边界（V1 钉死，详见 `06-round-resolution-and-calamity.md`）：
+- 本回合 Bet 总额为 0 时，灾厄仍可记录为触发，但 `vanishedAir = 0`，不造成 Air 变化。
+- 输家 Air 不足以扣减自己下注额时，扣到 0（不能为负），超出部分仍记入 `vanishedAir` 的"应有值"但不实际扣。
+
+### 5.7 V1 资源常量与数字牌补牌
+
+V1 资源定量（详见设计文档 13.1，应在常量模块固化，不在流程代码硬编码）：
+- 初始 Air：每方 25。
+- 呼吸成本：每回合 1 Air / 方。
+- 参加费：R1-R5 分别 1/2/3/4/5 Air（累计 15 Air / 方）。
+- 总账：5 呼吸 + 15 参加费 = 20 Air / 方，剩 5 Air 作为可 Bet 弹性。
+
+数字牌运行时补牌（详见 `02-number-card-generation.md` `replaceUnsolvableNumberCard`）：
+- 某方剩余数字牌全部不可解时，触发一次性补牌：取 `solveHands(lowerAvailability)` 返回的第一组合作为新 `proofHand`（不引入 RNG），替换列表中第一个 `available` 且不可解的数字牌。
+- drawPile < 5 或仍不可解 → 结构化错误码（`not-enough-cards` / `replacement-still-unsolvable` 等），状态机进入提前结算。开局可解校验在 `NumberCardGenerator` 内完成，运行时补牌由 `round-flow.ts` 触发。
+
 ### 5.7 AIController
 
 AI 拆成三层：
@@ -235,7 +251,8 @@ AI 拆成三层：
 - AI 不能读取玩家已经暂定的隐藏成手。
 
 实现原则：
-- V1 使用规则评分 AI，加少量随机扰动。
+- V1 使用规则评分 AI，加少量随机扰动（均匀 `[-3, +3]`，来自注入 RNG）。
+- 三层 AI 评分公式、置信度公式、决策表与 all-in 五重约束详见 `08-ai-controller.md`；本文不重复，以 08 为权威。
 - AI 决策输入必须显式传入，避免从全局状态偷读隐藏信息。
 - AI 每次决策返回可解释原因，方便调试 UI 展示。
 
@@ -313,6 +330,7 @@ V1 测试重点放在纯规则模块。
 - Fold 后结算。
 - 灾厄触发与 Air 差额消失。
 - 状态机主路径能完整跑完 5 回合或提前结束。
+- 平局处理：5 回合结束双方 Air 相同时，先用累计赢得底池作为第二判定；仍相同则进入至多一次决胜回合（`isTiebreaker`，`roundNumber` 保持 5、按 R5 收参加费，不占 5 回合数字牌名额；牌库无法生成合法 5 张成手则判平局 `draw`，不再加赛）。详见 `07-game-state-and-round-flow.md`。
 - AI 决策不能访问玩家隐藏成手字段。
 
 UI 测试 V1 可以保持轻量，优先用人工验收配合少量组件测试。

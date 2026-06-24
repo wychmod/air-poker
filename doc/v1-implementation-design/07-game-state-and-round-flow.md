@@ -99,7 +99,8 @@ type ErrorPayload = {
 
 ```ts
 type RoundHistoryEntry = {
-  roundNumber: number
+  roundNumber: number                     // 常规 R1-R5；决胜回合固定为 5（见决胜回合段）
+  isTiebreaker: boolean                   // true 表示该条目为决胜回合，与上一条 roundNumber=5 区分
   playerNumberCardId: NumberCardId
   aiNumberCardId: NumberCardId
   playerTargetValue: number
@@ -111,6 +112,8 @@ type RoundHistoryEntry = {
   resolution: RoundResolution           // 06 文档定义
 }
 ```
+
+UI 展示约定：结算页 `roundHistory` 出现两条 `roundNumber = 5` 时，必须用 `isTiebreaker` 标识第二条为决胜回合，避免误显示为重复 R5。
 
 仅在 `resolveCurrentRound` 完成后追加；`roundHistory` 在 `GameState` 全程保留（不进入 localStorage，详见 `settings.md` §3.4）。
 
@@ -290,7 +293,7 @@ type RoundHistoryEntry = {
 返回：
 
 - Bet 未结束：保持 `betting`，更新 BetState。
-- Bet 结束：进入 `showdown`。Bet 是否结束由 BettingEngine 按多轮 raise 计数收敛判定（任一方 `check / call / fold / all-in 响应` 即收敛，详见 `05-betting-engine.md`）。
+- Bet 结束：reducer 内部派发系统 action `betClosed`，由 `betClosed` 将 state 转入 `showdown`。Bet 是否结束由 BettingEngine 按多轮收敛判定（任一方 `check / call / fold / all-in 响应` 即收敛，详见 `05-betting-engine.md`）。`submitBetAction` 不直接跳 `showdown`，统一经 `betClosed` 转移，保证收敛判定与阶段转移解耦。
 
 失败方式：
 
