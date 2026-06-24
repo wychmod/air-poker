@@ -290,7 +290,7 @@ type RoundHistoryEntry = {
 返回：
 
 - Bet 未结束：保持 `betting`，更新 BetState。
-- Bet 结束：进入 `showdown`。
+- Bet 结束：进入 `showdown`。Bet 是否结束由 BettingEngine 按多轮 raise 计数收敛判定（任一方 `check / call / fold / all-in 响应` 即收敛，详见 `05-betting-engine.md`）。
 
 失败方式：
 
@@ -406,7 +406,7 @@ type RoundHistoryEntry = {
 10. `solveHands -> upperSelect`
 11. 玩家锁定成手，AI 内部锁定成手。
 12. `upperSelect -> betting`
-13. 玩家 Bet，AI 响应，必要时玩家再响应。
+13. 玩家与 AI 多轮下注，raise 计数收敛后进入摊牌（详见 `05-betting-engine.md`）。
 14. `betting -> showdown`
 15. 双方同时摊牌。
 16. `showdown -> resolve`

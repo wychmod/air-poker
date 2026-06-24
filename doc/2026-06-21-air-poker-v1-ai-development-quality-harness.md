@@ -171,11 +171,12 @@ npm run verify:full
 
 - 合法动作生成：check / call / raise / fold / all-in。
 - 非法动作拒绝（Air 不足、raise 超上限等）。
-- **Raise 上限**：增量 ≤ 场上 Bet 总额 1/2。
+- **min-raise**：raise 增量 ≥ 上次 raise 增量；增量 < 上次 raise 增量 → `raise-increment-below-minimum`。
+- **Raise 上限**：增量 ≤ 行动方剩余可下注 Air，且动作后单方累计下注 ≤ `totalBetLimit`。
 - **总 Bet 上限**：≤ 双方剩余可下注 Air 较少者。
 - **Fold 后胜负结算**。
-- **收敛**：玩家 → AI → 玩家再响应 → 结束（不允许无限循环）。
-- **30 秒超时**：自动 check / call / fold。
+- **收敛**：多轮下注，双方轮流行动，任一方 `check / call / fold` 或 `all-in` 响应即收敛；由 Air 与 `totalBetLimit` 自然终止，不设固定轮数上限。
+- **30 秒超时**：自动 check / call / fold（每次玩家回合重置）。
 - 玩家可选弃牌区用过牌后该轮 raise 仍合法（用过牌不影响下注逻辑）。
 
 #### calamity/
@@ -233,7 +234,7 @@ npm run verify:full
 | seed A | 正常 5 回合 |
 | seed B | 早期触发灾厄（双方下注后重叠） |
 | seed C | 一方 Air 提前归零 |
-| seed D | AI raise 后玩家二次响应 |
+| seed D | 多轮 raise 往返至收敛（含 min-raise 约束） |
 | seed E | 触发补牌重算（数字牌全不可解） |
 | seed F | 5 回合平局进入决胜回合 |
 | seed G | 决胜回合后仍平局（边界） |

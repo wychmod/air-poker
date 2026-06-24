@@ -209,7 +209,7 @@ type ScoreUpperInput = {
 
 作用：根据 AI lockedHand、玩家公开目标值可能范围和 BetState 选择下注动作。
 
-调用时机：**每次 `betting` 状态切换到 AI 行动方时**（即玩家提交 Bet 后、AI 收到 action 之前；或 AI raise 后玩家响应之前的初始 AI 决策），由 `round-flow.ts` 同步调用并产生系统 action `aiSubmittedBetAction`。
+调用时机：**每次 `betting` 状态切换到 AI 行动方时**，由 `round-flow.ts` 同步调用并产生系统 action `aiSubmittedBetAction`。多轮下注中 AI 每次轮到自己都重新调用（玩家 raise 后、AI 自身 raise 后玩家再响应后又轮到 AI 等），不限于首轮。
 
 返回：
 
@@ -514,6 +514,7 @@ confidence = clamp(
 - 若 `confidence` 仍处于强牌加压区间（`>= 0.85`），降级为最大合法 `raise`，**不**直接跳过下注；`fallbackReason` 填对应失败原因（如 `"air-below-5"`、`"all-in-cooldown"` 等）。
 - 若 `confidence < 0.85`，按决策表降级为 `call / check / fold`。
 - 降级"从 all-in 降为 raise"是 V1 唯一允许的 all-in 相关降级路径；不允许 all-in 失败后直接变 `check`（避免 AI 行为突兀）。
+- **多轮下注下的 all-in 收敛**：AI 实际 `allIn` 后，玩家只能 `call / fold`（不能再 `raise`），玩家响应后 Bet 关闭；若 AI 因约束失败降级为 `raise`，则 `raise` 后会继续轮到玩家，玩家可再 `raise / call / fold`，Bet 不立即关闭。
 
 ## 玩家可能成手摘要
 

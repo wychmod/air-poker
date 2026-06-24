@@ -228,6 +228,7 @@ type BettingPanelProps = {
 - 普通动作（`check` / `call` / `bet` / `raise`）直接 `onSubmitAction`。
 - `fold` 和 `allIn` 先 `onRequestDangerousConfirm`；hook 内部弹模态确认。
 - `raise/bet` 金额必须来自受控输入（步进器 + 数字输入框，详见 11 文档），提交前仍由 BettingEngine 校验（`validateBetAction` 二次校验）。
+  - 多轮下注中 `raise` 步进器/输入框的 `min` 值必须随 `LegalBetAction.minAmount`（= `getMinRaiseIncrement`，即上次 raise 增量）动态变化，确保玩家无法提交低于 min-raise 的加注。`max` 值随 `maxAmount` 变化。
 - 禁用按钮显示原因：
   - 用 `title` 属性（鼠标 hover）+ 按钮下方小字（移动端长按显示）。
   - 原因文本来自 `legalActions[i].disabledReason`（错误码 + 人类可读消息）。

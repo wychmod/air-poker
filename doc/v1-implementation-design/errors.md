@@ -60,7 +60,8 @@
 | `betting-closed` | 状态为 `closed` 时仍尝试提交 | `getLegalBetActions` / `validateBetAction` |
 | `action-not-legal` | 动作类型不在当前合法列表 | `validateBetAction` |
 | `invalid-amount` | 金额非整数或与动作类型不匹配 | `validateBetAction` |
-| `raise-exceeds-limit` | raise 增量 > `maxRaise` | `validateBetAction` |
+| `raise-exceeds-limit` | raise 增量 > `maxRaise`（Air / `totalBetLimit` 上限） | `validateBetAction` |
+| `raise-increment-below-minimum` | raise 增量 < `minRaise`（违反德州 min-raise，增量 < 上次 raise 增量） | `validateBetAction` |
 | `bet-exceeds-total-limit` | 动作后单方累计下注 > `totalBetLimit` | `validateBetAction` |
 | `insufficient-air` | call 金额 > 当前方剩余可下注 Air | `validateBetAction` |
 | `no-fold-without-pressure` | 场上 Bet = 0 时尝试 fold | `validateBetAction` |
