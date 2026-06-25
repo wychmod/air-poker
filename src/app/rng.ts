@@ -1,5 +1,6 @@
 import { createAppError } from '../domain/errors';
 import type { Rng } from '../domain/cards/deck';
+import { logDebugEvent } from './debug-log';
 
 let fallbackCounter = 0;
 
@@ -50,16 +51,26 @@ function sfc32(a: number, b: number, c: number, d: number): Rng {
 
 export function createSeededRng(seed: string | number): Rng {
   if (seed === '') {
+    logDebugEvent('rng:seeded-rejected', { code: 'empty-seed' }, { level: 'warn' });
     throw createAppError('empty-seed', 'Seed cannot be empty');
   }
 
   if (typeof seed === 'number' && !Number.isFinite(seed)) {
+    logDebugEvent(
+      'rng:seeded-rejected',
+      { code: 'invalid-seed', seed },
+      { level: 'warn' },
+    );
     throw createAppError('invalid-seed', 'Seed number must be finite', {
       details: { seed },
     });
   }
 
   const state = typeof seed === 'string' ? xfnv1a(seed) : numericSeedToState(seed);
+  logDebugEvent('rng:seeded-created', {
+    seed,
+    seedType: typeof seed,
+  });
 
   return sfc32(...state);
 }
@@ -75,16 +86,23 @@ export function createRuntimeSeed(): string {
       byte.toString(16).padStart(2, '0'),
     ).join('');
 
-    return `${timestamp}-${randomHex}`;
+    const seed = `${timestamp}-${randomHex}`;
+    logDebugEvent('rng:runtime-seed-created', { seed, source: 'crypto' });
+
+    return seed;
   }
 
   fallbackCounter = (fallbackCounter + 1) & 0xffff;
 
-  return `${timestamp}-${fallbackCounter.toString(16).padStart(4, '0')}`;
+  const seed = `${timestamp}-${fallbackCounter.toString(16).padStart(4, '0')}`;
+  logDebugEvent('rng:runtime-seed-created', { seed, source: 'fallback-counter' });
+
+  return seed;
 }
 
 export function createRuntimeRng(): { seed: string; rng: Rng } {
   const seed = createRuntimeSeed();
+  logDebugEvent('rng:runtime-created', { seed });
 
   return {
     seed,
