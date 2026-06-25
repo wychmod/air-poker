@@ -443,7 +443,7 @@ UI 展示约定：结算页 `roundHistory` 出现两条 `roundNumber = 5` 时，
 - `isTiebreaker = true`、`roundNumber = 5`（保持 5，便于 `applyRoundCosts` 按 R5 = 5 收费）。
 - 决胜回合费用按 R5 口径处理：呼吸 1 Air + 参加费 5 Air。
 - 若双方仍有 `status === "available"` 的可解数字牌，继续使用（不再生成新数字牌）。
-- 若没有可用数字牌，从当前 `deckState.drawPile` 临时生成数字牌：`replaceUnsolvableNumberCard` 逻辑的复用，按 `targetValue = proofHand.pointValue 和` 计算（不允许凭空生成整数）。
+- **V1 实际口径（2026-06-26 落盘修订）**：若某方无可用可解数字牌，**该方判负**（视为已无牌可打），进入 `gameOver`，`endReason = "earlyTermination"`、`outcome` 按对方胜；双方都无可用可解数字牌则判平局，`endReason = "draw"`、`outcome = "tie"`。**不再从 `drawPile` 临时生成数字牌**。
 - 决胜后仍平局：直接判平局，`phase = "gameOver"`、`finalResult.outcome = "tie"`、`endReason = "draw"`。
 - **不允许无限追加决胜**——V1 只允许一次决胜。
 
