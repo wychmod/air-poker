@@ -62,15 +62,24 @@ export type RoundResolution = {
 
 export type RoundResolutionResult =
   | { ok: true; resolution: RoundResolution }
-  | { ok: false; code: string };
+  | {
+      ok: false;
+      code: 'missing-locked-hand' | 'invalid-escrow' | 'missing-public-target';
+    };
 
 export type ResolveRoundInput = {
-  playerHand: LockedHand;
-  aiHand: LockedHand;
+  playerHand: LockedHand | null;
+  aiHand: LockedHand | null;
   foldState: FoldState;
   escrow: RoundEscrow;
   playerAirAfterEscrow: number;
   aiAirAfterEscrow: number;
+  publicTargets: {
+    playerNumberCardId: string | null;
+    aiNumberCardId: string | null;
+    playerTargetValue: number | null;
+    aiTargetValue: number | null;
+  };
 };
 
 export type DetermineRoundWinnerInput = {
@@ -280,10 +289,20 @@ export function resolveRound(input: ResolveRoundInput): RoundResolutionResult {
     escrow,
     playerAirAfterEscrow,
     aiAirAfterEscrow,
+    publicTargets,
   } = input;
 
   if (playerHand === null || aiHand === null) {
     return { ok: false, code: 'missing-locked-hand' };
+  }
+
+  if (
+    publicTargets.playerNumberCardId === null ||
+    publicTargets.aiNumberCardId === null ||
+    publicTargets.playerTargetValue === null ||
+    publicTargets.aiTargetValue === null
+  ) {
+    return { ok: false, code: 'missing-public-target' };
   }
 
   try {

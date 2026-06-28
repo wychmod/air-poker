@@ -276,7 +276,7 @@ describe('game-reducer/lowerSelect ordering', () => {
     ).toBe(playerCardId);
   });
 
-  it('player selectNumberCard before AI preselect writes missing-ai-locked-hand', () => {
+  it('player selectNumberCard before AI preselect writes missing-ai-number-card', () => {
     const inputs = buildGameInputs('seed-A');
     const idle = createIdleState(DEFAULT_SETTINGS);
     let state = gameReducer(idle, {
@@ -292,8 +292,60 @@ describe('game-reducer/lowerSelect ordering', () => {
       type: 'selectNumberCard',
       numberCardId: playerCardId,
     });
-    expect(after.lastError?.code).toBe('missing-ai-locked-hand');
+    expect(after.lastError?.code).toBe('missing-ai-number-card');
     expect(after.phase).toBe('lowerSelect');
+  });
+});
+
+describe('game-reducer/round costs edge cases', () => {
+  it('cannotPayAnte zeroes both air when both sides short', () => {
+    const inputs = buildGameInputs('seed-both');
+    const idle = createIdleState(DEFAULT_SETTINGS);
+    let state = gameReducer(idle, {
+      type: 'initializationSucceeded',
+      seed: 'seed-both',
+      deckState: inputs.deckState,
+      numberCards: inputs.numberCards,
+      settingsSnapshot: DEFAULT_SETTINGS,
+    });
+    // R5 ante=5。设双方 Air 不足以支付 R5 参加费（呼吸后都 < 5）。
+    state = {
+      ...state,
+      roundNumber: 5,
+      playerAir: 3,
+      aiAir: 3,
+    };
+    const after = gameReducer(state, { type: 'applyRoundCosts' });
+    expect(after.phase).toBe('gameOver');
+    expect(after.lastError?.code).toBe('cannotPayAnte');
+    // 双方同时不足参加费：Air 归零。
+    expect(after.playerAir).toBe(0);
+    expect(after.aiAir).toBe(0);
+  });
+
+  it('cannotPayBreathingCost only zeroes short side, leaves solvent side untouched', () => {
+    const inputs = buildGameInputs('seed-breath2');
+    const idle = createIdleState(DEFAULT_SETTINGS);
+    let state = gameReducer(idle, {
+      type: 'initializationSucceeded',
+      seed: 'seed-breath2',
+      deckState: inputs.deckState,
+      numberCards: inputs.numberCards,
+      settingsSnapshot: DEFAULT_SETTINGS,
+    });
+    // 玩家 Air 0（不足呼吸），AI Air 5（够呼吸）。
+    state = {
+      ...state,
+      roundNumber: 1,
+      playerAir: 0,
+      aiAir: 5,
+    };
+    const after = gameReducer(state, { type: 'applyRoundCosts' });
+    expect(after.phase).toBe('gameOver');
+    expect(after.lastError?.code).toBe('cannotPayBreathingCost');
+    // 不足方归零，够方不扣呼吸。
+    expect(after.playerAir).toBe(0);
+    expect(after.aiAir).toBe(5);
   });
 });
 
@@ -752,4 +804,3 @@ describe('game-reducer/full game idle to gameOver', () => {
     }
   }, 60_000);
 });
-

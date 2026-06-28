@@ -58,8 +58,20 @@ const baseEscrow: RoundEscrow = {
   aiBet: 5,
 };
 
-function resolveOk(input: Parameters<typeof resolveRound>[0]) {
-  const result = resolveRound(input);
+// resolveRound 入参默认带完整 publicTargets（resolveOk 用例都不关心该字段，
+// 但 resolveRound 现在要求非空校验）。
+const basePublicTargets = {
+  playerNumberCardId: 'N-01' as const,
+  aiNumberCardId: 'N-06' as const,
+  playerTargetValue: 30,
+  aiTargetValue: 31,
+};
+
+function resolveOk(input: Omit<Parameters<typeof resolveRound>[0], 'publicTargets'>) {
+  const result = resolveRound({
+    ...input,
+    publicTargets: basePublicTargets,
+  });
   if (!result.ok) {
     throw new Error(`Expected resolveRound to succeed, got code=${result.code}`);
   }
@@ -444,6 +456,7 @@ describe('round-resolution/error handling', () => {
       escrow: { playerAnte: -1, aiAnte: 1, playerBet: 5, aiBet: 5 },
       playerAirAfterEscrow: 14,
       aiAirAfterEscrow: 14,
+      publicTargets: basePublicTargets,
     });
     expect(result).toMatchObject({ ok: false, code: 'invalid-escrow' });
   });
@@ -457,8 +470,42 @@ describe('round-resolution/error handling', () => {
       escrow: { playerAnte: 1, aiAnte: 1, playerBet: 5.5, aiBet: 5 },
       playerAirAfterEscrow: 14,
       aiAirAfterEscrow: 14,
+      publicTargets: basePublicTargets,
     });
     expect(result).toMatchObject({ ok: false, code: 'invalid-escrow' });
+  });
+
+  it('returns missing-locked-hand when playerHand is null', () => {
+    const { ai } = tiedHighCardHands();
+    const result = resolveRound({
+      playerHand: null,
+      aiHand: ai,
+      foldState: 'none',
+      escrow: baseEscrow,
+      playerAirAfterEscrow: 14,
+      aiAirAfterEscrow: 14,
+      publicTargets: basePublicTargets,
+    });
+    expect(result).toMatchObject({ ok: false, code: 'missing-locked-hand' });
+  });
+
+  it('returns missing-public-target when publicTargets fields are null', () => {
+    const { player, ai } = tiedHighCardHands();
+    const result = resolveRound({
+      playerHand: player,
+      aiHand: ai,
+      foldState: 'none',
+      escrow: baseEscrow,
+      playerAirAfterEscrow: 14,
+      aiAirAfterEscrow: 14,
+      publicTargets: {
+        playerNumberCardId: null,
+        aiNumberCardId: 'N-06',
+        playerTargetValue: 30,
+        aiTargetValue: 31,
+      },
+    });
+    expect(result).toMatchObject({ ok: false, code: 'missing-public-target' });
   });
 });
 

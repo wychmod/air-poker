@@ -92,6 +92,8 @@
 | `wrong-phase` | 当前 phase 不允许此 action | `gameReducer` |
 | `invalid-hand-selection` | `handId` 不在当前候选成手列表 | `lockPlayerHand` |
 | `missing-ai-locked-hand` | 进入 Bet 时 AI 仍未锁定成手 | `enterBetting` |
+| `missing-ai-number-card` | 玩家选数字牌时 AI 尚未预选数字牌 | `selectNumberCard` |
+| `missing-public-target` | resolve 阶段 publicTargets 字段缺失 | `resolveRound` |
 | `cannotPayBreathingCost` | 某方 Air 不足 1 支付呼吸成本 | `applyRoundCosts` |
 | `cannotPayAnte` | 某方 Air 不足 R 支付参加费 | `applyRoundCosts` |
 

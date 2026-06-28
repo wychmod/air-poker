@@ -22,6 +22,7 @@ import {
   solveHands,
   summarizeSolvedHands,
 } from '../hand/hand-solver';
+import { detectCalamity } from '../calamity/calamity-engine';
 import type { LastResultSummary, Outcome, EndReason, Settings } from '../../app/settings';
 import type { ErrorPayload } from '../errors';
 import type { Ante, CurrentRound, GameState, RoundHistoryEntry } from './game-state';
@@ -95,17 +96,6 @@ function emptySummary() {
   };
 }
 
-function collectOverlapping(player: Card[], ai: Card[]): CardId[] {
-  const aiIds = new Set(ai.map((card) => card.id));
-  const overlapping = new Set<CardId>();
-  for (const card of player) {
-    if (aiIds.has(card.id)) {
-      overlapping.add(card.id);
-    }
-  }
-  return [...overlapping].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-}
-
 // ---------- 初始状态 ----------
 
 export function createIdleState(settingsSnapshot: Settings): GameState {
@@ -162,43 +152,47 @@ function applyRoundCosts(state: GameState): GameState {
   }
 
   const ante = roundAnte(state);
-  let playerAir = state.playerAir;
-  let aiAir = state.aiAir;
+  const playerAir = state.playerAir;
+  const aiAir = state.aiAir;
 
-  // 1. 呼吸成本：双方各扣 1。不足方判负 / 平局（呼吸不回滚）。
-  if (playerAir < BREATHING_COST || aiAir < BREATHING_COST) {
+  // 1. 呼吸成本：双方各扣 1。严格按文档「某方不足 1 进入 gameOver」——
+  //    不足时只对不足方处理，够的一方不扣这 1 点呼吸。
+  const playerShortBreath = playerAir < BREATHING_COST;
+  const aiShortBreath = aiAir < BREATHING_COST;
+  if (playerShortBreath || aiShortBreath) {
     const deducted: GameState = {
       ...state,
-      playerAir: Math.max(playerAir - BREATHING_COST, 0),
-      aiAir: Math.max(aiAir - BREATHING_COST, 0),
+      playerAir: playerShortBreath ? 0 : playerAir,
+      aiAir: aiShortBreath ? 0 : aiAir,
     };
     return finishGameFromEarly(
       setError(deducted, 'cannotPayBreathingCost', '某方 Air 不足以支付呼吸成本'),
       'earlyTermination',
     );
   }
-  playerAir -= BREATHING_COST;
-  aiAir -= BREATHING_COST;
 
   // 2. 参加费：双方各扣 R（决胜 R=5）。呼吸扣减不回滚。
-  if (playerAir < ante || aiAir < ante) {
+  const playerShortAnte = playerAir - BREATHING_COST < ante;
+  const aiShortAnte = aiAir - BREATHING_COST < ante;
+  if (playerShortAnte || aiShortAnte) {
+    // 双方同时不足参加费：按文档「双方 Air 归零」进入 gameOver。
+    // 单方不足：不足方扣到 0（参加费按应有额扣但 Air 不为负），够方扣参加费。
+    const bothShort = playerShortAnte && aiShortAnte;
     const deducted: GameState = {
       ...state,
-      playerAir: Math.max(playerAir - ante, 0),
-      aiAir: Math.max(aiAir - ante, 0),
+      playerAir: bothShort ? 0 : playerShortAnte ? 0 : playerAir - BREATHING_COST - ante,
+      aiAir: bothShort ? 0 : aiShortAnte ? 0 : aiAir - BREATHING_COST - ante,
     };
     return finishGameFromEarly(
       setError(deducted, 'cannotPayAnte', '某方 Air 不足以支付参加费'),
       'earlyTermination',
     );
   }
-  playerAir -= ante;
-  aiAir -= ante;
 
   return {
     ...clearError(state),
-    playerAir,
-    aiAir,
+    playerAir: playerAir - BREATHING_COST - ante,
+    aiAir: aiAir - BREATHING_COST - ante,
     phase: 'lowerSelect',
     currentRound: {
       phase: 'lowerSelect',
@@ -261,7 +255,7 @@ function applySelectNumberCard(
   const lower = state.currentRound;
 
   if (lower.publicTargets.aiNumberCardId === null) {
-    return setError(state, 'missing-ai-locked-hand', 'AI 数字牌尚未预选');
+    return setError(state, 'missing-ai-number-card', 'AI 数字牌尚未预选');
   }
 
   const marked = markNumberCardUsed(state.numberCards.player, action.numberCardId);
@@ -515,10 +509,10 @@ function applyBetClosed(state: GameState): GameState {
       showdown: {
         playerLockedHand: betting.playerLockedHand,
         aiLockedHand: betting.aiLockedHand,
-        overlappingCardIds: collectOverlapping(
+        overlappingCardIds: detectCalamity(
           betting.playerLockedHand.effectiveCards,
           betting.aiLockedHand.effectiveCards,
-        ),
+        ).overlappingCardIds,
       },
       foldState: betting.foldState,
       ante: betting.ante,
@@ -568,6 +562,8 @@ function applyResolveRound(state: GameState): GameState {
 
   // playerAirAfterEscrow：扣完呼吸 + 参加费 + 下注后的余额 = 当前 playerAir
   // （reducer 在扣费 / 下注时已实时扣减 Air）。
+  // publicTargets 在 resolve 入口校验非空（resolveRound 内部也会校验并返回
+  // missing-public-target），避免 appendRoundHistory 用非空断言读 null。
   const result = resolveRound({
     playerHand: resolve.playerLockedHand,
     aiHand: resolve.aiLockedHand,
@@ -575,6 +571,7 @@ function applyResolveRound(state: GameState): GameState {
     escrow,
     playerAirAfterEscrow: state.playerAir,
     aiAirAfterEscrow: state.aiAir,
+    publicTargets: resolve.publicTargets,
   });
   if (!result.ok) {
     return setError(state, result.code, '回合结算失败');
@@ -643,14 +640,17 @@ function appendRoundHistory(
   escrow: RoundEscrow,
   resolution: RoundResolution,
 ): RoundHistoryEntry[] {
+  // resolveRound 已校验 publicTargets 四字段非空（缺失返回 missing-public-target），
+  // 调用方在 result.ok 为 true 后才走到这里，故字段必然有值。
+  // 用显式兜底取值，避免非空断言掩盖上游漏写。
   const publicTargets = resolve.publicTargets;
   const entry: RoundHistoryEntry = {
     roundNumber: state.roundNumber,
     isTiebreaker: state.isTiebreaker,
-    playerNumberCardId: publicTargets.playerNumberCardId!,
-    aiNumberCardId: publicTargets.aiNumberCardId!,
-    playerTargetValue: publicTargets.playerTargetValue!,
-    aiTargetValue: publicTargets.aiTargetValue!,
+    playerNumberCardId: publicTargets.playerNumberCardId ?? ('' as NumberCardId),
+    aiNumberCardId: publicTargets.aiNumberCardId ?? ('' as NumberCardId),
+    playerTargetValue: publicTargets.playerTargetValue ?? 0,
+    aiTargetValue: publicTargets.aiTargetValue ?? 0,
     playerHand: resolve.playerLockedHand,
     aiHand: resolve.aiLockedHand,
     betActions: resolve.betActions,

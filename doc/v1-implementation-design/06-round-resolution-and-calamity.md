@@ -69,7 +69,7 @@ type RoundResolution = {
 
 type RoundResolutionResult =
   | { ok: true; resolution: RoundResolution }
-  | { ok: false; code: "missing-locked-hand" | "invalid-escrow" }
+  | { ok: false; code: "missing-locked-hand" | "invalid-escrow" | "missing-public-target" }
 ```
 
 > `returnedAir` 字段已改名为 `escrowDistribution`，因为"退还"语义只对平手完整成立；胜方拿到的"含对手下注"不是退还。详见下文。
@@ -84,12 +84,18 @@ type RoundResolutionResult =
 
 ```ts
 type ResolveRoundInput = {
-  playerHand: LockedHand
-  aiHand: LockedHand
+  playerHand: LockedHand | null
+  aiHand: LockedHand | null
   foldState: FoldState
   escrow: RoundEscrow
   playerAirAfterEscrow: number          // 扣完呼吸、参加费、下注后的玩家 Air
   aiAirAfterEscrow: number              // 扣完呼吸、参加费、下注后的 AI Air
+  publicTargets: {                       // 回合历史所需，四字段必须非空
+    playerNumberCardId: string | null
+    aiNumberCardId: string | null
+    playerTargetValue: number | null
+    aiTargetValue: number | null
+  }
 }
 ```
 
@@ -109,6 +115,7 @@ type ResolveRoundInput = {
 
 - 缺少任一 locked hand 时返回 `{ ok: false, code: "missing-locked-hand" }`。
 - escrow 中出现负数或非整数时返回 `{ ok: false, code: "invalid-escrow" }`。
+- `publicTargets` 任一字段为 null 时返回 `{ ok: false, code: "missing-public-target" }`。
 
 调用方：
 
