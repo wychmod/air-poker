@@ -20,8 +20,9 @@ import {
   createSelectableCards,
   isNumberCardSolvable,
   solveHands,
-  summarizeSolvedHands,
 } from '../hand/hand-solver';
+import { createEmptyPlayerPossibleHandSummary } from '../ai/lower-ai';
+import { createPlayerPossibleHandSummary } from '../ai/ai-controller';
 import { detectCalamity } from '../calamity/calamity-engine';
 import type { LastResultSummary, Outcome, EndReason, Settings } from '../../app/settings';
 import type { ErrorPayload } from '../errors';
@@ -87,13 +88,7 @@ function buildLockedHand(effectiveCards: Card[]): LockedHand {
 }
 
 function emptySummary() {
-  return {
-    totalCount: 0,
-    allUnusedCount: 0,
-    containsUsedCount: 0,
-    minUsedCardCount: 0,
-    maxUsedCardCount: 0,
-  };
+  return createEmptyPlayerPossibleHandSummary(0);
 }
 
 // ---------- 初始状态 ----------
@@ -429,6 +424,7 @@ function applyEnterBetting(
     currentRound: {
       phase: 'betting',
       publicTargets: upper.publicTargets,
+      playerPossibleHandSummary: upper.playerPossibleHandSummary,
       playerLockedHand: playerLocked,
       aiLockedHand: upper.aiLockedHand,
       betState,
@@ -467,6 +463,7 @@ function applySubmitBetAction(
     currentRound: {
       phase: 'betting',
       publicTargets: betting.publicTargets,
+      playerPossibleHandSummary: betting.playerPossibleHandSummary,
       playerLockedHand: betting.playerLockedHand,
       aiLockedHand: betting.aiLockedHand,
       betState: result.state,
@@ -966,6 +963,7 @@ export function enumeratePlayerCandidateHands(
   targetValue: number,
   drawPile: Card[],
   discardPile: Card[],
+  roundNumber = 0,
 ) {
   const selectableCards = createSelectableCards(drawPile, discardPile);
   const result = solveHands({
@@ -974,6 +972,10 @@ export function enumeratePlayerCandidateHands(
     mode: 'upperSelection',
   });
   const ranked = rankSolvedHands(result.hands);
-  const summary = summarizeSolvedHands(result.hands);
+  const summary = createPlayerPossibleHandSummary({
+    playerTargetValue: targetValue,
+    playerCandidateHands: result.hands,
+    roundNumber,
+  });
   return { ranked, summary, count: result.count };
 }

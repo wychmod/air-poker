@@ -82,7 +82,7 @@
 | `no-solvable-number-card` | AI 剩余数字牌全部不可解 | `chooseLowerNumberCard` |
 | `no-upper-hand-candidates` | AI 候选成手为空 | `chooseUpperHand` |
 | `all-in-cooldown` | 上次 all-in 后不足 1 回合 | `checkAllInAllowed` |
-| `all-in-exhausted` | 本局 AI 已 all-in 2 次 | `checkAllInAllowed` |
+| `all-in-count-exhausted` | 本局 AI 已 all-in 2 次 | `checkAllInAllowed` |
 | `ai-honest-info-access` | AI 访问了 DTO 上未声明字段（运行期检测） | AI 函数入口断言 |
 
 ## 8. Game State（07 文档）

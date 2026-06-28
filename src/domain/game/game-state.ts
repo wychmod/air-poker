@@ -9,7 +9,7 @@ import type { DeckState } from '../cards/deck-state';
 import type { NumberCard, NumberCardId } from '../cards/number-card-generator';
 import type { BetAction, BetState } from '../betting/betting-rules';
 import type { EvaluatedHand, RankedSolvedHand } from '../hand/hand-evaluator';
-import type { SolvedHandSummary } from '../hand/hand-solver';
+import type { PlayerPossibleHandSummary } from '../ai/ai-types';
 import type { ErrorPayload } from '../errors';
 import type {
   FoldState,
@@ -87,13 +87,13 @@ export type LowerSelectData = {
 
 export type SolveHandsData = {
   publicTargets: PublicTargets;
-  playerPossibleHandSummary: SolvedHandSummary;
+  playerPossibleHandSummary: PlayerPossibleHandSummary;
 };
 
 export type UpperSelectData = {
   publicTargets: PublicTargets;
   playerCandidateHands: RankedSolvedHand[];
-  playerPossibleHandSummary: SolvedHandSummary;
+  playerPossibleHandSummary: PlayerPossibleHandSummary;
   playerLockedHand: LockedHand | null;
   autoLocked: boolean;
   aiLockedHand: LockedHand | null;
@@ -101,6 +101,7 @@ export type UpperSelectData = {
 
 export type BettingData = {
   publicTargets: PublicTargets;
+  playerPossibleHandSummary: PlayerPossibleHandSummary;
   playerLockedHand: LockedHand;
   aiLockedHand: LockedHand;
   betState: BetState;
@@ -213,7 +214,7 @@ export type {
   BetState,
   EvaluatedHand,
   RankedSolvedHand,
-  SolvedHandSummary,
+  PlayerPossibleHandSummary,
   FoldState,
   LockedHand,
   RoundEscrow,

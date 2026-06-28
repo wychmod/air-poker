@@ -8,19 +8,19 @@ import {
 } from '../cards/number-card-generator';
 import { isNumberCardSolvable } from '../hand/hand-solver';
 import type { RankedSolvedHand } from '../hand/hand-evaluator';
-import { evaluateHand, rankSolvedHands } from '../hand/hand-evaluator';
-import { createSelectableCards, solveHands } from '../hand/hand-solver';
 import type { Rng } from '../cards/deck';
 import { createSeededRng } from '../../app/rng';
 import type { Settings } from '../../app/settings';
+import { createLockedHandFromSolvedHand } from '../ai/ai-controller';
 import {
   createIdleState,
   enumeratePlayerCandidateHands,
   gameReducer,
 } from './game-reducer';
 import type { GameState } from './game-state';
-import type { AiDecisionFunctions } from './round-flow';
-import { planSystemActions } from './round-flow';
+import type { AiDecisionFunctions, UpperAiView } from './round-flow';
+import { createDeterministicAiStub, planSystemActions } from './round-flow';
+import type { LockedHand } from './round-resolution';
 
 // 收窄 state 到指定 phase 分支，避免在 currentRound union 上读字段报错。
 function stateOf<P extends GameState['phase']>(
@@ -78,33 +78,12 @@ function firstAvailableNumberCardId(cards: NumberCard[]): NumberCardId {
 
 // 确定性 AI stub：lower 选第一张可用可解数字牌；upper 选最强候选；betting check/fold。
 function buildDeterministicAi(): AiDecisionFunctions {
-  return {
-    chooseLowerNumberCard: (view) => {
-      const card = view.aiNumberCards.find(
-        (c) => c.status === 'available' && isNumberCardSolvable(c.value, view.drawPile),
-      );
-      return card === undefined ? null : card.id;
-    },
-    chooseUpperHand: (view) => {
-      const selectable = createSelectableCards(view.drawPile, view.discardPile);
-      const result = solveHands({
-        targetValue: view.aiTargetValue,
-        selectableCards: selectable,
-        mode: 'upperSelection',
-      });
-      const ranked = rankSolvedHands(result.hands);
-      const best = ranked[0];
-      if (best === undefined) {
-        return null;
-      }
-      return {
-        selectedCards: [...best.solvedHand.effectiveCards],
-        effectiveCards: [...best.solvedHand.effectiveCards],
-        evaluatedHand: evaluateHand(best.solvedHand.effectiveCards),
-      };
-    },
-    chooseBetAction: () => ({ actor: 'ai', type: 'check', amount: 0 }),
-  };
+  return createDeterministicAiStub(firstCandidateHand);
+}
+
+function firstCandidateHand(view: UpperAiView): LockedHand | null {
+  const best = view.candidateHands[0];
+  return best === undefined ? null : createLockedHandFromSolvedHand(best);
 }
 
 // 把 planSystemActions 产出的系统动作逐个 dispatch，返回推进后的 state。
@@ -395,7 +374,7 @@ describe('game-reducer/upperSelect and betting', () => {
     // 用枚举产 solveHandsSucceeded，但不产 aiLockedHand（用一个永不锁定的 AI stub）。
     const neverLockAi: AiDecisionFunctions = {
       ...buildDeterministicAi(),
-      chooseUpperHand: () => null,
+      chooseUpperHand: () => ({ ok: false, code: 'no-upper-hand-candidates' }),
     };
     state = pumpSystemActions(state, neverLockAi);
     expect(state.phase).toBe('upperSelect');
@@ -712,7 +691,7 @@ describe('enumeratePlayerCandidateHands', () => {
     );
     expect(count).toBeGreaterThan(0);
     expect(ranked.length).toBeGreaterThan(0);
-    expect(summary.totalCount).toBe(count);
+    expect(summary.totalCandidateCount).toBe(count);
     // ranked 按 rank 升序，最强在 index 0。
     const first: RankedSolvedHand = ranked[0]!;
     expect(first.rank).toBe(1);

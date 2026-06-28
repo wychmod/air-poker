@@ -8,7 +8,7 @@ import type { BetAction } from '../betting/betting-rules';
 import type { NumberCardId } from '../cards/number-card-generator';
 import type { LastResultSummary, Settings } from '../../app/settings';
 import type { RankedSolvedHand } from '../hand/hand-evaluator';
-import type { SolvedHandSummary } from '../hand/hand-solver';
+import type { PlayerPossibleHandSummary } from '../ai/ai-types';
 import type { DeckState, LockedHand, NumberCard } from './game-state';
 import type { Outcome, EndReason } from '../../app/settings';
 
@@ -112,7 +112,7 @@ export type AiSelectedNumberCardAction = {
 export type SolveHandsSucceededAction = {
   type: 'solveHandsSucceeded';
   playerCandidateHands: RankedSolvedHand[];
-  playerPossibleHandSummary: SolvedHandSummary;
+  playerPossibleHandSummary: PlayerPossibleHandSummary;
 };
 
 export type SolveHandsFailedAction = {

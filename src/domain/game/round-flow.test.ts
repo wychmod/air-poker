@@ -7,14 +7,14 @@ import {
   type NumberCardId,
 } from '../cards/number-card-generator';
 import { isNumberCardSolvable } from '../hand/hand-solver';
-import { createSelectableCards, solveHands } from '../hand/hand-solver';
-import { evaluateHand, rankSolvedHands } from '../hand/hand-evaluator';
 import { createSeededRng } from '../../app/rng';
 import type { Settings } from '../../app/settings';
 import { createIdleState, gameReducer } from './game-reducer';
 import type { GameState } from './game-state';
-import type { AiDecisionFunctions } from './round-flow';
-import { planSystemActions } from './round-flow';
+import type { AiDecisionFunctions, UpperAiView } from './round-flow';
+import { createDeterministicAiStub, planSystemActions } from './round-flow';
+import { createLockedHandFromSolvedHand } from '../ai/ai-controller';
+import type { LockedHand } from './round-resolution';
 
 const DEFAULT_SETTINGS: Settings = {
   version: 1,
@@ -56,33 +56,12 @@ function firstAvailable(cards: NumberCard[]): NumberCardId {
 
 // 确定性 AI stub：lower 选第一张可用可解；upper 选最强候选；betting check。
 function deterministicAi(): AiDecisionFunctions {
-  return {
-    chooseLowerNumberCard: (view) => {
-      const card = view.aiNumberCards.find(
-        (c) => c.status === 'available' && isNumberCardSolvable(c.value, view.drawPile),
-      );
-      return card === undefined ? null : card.id;
-    },
-    chooseUpperHand: (view) => {
-      const selectable = createSelectableCards(view.drawPile, view.discardPile);
-      const result = solveHands({
-        targetValue: view.aiTargetValue,
-        selectableCards: selectable,
-        mode: 'upperSelection',
-      });
-      const ranked = rankSolvedHands(result.hands);
-      const best = ranked[0];
-      if (best === undefined) {
-        return null;
-      }
-      return {
-        selectedCards: [...best.solvedHand.effectiveCards],
-        effectiveCards: [...best.solvedHand.effectiveCards],
-        evaluatedHand: evaluateHand(best.solvedHand.effectiveCards),
-      };
-    },
-    chooseBetAction: () => ({ actor: 'ai', type: 'check', amount: 0 }),
-  };
+  return createDeterministicAiStub(firstCandidateHand);
+}
+
+function firstCandidateHand(view: UpperAiView): LockedHand | null {
+  const best = view.candidateHands[0];
+  return best === undefined ? null : createLockedHandFromSolvedHand(best);
 }
 
 // 推进到 lowerSelect 阶段。

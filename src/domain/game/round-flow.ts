@@ -1,21 +1,28 @@
-// round-flow.ts：V1 回合编排层。详见
-// `doc/v1-implementation-design/07-game-state-and-round-flow.md`「AI 决策的同步/异步」。
-//
-// 职责：在适当时机调用 AI 决策函数，把结果作为系统动作返回给调用方 dispatch。
-// - roundStart -> lowerSelect：调用 chooseLowerNumberCard 产 aiSelectedNumberCard。
-// - upperSelect：调用 chooseUpperHand 产 aiLockedHand（在玩家 enterBetting 前）。
-// - betting（awaitingAi）：调用 chooseBetAction 产 aiSubmittedBetAction。
-//
-// 本层不直接修改 GameState，只返回待 dispatch 的系统动作列表。
-// 真实 AI 决策（LowerAI/UpperAI/BettingAI）属于 08，本层通过注入点接收。
-// 玩家候选成手枚举由本层在 solveHands 阶段调用 enumeratePlayerCandidateHands 产
-// solveHandsSucceeded 系统动作。
-
-import type { BetAction } from '../betting/betting-rules';
+import { getLegalBetActions } from '../betting/betting-engine';
+import type { BetAction, BetState, LegalBetAction } from '../betting/betting-rules';
 import type { Card } from '../cards/card';
-import type { NumberCardId } from '../cards/number-card-generator';
+import type { Rng } from '../cards/deck';
+import type { NumberCard } from '../cards/number-card-generator';
+import type {
+  AiAllInState,
+  BettingAiDecision,
+  BettingAiInput,
+  LowerAiDecision,
+  LowerAiInput,
+  PlayerPossibleHandSummary,
+  UpperAiDecision,
+  UpperAiInput,
+} from '../ai/ai-types';
+import {
+  chooseBetAction,
+  chooseLowerNumberCard,
+  chooseUpperHand,
+  calculateAiHandPercentile,
+  createHandId,
+  createLockedHandFromSolvedHand,
+} from '../ai/ai-controller';
+import { createSelectableCards, solveHands, type SolvedHand } from '../hand/hand-solver';
 import type { RankedSolvedHand } from '../hand/hand-evaluator';
-import type { SolvedHandSummary } from '../hand/hand-solver';
 import type { GameState } from './game-state';
 import type {
   AiLockedHandAction,
@@ -26,40 +33,20 @@ import type {
 import type { LockedHand } from './round-resolution';
 import { enumeratePlayerCandidateHands } from './game-reducer';
 
-// AI 决策注入点。08 实现真实策略；测试可注入确定性 stub。
+export type LowerAiView = LowerAiInput;
+export type UpperAiView = UpperAiInput & {
+  drawPile: Card[];
+  roundNumber: number;
+  isTiebreaker: boolean;
+};
+export type BettingAiView = BettingAiInput;
+
 export type AiDecisionFunctions = {
-  // lowerSelect 阶段：AI 选择可用可解数字牌。返回 null 表示无可用牌（由 reducer 判负）。
-  chooseLowerNumberCard: (view: LowerAiView) => NumberCardId | null;
-  // upperSelect 阶段：AI 锁定成手。返回 null 表示无候选。
-  chooseUpperHand: (view: UpperAiView) => LockedHand | null;
-  // betting 阶段（awaitingAi）：AI 选择下注动作。
-  chooseBetAction: (view: BettingAiView) => BetAction;
+  chooseLowerNumberCard: (view: LowerAiView) => LowerAiDecision;
+  chooseUpperHand: (view: UpperAiView) => UpperAiDecision;
+  chooseBetAction: (view: BettingAiView) => BettingAiDecision;
 };
 
-// AI 公平信息边界：只暴露 AI 决策应可见的字段，不传入完整 GameState（08 钉死）。
-export type LowerAiView = {
-  aiNumberCards: GameState['numberCards']['ai'];
-  drawPile: Card[];
-  roundNumber: number;
-  isTiebreaker: boolean;
-};
-
-export type UpperAiView = {
-  aiTargetValue: number;
-  drawPile: Card[];
-  discardPile: Card[];
-  roundNumber: number;
-  isTiebreaker: boolean;
-};
-
-export type BettingAiView = {
-  playerLockedHand: LockedHand;
-  aiLockedHand: LockedHand;
-  roundNumber: number;
-  isTiebreaker: boolean;
-};
-
-// 编排结果：调用方按顺序 dispatch 这些系统动作。
 export type OrchestratorOutput = {
   actions: Array<
     | AiSelectedNumberCardAction
@@ -69,85 +56,171 @@ export type OrchestratorOutput = {
   >;
 };
 
-// 判断当前是否需要 AI / 系统推进，并产出相应系统动作。
-// 不修改 state；调用方拿到 actions 后逐个 dispatch。
+const DEFAULT_RNG: Rng = () => 0.5;
+const DEFAULT_AI_ALL_IN_STATE: AiAllInState = {
+  count: 0,
+  lastAllInRound: null,
+};
+
+function availableNumberCards(cards: NumberCard[]): NumberCard[] {
+  return cards.filter((card) => card.status === 'available');
+}
+
+function enumerateAiCandidateHands(
+  targetValue: number,
+  drawPile: Card[],
+  discardPile: Card[],
+): SolvedHand[] {
+  const selectableCards = createSelectableCards(drawPile, discardPile);
+  return solveHands({
+    targetValue,
+    selectableCards,
+    mode: 'upperSelection',
+  }).hands;
+}
+
+function findSolvedHandById(
+  candidateHands: SolvedHand[],
+  lockedHandId: string,
+): SolvedHand | undefined {
+  return candidateHands.find((hand) => createHandId(hand) === lockedHandId);
+}
+
 export function planSystemActions(
   state: GameState,
   ai: AiDecisionFunctions,
   now: () => number,
+  rng: Rng = DEFAULT_RNG,
+  aiAllInState: AiAllInState = DEFAULT_AI_ALL_IN_STATE,
 ): OrchestratorOutput {
   const actions: OrchestratorOutput['actions'] = [];
 
   switch (state.phase) {
     case 'lowerSelect': {
-      // AI 数字牌预选：在玩家 selectNumberCard 之前注入。
       if (state.currentRound.publicTargets.aiNumberCardId !== null) {
         break;
       }
-      const view: LowerAiView = {
-        aiNumberCards: state.numberCards.ai,
+
+      const decision = ai.chooseLowerNumberCard({
+        availableNumberCards: availableNumberCards(state.numberCards.ai),
         drawPile: state.deckState.drawPile,
+        discardPile: state.deckState.discardPile,
         roundNumber: state.roundNumber,
         isTiebreaker: state.isTiebreaker,
-      };
-      const choice = ai.chooseLowerNumberCard(view);
-      if (choice !== null) {
-        actions.push({ type: 'aiSelectedNumberCard', numberCardId: choice });
+        aiAir: state.aiAir,
+        playerAir: state.playerAir,
+        rng,
+      });
+
+      if (decision.ok) {
+        actions.push({
+          type: 'aiSelectedNumberCard',
+          numberCardId: decision.selectedNumberCardId,
+        });
       }
       break;
     }
 
     case 'solveHands': {
-      // 枚举玩家候选成手并产 solveHandsSucceeded。
       const targetValue = state.currentRound.publicTargets.playerTargetValue;
       if (targetValue === null) {
         break;
       }
+
       const { ranked, summary } = enumeratePlayerCandidateHands(
         targetValue,
         state.deckState.drawPile,
         state.deckState.discardPile,
+        state.roundNumber,
       );
+
       actions.push({
         type: 'solveHandsSucceeded',
         playerCandidateHands: ranked satisfies RankedSolvedHand[],
-        playerPossibleHandSummary: summary satisfies SolvedHandSummary,
+        playerPossibleHandSummary: summary satisfies PlayerPossibleHandSummary,
       });
       break;
     }
 
     case 'upperSelect': {
-      // AI 锁定成手（若尚未锁定）。
       if (state.currentRound.aiLockedHand !== null) {
         break;
       }
-      const view: UpperAiView = {
-        aiTargetValue: state.currentRound.publicTargets.aiTargetValue ?? 0,
-        drawPile: state.deckState.drawPile,
+
+      const aiTargetValue = state.currentRound.publicTargets.aiTargetValue;
+      if (aiTargetValue === null) {
+        break;
+      }
+
+      const candidateHands = enumerateAiCandidateHands(
+        aiTargetValue,
+        state.deckState.drawPile,
+        state.deckState.discardPile,
+      );
+      const decision = ai.chooseUpperHand({
+        aiTargetValue,
+        candidateHands,
+        playerPossibleHandSummary: state.currentRound.playerPossibleHandSummary,
         discardPile: state.deckState.discardPile,
+        drawPile: state.deckState.drawPile,
         roundNumber: state.roundNumber,
         isTiebreaker: state.isTiebreaker,
-      };
-      const hand = ai.chooseUpperHand(view);
-      if (hand !== null) {
-        actions.push({ type: 'aiLockedHand', hand });
+        rng,
+      });
+
+      if (decision.ok) {
+        const hand = findSolvedHandById(candidateHands, decision.lockedHandId);
+        if (hand !== undefined) {
+          actions.push({
+            type: 'aiLockedHand',
+            hand: createLockedHandFromSolvedHand(hand),
+          });
+        }
       }
       break;
     }
 
     case 'betting': {
-      // awaitingAi 时 AI 行动。
       if (state.currentRound.betState.status !== 'awaitingAi') {
         break;
       }
-      const view: BettingAiView = {
-        playerLockedHand: state.currentRound.playerLockedHand,
+
+      const legalActions = getLegalBetActions(state.currentRound.betState, 'ai');
+      const aiTargetValue = state.currentRound.publicTargets.aiTargetValue;
+      // AI 候选成手按 08 文档口径预算 percentile：rank / N（升序，rank 从 0 计）。
+      // 枚举不依赖 RNG、不读玩家隐藏信息；aiTargetValue 缺失时按最弱 0 处理。
+      const aiHandPercentile =
+        aiTargetValue === null
+          ? 0
+          : calculateAiHandPercentile(
+              state.currentRound.aiLockedHand,
+              enumerateAiCandidateHands(
+                aiTargetValue,
+                state.deckState.drawPile,
+                state.deckState.discardPile,
+              ),
+            );
+      const decision = ai.chooseBetAction({
         aiLockedHand: state.currentRound.aiLockedHand,
+        aiHandPercentile,
+        playerPossibleHandSummary: state.currentRound.playerPossibleHandSummary,
+        betState: state.currentRound.betState,
         roundNumber: state.roundNumber,
         isTiebreaker: state.isTiebreaker,
-      };
-      const action = ai.chooseBetAction(view);
-      actions.push({ type: 'aiSubmittedBetAction', action, now });
+        aiAir: state.aiAir,
+        playerAir: state.playerAir,
+        aiAllInState,
+        legalActions,
+        rng,
+      });
+
+      if (decision.ok) {
+        actions.push({
+          type: 'aiSubmittedBetAction',
+          action: decision.action,
+          now,
+        });
+      }
       break;
     }
 
@@ -158,25 +231,105 @@ export function planSystemActions(
   return { actions };
 }
 
-// 确定性 AI stub：仅供测试端到端跑通主路径，不放入 src/domain/ai/（08 实现）。
-// - lower：选第一张可用可解数字牌。
-// - upper：选第一组候选成手（最强）。
-// - betting：可 check 则 check，否则 fold（最保守）。
 export function createDeterministicAiStub(
   candidatesForUpper: (view: UpperAiView) => LockedHand | null,
 ): AiDecisionFunctions {
   return {
     chooseLowerNumberCard: (view) => {
-      const available = view.aiNumberCards.find((c) => c.status === 'available');
-      return available === undefined ? null : available.id;
+      const available = view.availableNumberCards[0];
+      if (available === undefined) {
+        return { ok: false, code: 'no-solvable-number-card' };
+      }
+
+      return {
+        ok: true,
+        selectedNumberCardId: available.id,
+        scoreBreakdown: { byKey: {}, order: [available.id] },
+        reason: {
+          primaryAction: 'select first available',
+          topFactors: [{ name: 'deterministicStub', impact: 1 }],
+          summary: 'Deterministic stub selected the first available number card.',
+        },
+        disabledCardReasons: {},
+      };
     },
-    chooseUpperHand: candidatesForUpper,
-    chooseBetAction: (view) => {
-      // 无下注压力时 check；有压力时 fold（避免复杂 call 逻辑）。
-      const playerBet = 0; // stub 不读 BetState，统一最小动作。
-      void view;
-      void playerBet;
-      return { actor: 'ai', type: 'check', amount: 0 };
+    chooseUpperHand: (view) => {
+      const hand = candidatesForUpper(view);
+      if (hand === null) {
+        return { ok: false, code: 'no-upper-hand-candidates' };
+      }
+
+      const candidate = view.candidateHands.find(
+        (item) =>
+          item.effectiveCards.map((card) => card.id).join(',') ===
+          hand.effectiveCards.map((card) => card.id).join(','),
+      );
+      const lockedHandId =
+        candidate === undefined
+          ? hand.effectiveCards
+              .map((card) => card.id)
+              .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
+              .join(',')
+          : createHandId(candidate);
+
+      return {
+        ok: true,
+        lockedHandId,
+        scoreBreakdown: { byKey: {}, order: [lockedHandId] },
+        reason: {
+          primaryAction: 'lock deterministic candidate',
+          topFactors: [{ name: 'deterministicStub', impact: 1 }],
+          summary: 'Deterministic stub locked a candidate hand.',
+        },
+      };
     },
+    chooseBetAction: (view) => ({
+      ok: true,
+      action: createConservativeBetAction(view.betState, view.legalActions),
+      confidence: 0,
+      allInCheck: { allowed: false, failedReasons: ['confidence-below-0.92'] },
+      reason: {
+        primaryAction: 'conservative bet',
+        topFactors: [{ name: 'deterministicStub', impact: 1 }],
+        summary: 'Deterministic stub chose the most conservative legal action.',
+      },
+    }),
+  };
+}
+
+function createConservativeBetAction(
+  betState: BetState,
+  legalActions: LegalBetAction[],
+): BetAction {
+  const check = legalActions.find(
+    (action) => action.type === 'check' && action.disabledReason === undefined,
+  );
+  if (check !== undefined) {
+    return { actor: 'ai', type: 'check', amount: 0 };
+  }
+
+  const fold = legalActions.find(
+    (action) => action.type === 'fold' && action.disabledReason === undefined,
+  );
+  if (fold !== undefined) {
+    return { actor: 'ai', type: 'fold', amount: 0 };
+  }
+
+  const call = legalActions.find(
+    (action) => action.type === 'call' && action.disabledReason === undefined,
+  );
+  if (call !== undefined) {
+    return { actor: 'ai', type: 'call', amount: call.maxAmount };
+  }
+
+  void betState;
+  return { actor: 'ai', type: 'check', amount: 0 };
+}
+
+export function createDefaultAiDecisionFunctions(): AiDecisionFunctions {
+  return {
+    chooseLowerNumberCard,
+    chooseUpperHand,
+    chooseBetAction,
   };
 }

@@ -34,7 +34,8 @@ export type LastResultSummary = {
   timestamp: string;
 };
 
-export type StorageResult = { ok: true } | { ok: false; code: 'storage-unavailable' };
+export type SaveResult = { ok: true } | { ok: false; code: 'storage-unavailable' };
+export type StorageResult = SaveResult;
 
 export const DEFAULT_SETTINGS: Settings = {
   version: 1,
@@ -44,8 +45,8 @@ export const DEFAULT_SETTINGS: Settings = {
   showAIDebug: false,
 };
 
-const SETTINGS_KEY = 'air-poker.settings';
-const LAST_RESULT_KEY = 'air-poker.last-result';
+export const SETTINGS_STORAGE_KEY = 'air-poker.settings';
+export const LAST_RESULT_STORAGE_KEY = 'air-poker.last-result';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -55,7 +56,7 @@ function isTheme(value: unknown): value is Theme {
   return value === 'light' || value === 'dark' || value === 'system';
 }
 
-function isSettings(value: unknown): value is Settings {
+export function isSettings(value: unknown): value is Settings {
   return (
     isRecord(value) &&
     value.version === 1 &&
@@ -84,7 +85,7 @@ function isNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
-function isLastResultSummary(value: unknown): value is LastResultSummary {
+export function isLastResultSummary(value: unknown): value is LastResultSummary {
   return (
     isRecord(value) &&
     value.version === 1 &&
@@ -111,20 +112,60 @@ function safeRemoveItem(key: string) {
   }
 }
 
+function copyDefaultSettings(): Settings {
+  return { ...DEFAULT_SETTINGS };
+}
+
+function sanitizeSettings(settings: Settings): Settings {
+  return {
+    version: 1,
+    soundEnabled: settings.soundEnabled,
+    theme: settings.theme,
+    reduceMotion: settings.reduceMotion,
+    showAIDebug: settings.showAIDebug,
+  };
+}
+
+function sanitizeLastResult(summary: LastResultSummary): LastResultSummary {
+  return {
+    version: 1,
+    seed: summary.seed,
+    outcome: summary.outcome,
+    endReason: summary.endReason,
+    finalPlayerAir: summary.finalPlayerAir,
+    finalAiAir: summary.finalAiAir,
+    roundsPlayed: summary.roundsPlayed,
+    playerPool: summary.playerPool,
+    aiPool: summary.aiPool,
+    calamityCount: summary.calamityCount,
+    playerAllInCount: summary.playerAllInCount,
+    aiAllInCount: summary.aiAllInCount,
+    timestamp: summary.timestamp,
+  };
+}
+
+function warnStorageUnavailable(source: 'settings:save' | 'last-result:save'): void {
+  console.warn('[air-poker:persistence]', {
+    source,
+    code: 'storage-unavailable',
+  });
+}
+
 export function loadSettings(): Settings {
   try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
 
     if (raw === null) {
       logDebugEvent('settings:load', { result: 'default', reason: 'missing' });
-      return DEFAULT_SETTINGS;
+      return copyDefaultSettings();
     }
 
     const parsed: unknown = JSON.parse(raw);
 
     if (!isSettings(parsed)) {
+      safeRemoveItem(SETTINGS_STORAGE_KEY);
       logDebugEvent('settings:load', { result: 'default', reason: 'invalid-shape' });
-      return DEFAULT_SETTINGS;
+      return copyDefaultSettings();
     }
 
     logDebugEvent('settings:load', {
@@ -135,8 +176,9 @@ export function loadSettings(): Settings {
       showAIDebug: parsed.showAIDebug,
     });
 
-    return parsed;
+    return sanitizeSettings(parsed);
   } catch {
+    safeRemoveItem(SETTINGS_STORAGE_KEY);
     logDebugEvent(
       'settings:load',
       { result: 'default', reason: 'storage-error' },
@@ -144,16 +186,18 @@ export function loadSettings(): Settings {
         level: 'warn',
       },
     );
-    return DEFAULT_SETTINGS;
+    return copyDefaultSettings();
   }
 }
 
-export function saveSettings(settings: Settings): StorageResult {
+export function saveSettings(settings: Settings): SaveResult {
   try {
-    const serialized = JSON.stringify(settings);
-    localStorage.setItem(SETTINGS_KEY, serialized);
+    const safeSettings = sanitizeSettings(settings);
+    const serialized = JSON.stringify(safeSettings);
+    localStorage.setItem(SETTINGS_STORAGE_KEY, serialized);
+    const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
 
-    if (localStorage.getItem(SETTINGS_KEY) !== serialized) {
+    if (saved !== serialized || !isSettings(JSON.parse(saved))) {
       logDebugEvent(
         'settings:save',
         {
@@ -165,15 +209,16 @@ export function saveSettings(settings: Settings): StorageResult {
           level: 'warn',
         },
       );
+      warnStorageUnavailable('settings:save');
       return { ok: false, code: 'storage-unavailable' };
     }
 
     logDebugEvent('settings:save', {
       result: 'saved',
-      theme: settings.theme,
-      soundEnabled: settings.soundEnabled,
-      reduceMotion: settings.reduceMotion,
-      showAIDebug: settings.showAIDebug,
+      theme: safeSettings.theme,
+      soundEnabled: safeSettings.soundEnabled,
+      reduceMotion: safeSettings.reduceMotion,
+      showAIDebug: safeSettings.showAIDebug,
     });
 
     return { ok: true };
@@ -189,13 +234,14 @@ export function saveSettings(settings: Settings): StorageResult {
         level: 'warn',
       },
     );
+    warnStorageUnavailable('settings:save');
     return { ok: false, code: 'storage-unavailable' };
   }
 }
 
 export function loadLastResult(): LastResultSummary | null {
   try {
-    const raw = localStorage.getItem(LAST_RESULT_KEY);
+    const raw = localStorage.getItem(LAST_RESULT_STORAGE_KEY);
 
     if (raw === null) {
       logDebugEvent('last-result:load', { result: 'empty' });
@@ -205,7 +251,7 @@ export function loadLastResult(): LastResultSummary | null {
     const parsed: unknown = JSON.parse(raw);
 
     if (!isLastResultSummary(parsed)) {
-      safeRemoveItem(LAST_RESULT_KEY);
+      safeRemoveItem(LAST_RESULT_STORAGE_KEY);
       logDebugEvent(
         'last-result:load',
         {
@@ -229,9 +275,9 @@ export function loadLastResult(): LastResultSummary | null {
       finalAiAir: parsed.finalAiAir,
     });
 
-    return parsed;
+    return sanitizeLastResult(parsed);
   } catch {
-    safeRemoveItem(LAST_RESULT_KEY);
+    safeRemoveItem(LAST_RESULT_STORAGE_KEY);
     logDebugEvent(
       'last-result:load',
       {
@@ -246,12 +292,14 @@ export function loadLastResult(): LastResultSummary | null {
   }
 }
 
-export function saveLastResult(summary: LastResultSummary): StorageResult {
+export function saveLastResult(summary: LastResultSummary): SaveResult {
   try {
-    const serialized = JSON.stringify(summary);
-    localStorage.setItem(LAST_RESULT_KEY, serialized);
+    const safeSummary = sanitizeLastResult(summary);
+    const serialized = JSON.stringify(safeSummary);
+    localStorage.setItem(LAST_RESULT_STORAGE_KEY, serialized);
+    const saved = localStorage.getItem(LAST_RESULT_STORAGE_KEY);
 
-    if (localStorage.getItem(LAST_RESULT_KEY) !== serialized) {
+    if (saved !== serialized || !isLastResultSummary(JSON.parse(saved))) {
       logDebugEvent(
         'last-result:save',
         {
@@ -263,17 +311,18 @@ export function saveLastResult(summary: LastResultSummary): StorageResult {
           level: 'warn',
         },
       );
+      warnStorageUnavailable('last-result:save');
       return { ok: false, code: 'storage-unavailable' };
     }
 
     logDebugEvent('last-result:save', {
       result: 'saved',
-      seed: summary.seed,
-      outcome: summary.outcome,
-      endReason: summary.endReason,
-      roundsPlayed: summary.roundsPlayed,
-      finalPlayerAir: summary.finalPlayerAir,
-      finalAiAir: summary.finalAiAir,
+      seed: safeSummary.seed,
+      outcome: safeSummary.outcome,
+      endReason: safeSummary.endReason,
+      roundsPlayed: safeSummary.roundsPlayed,
+      finalPlayerAir: safeSummary.finalPlayerAir,
+      finalAiAir: safeSummary.finalAiAir,
     });
 
     return { ok: true };
@@ -289,6 +338,7 @@ export function saveLastResult(summary: LastResultSummary): StorageResult {
         level: 'warn',
       },
     );
+    warnStorageUnavailable('last-result:save');
     return { ok: false, code: 'storage-unavailable' };
   }
 }

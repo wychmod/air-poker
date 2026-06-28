@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createRuntimeRng, createRuntimeSeed, createSeededRng } from './rng';
 
@@ -12,13 +12,31 @@ function expectErrorCode(fn: () => unknown, code: string) {
 }
 
 describe('app/rng', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
   it('creates reproducible seeded random sequences', () => {
     const first = createSeededRng('test-seed-001');
     const second = createSeededRng('test-seed-001');
 
-    expect(Array.from({ length: 10 }, () => first())).toStrictEqual(
-      Array.from({ length: 10 }, () => second()),
+    expect(Array.from({ length: 1000 }, () => first())).toStrictEqual(
+      Array.from({ length: 1000 }, () => second()),
     );
+  });
+
+  it('creates meaningfully different sequences for different seeds', () => {
+    const first = createSeededRng('seed-A');
+    const second = createSeededRng('seed-B');
+    const firstValues = Array.from({ length: 5 }, () => first());
+    const secondValues = Array.from({ length: 5 }, () => second());
+
+    const differentPositions = firstValues.filter(
+      (value, index) => value !== secondValues[index],
+    ).length;
+
+    expect(differentPositions).toBeGreaterThanOrEqual(3);
   });
 
   it('keeps seeded RNG values inside [0, 1)', () => {
@@ -77,6 +95,19 @@ describe('app/rng', () => {
     expect(runtime.seed).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(runtime.rng()).toBeGreaterThanOrEqual(0);
     expect(runtime.rng()).toBeLessThan(1);
+  });
+
+  it('falls back to timestamp plus counter when crypto is unavailable', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T15:49:58.123Z'));
+    vi.stubGlobal('crypto', undefined);
+
+    const first = createRuntimeSeed();
+    const second = createRuntimeSeed();
+
+    expect(first).toMatch(/^2026-06-21T15:49:58\.123Z-[0-9a-f]{4}$/);
+    expect(second).toMatch(/^2026-06-21T15:49:58\.123Z-[0-9a-f]{4}$/);
+    expect(second).not.toBe(first);
   });
 
   it('rejects non-finite number seeds with invalid-seed', () => {
