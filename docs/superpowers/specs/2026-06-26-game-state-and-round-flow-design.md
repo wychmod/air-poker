@@ -2,6 +2,7 @@
 
 日期：2026-06-26
 来源：
+
 - `doc/v1-implementation-design/06-round-resolution-and-calamity.md`
 - `doc/v1-implementation-design/07-game-state-and-round-flow.md`
 - `doc/v1-implementation-design/00-index.md`、`errors.md`、`settings.md`
@@ -40,40 +41,40 @@ idle | initializing | roundStart | lowerSelect | solveHands
 
 ```ts
 type GameState = {
-  version: 1
-  seed: string
-  phase: GamePhase
-  roundNumber: number          // 1..5；决胜保持 5
-  isTiebreaker: boolean
-  playerAir: number
-  aiAir: number
-  deckState: DeckState
-  numberCards: { player: NumberCard[]; ai: NumberCard[] }
-  currentRound: CurrentRound   // discriminated union（按阶段字段矩阵）
-  roundHistory: RoundHistoryEntry[]
-  settingsSnapshot: Settings
-  lastError: ErrorPayload | null
+  version: 1;
+  seed: string;
+  phase: GamePhase;
+  roundNumber: number; // 1..5；决胜保持 5
+  isTiebreaker: boolean;
+  playerAir: number;
+  aiAir: number;
+  deckState: DeckState;
+  numberCards: { player: NumberCard[]; ai: NumberCard[] };
+  currentRound: CurrentRound; // discriminated union（按阶段字段矩阵）
+  roundHistory: RoundHistoryEntry[];
+  settingsSnapshot: Settings;
+  lastError: ErrorPayload | null;
   // 累计赢得底池（净赢得 Bet），用于 R5 平手决胜
-  playerPool: number
-  aiPool: number
-}
+  playerPool: number;
+  aiPool: number;
+};
 ```
 
 ### 3.3 CurrentRound 阶段字段矩阵（discriminated union）
 
 每个阶段用一个 `phase` 字面量 + 必填字段构成联合分支；跨阶段读取不存在字段在 TS 层报错。
 
-| phase | 必须字段 |
-| --- | --- |
-| `roundStart` | `roundCosts` |
-| `lowerSelect` | `publicTargets`, `numberCardCost`, `ante` |
-| `solveHands` | `publicTargets`, `playerPossibleHandSummary` |
-| `upperSelect` | `publicTargets`, `playerCandidateHands`, `playerPossibleHandSummary`, `aiLockedHand?` |
-| `betting` | `publicTargets`, `playerLockedHand`, `aiLockedHand`, `betState` |
-| `showdown` | `publicTargets`, `playerLockedHand`, `aiLockedHand`, `showdown` |
-| `resolve` | `publicTargets`, `playerLockedHand`, `aiLockedHand`, `resolution` |
-| `roundSummary` | `publicTargets`, `playerLockedHand`, `aiLockedHand`, `resolution` |
-| `gameOver` | `finalResult` |
+| phase          | 必须字段                                                                              |
+| -------------- | ------------------------------------------------------------------------------------- |
+| `roundStart`   | `roundCosts`                                                                          |
+| `lowerSelect`  | `publicTargets`, `numberCardCost`, `ante`                                             |
+| `solveHands`   | `publicTargets`, `playerPossibleHandSummary`                                          |
+| `upperSelect`  | `publicTargets`, `playerCandidateHands`, `playerPossibleHandSummary`, `aiLockedHand?` |
+| `betting`      | `publicTargets`, `playerLockedHand`, `aiLockedHand`, `betState`                       |
+| `showdown`     | `publicTargets`, `playerLockedHand`, `aiLockedHand`, `showdown`                       |
+| `resolve`      | `publicTargets`, `playerLockedHand`, `aiLockedHand`, `resolution`                     |
+| `roundSummary` | `publicTargets`, `playerLockedHand`, `aiLockedHand`, `resolution`                     |
+| `gameOver`     | `finalResult`                                                                         |
 
 `idle` / `initializing` 阶段 `currentRound = null`（用专门分支表达）。
 
@@ -84,6 +85,7 @@ type GameState = {
 ### 3.5 finalResult
 
 复用 `LastResultSummary`（settings.ts）作为 `gameOver.finalResult`，由 `finishGame` 填充：
+
 - `outcome`：`playerWin` / `aiWin` / `tie`
 - `endReason`：`airDepleted` / `fiveRounds` / `tiebreaker` / `earlyTermination` / `draw`
 - `playerPool` / `aiPool`：累计赢得底池（来自 `resolution.escrowDistribution.playerReceivedBet - escrow.playerBet` 之和）

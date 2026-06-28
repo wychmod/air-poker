@@ -66,6 +66,10 @@ type RoundResolution = {
   escrowDistribution: EscrowDistribution
   vanishedAir: number                   // 灾厄消失 + 负方 ante 消失的总和
 }
+
+type RoundResolutionResult =
+  | { ok: true; resolution: RoundResolution }
+  | { ok: false; code: "missing-locked-hand" | "invalid-escrow" }
 ```
 
 > `returnedAir` 字段已改名为 `escrowDistribution`，因为"退还"语义只对平手完整成立；胜方拿到的"含对手下注"不是退还。详见下文。
@@ -99,6 +103,7 @@ type ResolveRoundInput = {
 - `resolution.discardCardIds`: 应进入弃牌区的有效牌 ID。
 - `resolution.escrowDistribution`: escrow 分配。
 - `resolution.vanishedAir`: 灾厄消失 + 负方 ante 消失的总和。
+- 当输家 Air 不足时，`vanishedAir` 可能大于实际扣减值。
 
 失败方式：
 
@@ -243,7 +248,7 @@ type CalamityPenalty = {
 V1 钉死规则：
 
 - 未触发 / `loser === null`：`playerDeduction = aiDeduction = vanishedAir = 0`。
-- 玩家输：扣 `escrow.playerBet`。**Air 不足时扣到 0**（不能为负）；超出部分仍记入 `vanishedAir` 的"应有值"但不实际扣。
+- 玩家输：实际扣减 `min(playerAir, escrow.playerBet)`。**Air 不足时扣到 0**（不能为负）；超出部分仍记入 `vanishedAir` 的"应有值"但不实际扣。
   - 例：玩家输、`escrow.playerBet = 10`、玩家当前 Air = 3 → `playerDeduction = 3`、`vanishedAir = 10`（剩余 7 在概念上属于应有消失额但未实际扣）。
 - AI 输：对称处理。
 
@@ -264,7 +269,7 @@ V1 钉死规则：
 
 调用方：
 
-- 状态机在 `resolveCurrentRound` 完成后调用本函数，拿到 `discardCardIds` 后调用 `01-cards-rng-and-deck.md` 的 `moveEffectiveCardsToDiscard(deckState, discardCardIds)` 把 ID 列表传入。
+- 状态机在 `resolveCurrentRound` 完成后调用本函数，拿到 `discardCardIds` 后，将双方 `effectiveCards` 合并后传给 `01-cards-rng-and-deck.md` 的 `moveEffectiveCardsToDiscard(deckState, effectiveCards)`；该函数内部按 `Card.id` 去重。
 
 ## 参加费口径
 
@@ -368,7 +373,7 @@ Fold 后仍判定灾厄：
 - 用过失效牌不重新进入弃牌区。
 - 双方有效牌重叠时，弃牌区只记录一次（`collectDiscardCardIds` 已去重）。
 - burnCards 不进入弃牌区。
-- 状态机调用顺序：`collectDiscardCardIds` → 拿 ID 列表 → `moveEffectiveCardsToDiscard(deckState, ids)`（见 01 文档）。
+- 状态机调用顺序：`collectDiscardCardIds` → 生成 `discardCardIds` 记录到 `RoundResolution` → 将双方 `effectiveCards` 传给 `moveEffectiveCardsToDiscard(deckState, effectiveCards)`（见 01 文档）。
 
 ## Air 归零检查
 
@@ -393,7 +398,7 @@ Fold 后仍判定灾厄：
 - 0 张 effective 一方与对方永远不触发灾厄（即使对方 0 张也算不触发）。
 - 有效牌进入弃牌区，失效牌不进入。
 - 重叠有效牌只进入弃牌区一次。
-- `LockHand.selectedCards.length === 5`、`effectiveCards.length ∈ [0, 5]`、`effectiveCards ⊆ selectedCards`（按 `card.id`）。
+- `LockedHand.selectedCards.length === 5`、`effectiveCards.length ∈ [0, 5]`、`effectiveCards ⊆ selectedCards`（按 `card.id`）。
 - `playerEvaluatedHand` / `aiEvaluatedHand` 都基于 `effectiveCards` 计算；不能用 `selectedCards` 直接调 `evaluateHand`。
 - Fold 后 Bet 归属：玩家 fold 5/5 → AI `aiReceivedBet = 10`（5+5）、玩家 `playerReceivedBet = 0`；玩家 fold 后 AI 跟注额退还给 AI 自己。
 
@@ -402,3 +407,17 @@ Fold 后仍判定灾厄：
 - 账本函数要返回详细 `airDelta`，便于 UI 展示和测试断言。
 - 不要把灾厄扣减写成池子总额乘二。
 - 不要用 5 张表面 selectedCards 判定灾厄；必须使用 effectiveCards。
+
+## 完整顺序
+
+建议的结算顺序固定为：
+
+1. `determineRoundWinner`
+2. `settleAnte`
+3. `settleBetEscrow`
+4. `detectCalamity`
+5. `applyCalamityPenalty`
+6. `collectDiscardCardIds`
+7. 汇总 `airDelta`、`vanishedAir` 和 `RoundResolution`
+
+这样可以保证胜负、退还、灾厄和弃牌区更新都从同一份 locked hand 结果出发，方便测试和日志回放。
