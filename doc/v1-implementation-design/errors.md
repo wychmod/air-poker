@@ -102,7 +102,7 @@
 | 错误码 | 触发条件 | 抛出位置 |
 | --- | --- | --- |
 | `storage-unavailable` | localStorage 抛错 | `saveSettings` / `saveLastResult` |
-| `invalid-seed` | seed 为空、非字符串/数字，或 number 为非有限值（NaN / Infinity） | `createSeededRng` |
+| `invalid-seed` | number seed 为非有限值（NaN / Infinity） | `createSeededRng` |
 | `crypto-unavailable` | `crypto.getRandomValues` 不可用 | `createRuntimeSeed`（内部降级，不抛出） |
 
 ## 10. UI（10 文档）
