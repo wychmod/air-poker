@@ -1,8 +1,0 @@
-coverage/
-dist/
-doc/
-node_modules/
-package-lock.json
-playwright-report/
-test-results/
-assets/reference/
