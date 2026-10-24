@@ -1,3 +1,5 @@
+import { translate } from '../i18n.js';
+
 const copy = (lang, zh, en) => (lang === 'en' ? en : zh);
 const asset = 'assets/generated/air-poker-v2/';
 
@@ -60,8 +62,8 @@ export function rulesMarkup(lang) {
       'flow',
       c('回合流程', 'Round flow'),
       c(
-        '双方各有 25 罐。开局打开一罐，24 罐可下注。每轮依次选数字、构造完整五张成手、交替下注、摊牌；最多五轮，然后进入耐息。CPU 在你选择前已经锁定自己的数字与成手。',
-        'Each player starts with 25 cans, opens one, and has 24 to wager. Each round: choose a number, lock a five-card hand, alternate bets, reveal. After at most five rounds, endurance begins. The CPU locks its choice before you choose.',
+        '双方各有 25 罐。开局打开一罐，24 罐可下注。每轮依次选数字、构造完整五张成手、交替下注、摊牌；最多五轮，然后进入耐息。对手在你选择前已经锁定自己的数字与成手。',
+        'Each player starts with 25 cans, opens one, and has 24 to wager. Each round: choose a number, lock a five-card hand, alternate bets, reveal. After at most five rounds, endurance begins. The opponent locks its choice before you choose.',
       ),
     ],
     [
@@ -110,7 +112,7 @@ export function rulesMarkup(lang) {
 
 export function introMarkup(view) {
   const c = (zh, en) => copy(view.lang, zh, en);
-  return `<section class="match-intro" data-scene="intro"><div class="intro-slash" aria-hidden="true"></div><p class="eyebrow">FIVE TARGETS. ONE LAST BREATH.</p><div class="intro-matchup"><span>${c('你', 'YOU')}</span><em>VS</em><span>CPU</span></div><p>${c('双方各 25 罐。呼吸已经开始。', '25 cans each. Breathing has begun.')}</p><button class="button secondary" data-action="skip-intro">${c('跳过表现', 'Skip intro')} →</button></section>`;
+  return `<section class="match-intro" data-scene="intro"><div class="intro-slash" aria-hidden="true"></div><p class="eyebrow">FIVE TARGETS. ONE LAST BREATH.</p><div class="intro-matchup"><span>${c('你', 'YOU')}</span><em>VS</em><span>${translate(view.lang, 'cpu')}</span></div><p>${c('双方各 25 罐。呼吸已经开始。', '25 cans each. Breathing has begun.')}</p><button class="button secondary" data-action="skip-intro">${c('跳过表现', 'Skip intro')} →</button></section>`;
 }
 
 export function resultMarkup(state, view) {

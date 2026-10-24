@@ -3,6 +3,7 @@ import { createTurnClock } from './browser/turn-clock.js';
 import { createMatchClock } from './browser/match-clock.js';
 import { createRecordStore } from './browser/record-store.js';
 import { createSceneMotion } from './browser/scene-motion.js';
+import { createVisitCounter } from './browser/visit-counter.js';
 import { isLanguage, translate } from './i18n.js';
 import { createRenderer } from './ui/render.js';
 import { cardMarkup, updateBetPreview } from './ui/battle.js';
@@ -26,6 +27,7 @@ function persist(key, value) {
 const $ = (id) => document.getElementById(id);
 const game = createGame({ recordId: crypto.randomUUID() });
 const renderer = createRenderer(document);
+const visitCounter = createVisitCounter({ root: $('siteVisits') });
 const motion = createSceneMotion({ root: $('app'), canvas: $('sceneCanvas') });
 const view = {
   lang: stored('air-poker-lang', 'zh') === 'en' ? 'en' : 'zh',
@@ -539,7 +541,8 @@ document.addEventListener('visibilitychange', () => {
     if ($('recordDialog').open) renderRecord();
   }
 });
-window.addEventListener('pagehide', () => {
+window.addEventListener('pagehide', (event) => {
+  if (!event.persisted) visitCounter.destroy();
   matchClock.flush();
   matchClock.suspend();
   turnClock.suspend();

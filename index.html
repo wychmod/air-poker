@@ -13,6 +13,15 @@
       <canvas id="sceneCanvas" aria-hidden="true"></canvas>
       <header id="siteHeader" class="site-header"></header>
       <main id="pageContent" tabindex="-1"></main>
+      <footer id="siteVisits" class="visit-counter" data-status="loading" hidden>
+        <span id="visitCountLabel"></span>
+        <img id="visitCountImage" height="20" alt="" referrerpolicy="no-referrer" hidden />
+        <span id="visitCountStatus">
+          <span data-visit-status="loading"></span>
+          <span data-visit-status="local"></span>
+          <span data-visit-status="unavailable"></span>
+        </span>
+      </footer>
     </div>
     <dialog id="rulesDialog" class="paper-dialog" aria-labelledby="rulesTitle">
       <div class="dialog-toolbar">

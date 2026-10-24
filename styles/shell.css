@@ -80,6 +80,32 @@ a {
   position: relative;
   z-index: 1;
 }
+.visit-counter {
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 20px 16px;
+  color: var(--muted);
+  font-size: 11px;
+  background: var(--paper);
+}
+.visit-counter img {
+  display: block;
+  max-width: 100%;
+}
+.visit-counter [data-visit-status] {
+  display: none;
+}
+.visit-counter[data-status='loading'] [data-visit-status='loading'],
+.visit-counter[data-status='local'] [data-visit-status='local'],
+.visit-counter[data-status='unavailable'] [data-visit-status='unavailable'] {
+  display: inline;
+}
 #sceneCanvas {
   position: fixed;
   inset: 0;

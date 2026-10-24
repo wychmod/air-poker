@@ -42,6 +42,8 @@ createGame({ random = Math.random, recordId = 'local' } = {}) 持有私有状态
 
 browser/match-clock.js 用单调时钟同步绝对时长；browser/turn-clock.js 展示引擎截止时间并调度玩家 30 秒 / CPU 600ms / 构造 60 秒。app 在交互前先同步时间；pageshow 先恢复呼吸再恢复行动。普通呼吸脉冲只更新文字，避免丢失加注输入；阶段、行动或整罐余额变化才重绘。语言与只读查看不重置对局、截止时间或呼吸。
 
+browser/visit-counter.js 归 browser 层，无运行模块依赖；只在公网 HTTPS 下按模块所在部署根目录加载一次 Hits 计数图片，不加载远程脚本，不读取或上传对局状态。计数 footer 在页面模板之外持久保留，由 ui/render.js 控制首页显隐和翻译；重复渲染、语言切换与后台恢复不重新计数。图片失败或 8 秒超时仅降级统计展示，非 bfcache 的 pagehide 清理尚未完成的监听与计时器；进入页面缓存时保留原图片请求与回调，返回后可继续完成，不重设 src。
+
 ## 当前玩法事实
 
 - 每方总资源 25 罐，开局自动打开 1 罐，未开余额 24。每罐近似 300 秒，耗尽自动开下一罐；已开罐不可下注，累计计入 breathSpent，不按回合扣费。

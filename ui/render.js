@@ -1,6 +1,7 @@
 import { battleMarkup, updateBattleBreathing } from './battle.js';
 import { homeMarkup, introductionMarkup, rulesMarkup, resultMarkup, introMarkup } from './pages.js';
 import { tutorialMarkup } from './tutorial.js';
+import { translate } from '../i18n.js';
 
 const copy = (lang, zh, en) => (lang === 'en' ? en : zh);
 
@@ -47,6 +48,19 @@ export function createRenderer(document) {
       document.title = copy(view.lang, '空气扑克 · 下一口空气', 'Air Poker · Your Next Breath');
       document.body.dataset.scene = scene;
       document.getElementById('app').dataset.scene = scene;
+      const visits = document.getElementById('siteVisits');
+      if (visits) {
+        visits.hidden = view.screen !== 'home';
+        visits.title = translate(view.lang, 'visitCountHint');
+        document.getElementById('visitCountLabel').textContent = translate(view.lang, 'visitCount');
+        document.getElementById('visitCountImage').alt = translate(view.lang, 'visitCount');
+        for (const status of ['loading', 'local', 'unavailable']) {
+          visits.querySelector(`[data-visit-status="${status}"]`).textContent = translate(
+            view.lang,
+            `visitCount_${status}`,
+          );
+        }
+      }
       renderHeader(snapshot, view);
       content.innerHTML =
         view.screen === 'home'

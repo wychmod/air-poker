@@ -1,4 +1,5 @@
 import { lessonCards } from './pages.js';
+import { translate } from '../i18n.js';
 
 const copy = (lang, zh, en) => (lang === 'en' ? en : zh);
 const hands = [
@@ -92,7 +93,7 @@ function betExercise(state, c) {
     ${state.complete ? `<div class="lesson-feedback">✓ ${c(`实际支付 ${state.paid} AIR，轮到对手。跟注并不直接结束下注。正式局只接受当前行动方的合法操作。`, `Paid ${state.paid} AIR. It is now the opponent’s turn. Calling does not itself end betting. The real game only accepts legal actions from the current actor.`)}</div>` : `<div class="lesson-actions"><button class="button secondary" data-action="tutorial-call">${c('跟注', 'Call')} · 2 AIR</button><button class="button primary" data-action="tutorial-raise">${c('加注', 'Raise')} · ${pay} AIR →</button></div>`}`;
 }
 
-function riskExercise(state, c) {
+function riskExercise(state, c, opponentName) {
   const names = {
     failure: c('成手失败', 'Failed hand'),
     fold: c('普通弃牌', 'Fold'),
@@ -102,7 +103,7 @@ function riskExercise(state, c) {
   if (state.scenario === 'failure')
     scene = `<div class="risk-film"><span class="failure-stamp">${c('构造失败', 'HAND FAILED')}</span><div>${lessonCards(hands[0])}</div><p>${c('例：你主动放弃，对手有效。对手收底池；你的失败牌不消耗，也不追加烧毁。双方都失败则保留底池重做。', 'You give up the hand; the opponent has a valid hand and collects the pot. Your failed cards are not consumed and no extra air burns. Two failures keep the pot and retry.')}</p><strong>${c('额外烧毁', 'Extra burned')}: 0 AIR</strong></div>`;
   if (state.scenario === 'fold')
-    scene = `<div class="risk-film"><span class="failure-stamp">${c('停止下注', 'FOLD')}</span><div class="fold-arrow">${c('底池', 'POT')} → CPU</div><p>${c('例：你在下注时弃牌，对手收实际底池。双方已经合法锁定的实体牌仍进入公共弃牌，但不追加灾厄。', 'You fold during betting; the opponent receives the actual pot. Both valid locked hands enter the shared discard pile, but there is no extra calamity burn.')}</p><strong>${c('额外烧毁', 'Extra burned')}: 0 AIR</strong></div>`;
+    scene = `<div class="risk-film"><span class="failure-stamp">${c('停止下注', 'FOLD')}</span><div class="fold-arrow">${c('底池', 'POT')} → ${opponentName}</div><p>${c('例：你在下注时弃牌，对手收实际底池。双方已经合法锁定的实体牌仍进入公共弃牌，但不追加灾厄。', 'You fold during betting; the opponent receives the actual pot. Both valid locked hands enter the shared discard pile, but there is no extra calamity burn.')}</p><strong>${c('额外烧毁', 'Extra burned')}: 0 AIR</strong></div>`;
   if (state.scenario === 'calamity')
     scene = `<div class="risk-film"><div class="calamity-hands"><div><small>${c('四条 · 胜', 'Four of a kind · wins')}</small>${lessonCards(
       [
@@ -159,5 +160,5 @@ export function tutorialMarkup(state, view) {
   if (state.step === 4)
     return `<section class="tutorial-page tutorial-complete" data-scene="tutorial"><div class="tutorial-art" aria-hidden="true"></div><div class="tutorial-workspace"><p class="eyebrow">FOUR LESSONS. YOUR FIRST MATCH.</p><h1>${c('准备好，入场。', 'You are ready. Take your seat.')}</h1><p>${c('你已经练过：', 'You have practiced:')}</p><ul class="lesson-checklist">${titles.map((title) => `<li>✓ ${title}</li>`).join('')}</ul><div class="lesson-actions"><button class="button primary" data-action="enter-match">${c('开始正式对局', 'Start a real match')} →</button><button class="button secondary" data-action="tutorial-restart">${c('再练一次', 'Practice again')}</button></div></div></section>`;
   const exercises = [handExercise, betExercise, riskExercise, breathExercise];
-  return `<section class="tutorial-page" data-scene="tutorial"><div class="tutorial-art" aria-hidden="true"></div><div class="tutorial-workspace"><header class="tutorial-heading"><p class="eyebrow">PRACTICE ${String(state.step + 1).padStart(2, '0')} / 04</p><div class="lesson-progress" aria-label="${c('练习进度', 'Practice progress')}">${[0, 1, 2, 3].map((n) => `<span class="${n <= state.step ? 'is-active' : ''}"></span>`).join('')}</div><h1>${titles[state.step]}</h1><p>${c('独立练习 · 不计入正式对局', 'Isolated practice · never affects match records')}</p></header><div class="tutorial-exercise">${exercises[state.step](state, c)}</div><footer class="tutorial-footer"><button class="button secondary" data-action="tutorial-reset">${c('重练这一项', 'Retry this lesson')}</button>${state.complete ? `<button class="button primary" data-action="tutorial-next">${state.step === 3 ? c('完成教学', 'Finish tutorial') : c('下一项练习', 'Next lesson')} →</button>` : `<span>${c('完成当前操作后继续', 'Complete the action to continue')}</span>`}</footer></div></section>`;
+  return `<section class="tutorial-page" data-scene="tutorial"><div class="tutorial-art" aria-hidden="true"></div><div class="tutorial-workspace"><header class="tutorial-heading"><p class="eyebrow">PRACTICE ${String(state.step + 1).padStart(2, '0')} / 04</p><div class="lesson-progress" aria-label="${c('练习进度', 'Practice progress')}">${[0, 1, 2, 3].map((n) => `<span class="${n <= state.step ? 'is-active' : ''}"></span>`).join('')}</div><h1>${titles[state.step]}</h1><p>${c('独立练习 · 不计入正式对局', 'Isolated practice · never affects match records')}</p></header><div class="tutorial-exercise">${exercises[state.step](state, c, translate(view.lang, 'cpu'))}</div><footer class="tutorial-footer"><button class="button secondary" data-action="tutorial-reset">${c('重练这一项', 'Retry this lesson')}</button>${state.complete ? `<button class="button primary" data-action="tutorial-next">${state.step === 3 ? c('完成教学', 'Finish tutorial') : c('下一项练习', 'Next lesson')} →</button>` : `<span>${c('完成当前操作后继续', 'Complete the action to continue')}</span>`}</footer></div></section>`;
 }

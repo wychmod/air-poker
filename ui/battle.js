@@ -85,7 +85,7 @@ function resources(state, lang) {
     '</span></div>';
   return (
     '<div class="battle-resources">' +
-    actor('ai', 'CPU') +
+    actor('ai', translate(lang, 'cpu')) +
     '<div class="battle-pot"><span>' +
     copy(lang, '第 ', 'ROUND ') +
     String(state.round).padStart(2, '0') +
@@ -123,7 +123,9 @@ function heading(kicker, title, detail, timer, lang) {
 
 function targetSlots(state, lang) {
   return (
-    '<div class="battle-targets"><span>CPU <b data-target-slot="ai">' +
+    '<div class="battle-targets"><span>' +
+    translate(lang, 'cpu') +
+    ' <b data-target-slot="ai">' +
     (state.aiTarget ?? '—') +
     '</b><small>' +
     copy(lang, '成手隐藏', 'HAND HIDDEN') +
@@ -147,6 +149,7 @@ function actionBar(note, buttons) {
 
 function lower(state, view) {
   const lang = view.lang;
+  const opponent = translate(lang, 'cpu');
   const selected =
     Number.isInteger(view.selectedTarget) && state.targetPlayable[view.selectedTarget]
       ? view.selectedTarget
@@ -202,14 +205,18 @@ function lower(state, view) {
       lang,
       '你剩余 ' +
         (5 - state.usedTargets.length) +
-        ' 张数字 · 对手剩余 ' +
+        ' 张数字 · ' +
+        opponent +
+        '剩余 ' +
         state.aiRemaining +
         ' 张 · 每个位置只能使用一次',
       5 -
         state.usedTargets.length +
         ' numbers left for you · ' +
         state.aiRemaining +
-        ' for CPU · each position is used once',
+        ' for ' +
+        opponent +
+        ' · each position is used once',
     ) +
     '</p>' +
     actionBar(
@@ -346,6 +353,7 @@ function betButton(state, move, label, enabled, primary = false) {
 
 function bet(state, view) {
   const lang = view.lang;
+  const opponent = translate(lang, 'cpu');
   const options = state.legalBets;
   const playerTurn = state.betting.turn === 'player';
   const increment = options.canRaise
@@ -359,7 +367,7 @@ function bet(state, view) {
       '03 / ' + copy(lang, '交替下注', 'WAGER'),
       playerTurn
         ? copy(lang, '轮到你。', 'Your move.')
-        : copy(lang, '对手行动中。', 'Opponent is thinking.'),
+        : opponent + copy(lang, '行动中。', ' is thinking.'),
       playerTurn
         ? copy(
             lang,
@@ -372,13 +380,17 @@ function bet(state, view) {
           )
         : copy(
             lang,
-            '公开金额实时更新；对手成手在摊牌前保持隐藏。',
-            'Public amounts update immediately. The opponent’s hand stays hidden until showdown.',
+            '公开金额实时更新；' + opponent + '成手在摊牌前保持隐藏。',
+            'Public amounts update immediately. ' +
+              opponent +
+              '’s hand stays hidden until showdown.',
           ),
       playerTurn ? view.timer : undefined,
       lang,
     ) +
-    '<div class="battle-duel"><div class="battle-opponent" data-hand="ai"><div class="battle-hand-label"><span>CPU · ' +
+    '<div class="battle-duel"><div class="battle-opponent" data-hand="ai"><div class="battle-hand-label"><span>' +
+    opponent +
+    ' · ' +
     copy(lang, '目标 ', 'TARGET ') +
     '<b data-target-slot="ai">' +
     state.aiTarget +
@@ -403,13 +415,11 @@ function bet(state, view) {
     (hand
       ? '<div class="battle-cards">' + hand.map((card) => cardMarkup(card)).join('') + '</div>'
       : '<div class="battle-failed-hand">' +
-        copy(
-          lang,
-          status === 'timeout' ? '构造超时，实体牌未消耗。' : '本轮成手失败，实体牌未消耗。',
-          status === 'timeout'
-            ? 'Construction timed out. Physical cards preserved.'
-            : 'This hand failed. Physical cards preserved.',
-        ) +
+        '<strong>' +
+        esc(translate(lang, 'failure_' + status)) +
+        '</strong><p>' +
+        copy(lang, '本次成手失败，实体牌未消耗。', 'This hand failed. Physical cards preserved.') +
+        '</p>' +
         '</div>') +
     '</div></div>' +
     '<footer class="battle-actions battle-betting-actions"><div class="battle-bet-preview"><span>' +
@@ -508,6 +518,7 @@ function decisiveValue(result) {
 
 function showdown(state, view) {
   const lang = view.lang;
+  const opponent = translate(lang, 'cpu');
   const result = state.lastResult;
   const tie = result.winner === 'tie';
   const calamity =
@@ -528,7 +539,7 @@ function showdown(state, view) {
       '" data-hand="' +
       actor +
       '"><div class="battle-hand-label"><strong>' +
-      (actor === 'player' ? copy(lang, '你', 'YOU') : 'CPU') +
+      (actor === 'player' ? copy(lang, '你', 'YOU') : opponent) +
       ' · ' +
       (folded
         ? copy(lang, '已弃牌', 'FOLDED')
@@ -566,12 +577,12 @@ function showdown(state, view) {
     ? copy(lang, '本轮平手。', 'Round tied.')
     : result.winner === 'player'
       ? copy(lang, '你赢下本轮。', 'You take the round.')
-      : copy(lang, '对手赢下本轮。', 'Opponent takes the round.');
+      : opponent + copy(lang, '赢下本轮。', ' takes the round.');
   const reason = result.folded
     ? copy(
         lang,
-        (result.foldedBy === 'player' ? '你' : '对手') + '弃牌，底池归另一方；不触发灾厄。',
-        (result.foldedBy === 'player' ? 'You' : 'CPU') +
+        (result.foldedBy === 'player' ? '你' : opponent) + '弃牌，底池归另一方；不触发灾厄。',
+        (result.foldedBy === 'player' ? 'You' : opponent) +
           ' folded. The other side receives the pot; no calamity.',
       )
     : result.upperFailed.player || result.upperFailed.ai
@@ -601,13 +612,27 @@ function showdown(state, view) {
   const comparison = decisive
     ? copy(
         lang,
-        '本次决定比较：你 ' + face(decisive.player) + ' / CPU ' + face(decisive.ai) + '。',
-        'Deciding value: you ' + face(decisive.player) + ' / CPU ' + face(decisive.ai) + '.',
+        '本次决定比较：你 ' +
+          face(decisive.player) +
+          ' / ' +
+          opponent +
+          ' ' +
+          face(decisive.ai) +
+          '。',
+        'Deciding value: you ' +
+          face(decisive.player) +
+          ' / ' +
+          opponent +
+          ' ' +
+          face(decisive.ai) +
+          '.',
       )
     : !result.folded && result.playerRank && result.aiRank && !tie
       ? copy(lang, '牌型比较：你 ', 'Categories: you ') +
         translate(lang, result.playerRank.key) +
-        ' / CPU ' +
+        ' / ' +
+        opponent +
+        ' ' +
         translate(lang, result.aiRank.key) +
         '.'
       : '';
@@ -664,7 +689,9 @@ function showdown(state, view) {
     copy(lang, '本轮账目 · AIR', 'ROUND LEDGER · AIR') +
     '</strong><span>' +
     copy(lang, '你', 'YOU') +
-    '</span><span>CPU</span></div>' +
+    '</span><span>' +
+    opponent +
+    '</span></div>' +
     row(
       copy(
         lang,
@@ -703,6 +730,7 @@ function showdown(state, view) {
 
 function endurance(state, view) {
   const lang = view.lang;
+  const opponent = translate(lang, 'cpu');
   const reasons = {
     'round-limit': [
       '五轮已结束，等待实际生存结果。',
@@ -731,7 +759,7 @@ function endurance(state, view) {
       .map(
         (actor) =>
           '<section class="battle-endurance-person"><span class="eyebrow">' +
-          (actor === 'player' ? copy(lang, '你', 'YOU') : 'CPU') +
+          (actor === 'player' ? copy(lang, '你', 'YOU') : opponent) +
           '</span><div class="battle-canister" aria-hidden="true"><i data-supply-level="' +
           actor +
           '" style="height:' +
@@ -750,7 +778,7 @@ function endurance(state, view) {
           '" aria-label="' +
           (actor === 'player'
             ? copy(lang, '你的供气', 'Your supply')
-            : copy(lang, '对手供气', 'CPU supply')) +
+            : opponent + copy(lang, '供气', ' supply')) +
           '"></progress></section>',
       )
       .join('') +

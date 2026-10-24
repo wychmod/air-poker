@@ -91,9 +91,9 @@ test('selected transfer shows its actual amount and all five accounts at that ev
   const accountLine = html.match(/class="review-account-line">([^<]+)<\/p>/)?.[1];
   assert.equal(
     accountLine,
-    'You 23 + CPU 24 + POT 1 + OPENED CANISTERS 2 + CALAMITY BURNED 0 = 50',
+    'You 23 + Opponent 24 + POT 1 + OPENED CANISTERS 2 + CALAMITY BURNED 0 = 50',
   );
-  assert.match(html, /Your reserve \+ CPU reserve \+ pot \+ opened \+ burned = 50 \/ 50/);
+  assert.match(html, /Your reserve \+ opponent reserve \+ pot \+ opened \+ burned = 50 \/ 50/);
   assert.match(html, new RegExp('EVENT ' + (index + 1) + ' / '));
 });
 
