@@ -1,54 +1,267 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#030914" />
-  <title>AIR POKER // 水下生存局</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <div class="app-shell" id="app">
-    <header class="topbar">
-      <div class="brand-lockup"><div class="brand-mark">A<span>/</span>P</div><div><p class="eyebrow" id="brandEyebrow"></p><h1>AIR POKER</h1></div></div>
-      <div class="topbar-center"><span class="signal"><i></i><span id="liveLink"></span></span><span class="slash">/</span><span class="muted" id="singlePlayer"></span></div>
-      <div class="top-actions"><div class="language-switch" role="group" aria-label="Language"><button class="lang-button active" data-lang="zh">中</button><button class="lang-button" data-lang="en">EN</button></div><button class="icon-button" id="rulesButton" title="查看规则" aria-label="查看规则">?</button><button class="icon-button" id="restartButton" title="重新开始" aria-label="重新开始">↻</button></div>
-    </header>
-    <div class="screen-stack">
-      <section class="screen-page home-page page-visible" id="homeScreen">
-        <div class="home-hero-art" aria-hidden="true"></div>
-        <div class="home-copy">
-          <div class="home-eyebrow"><span class="live-pip"></span><span id="homeLive"></span><span class="home-divider">/</span><span id="homeMode"></span></div>
-          <p class="home-kicker" id="homeKicker"></p>
-          <h2><span>AIR</span><em>POKER</em></h2>
-          <p class="home-subtitle" id="homeSubtitle"></p>
-          <div class="home-actions"><button class="hero-button" id="enterGameButton" onclick="window.enterMatch()"><span id="enterGameLabel"></span><b>↗</b></button><button class="text-button" id="openPlaybookButton" onclick="window.openPlaybook()"><span id="playbookLabel"></span><b>＋</b></button></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#030914" />
+    <link rel="icon" href="data:," />
+    <title>AIR POKER // 水下生存局</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell" id="app">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark">A<span>/</span>P</div>
+          <div>
+            <p class="eyebrow" id="brandEyebrow"></p>
+            <h1>AIR POKER</h1>
+          </div>
         </div>
-        <div class="home-bottom"><div><span class="micro-label">SYSTEM / 01</span><strong id="homeSystem"></strong></div><div><span class="micro-label">AIR-BIOS</span><strong>25 / 25</strong></div><div><span class="micro-label">TABLE</span><strong>THE ABYSS</strong></div></div>
-        <div class="home-scroll"><span>SCROLL TO ENTER</span><i></i></div>
-      </section>
-      <section class="screen-page playbook-page" id="playbookScreen">
-        <div class="playbook-backdrop" aria-hidden="true"></div><div class="playbook-head"><div><span class="page-kicker" id="playbookKicker"></span><h2 id="playbookTitle"></h2></div><button class="close-page" id="closePlaybook">× <span id="closeLabel"></span></button></div>
-        <div class="playbook-grid"><article class="playbook-card playbook-card-wide"><div class="playbook-image image-hands"></div><div class="playbook-card-copy"><span>01 / PRIVATE HAND</span><h3 id="playbookCard1Title"></h3><p id="playbookCard1Copy"></p></div></article><article class="playbook-card"><div class="playbook-image image-bet"></div><div class="playbook-card-copy"><span>02 / AIR BET</span><h3 id="playbookCard2Title"></h3><p id="playbookCard2Copy"></p></div></article><article class="playbook-card"><div class="playbook-image image-calamity"></div><div class="playbook-card-copy"><span>03 / CALAMITY</span><h3 id="playbookCard3Title"></h3><p id="playbookCard3Copy"></p></div></article></div>
-        <div class="playbook-footer"><span id="playbookFooter"></span><button class="hero-button compact" id="playbookEnterButton" onclick="window.enterMatch()"><span id="playbookEnterLabel"></span><b>↗</b></button></div>
-      </section>
-      <section class="screen-page intro-page" id="introScreen"><div class="intro-ink" aria-hidden="true"></div><div class="intro-scanline"></div><div class="intro-kicker" id="introKicker"></div><div class="intro-versus"><div class="intro-player"><span>PLAYER-01</span><strong>YOU</strong><em>AIR-BIOS 25</em></div><div class="intro-vs">VS</div><div class="intro-player opponent"><span>CPU-07</span><strong>THE OBSERVER</strong><em>AIR-BIOS 25</em></div></div><p class="intro-copy" id="introCopy"></p><div class="intro-loader"><i></i><span id="introReady"></span></div></section>
-    </div>
-    <main class="screen-page game-page" id="gameScreen">
-      <div class="game-layout">
-      <aside class="left-rail"><div class="rail-label" id="dossierLabel"></div><div class="opponent-card"><div class="opponent-portrait" aria-hidden="true"></div><div class="opponent-copy"><span class="small-label" id="opponentLabel"></span><strong>THE OBSERVER</strong><span class="opponent-status"><i></i><span id="breathStable"></span></span></div></div><div class="rail-section"><div class="rail-section-head"><span id="roundTraceLabel"></span><span id="traceCount"></span></div><div class="trace-list" id="traceList"></div></div><div class="rail-section note-block"><div class="rail-section-head"><span id="houseNoteLabel"></span><span>! 01</span></div><p id="houseNote"></p></div><div class="rail-footer"><span>AP-01</span><span>O<sup>2</sup> / LOCKED</span></div></aside>
-      <section class="table-stage" id="tableStage"><div class="comic-burst" aria-hidden="true"></div><div class="stage-header"><div><span class="stage-kicker" id="phaseKicker"></span><h2 id="phaseTitle"></h2></div><div class="round-readout"><span id="roundLabel"></span><strong id="roundNumber"></strong><em>/ 05</em></div></div>
-        <div class="combatants"><article class="combatant opponent-combatant"><div class="combatant-topline"><span>CPU // THE OBSERVER</span><span id="aiAirText"></span></div><div class="air-meter"><span id="aiAirMeter"></span></div><div class="combatant-body"><div class="avatar avatar-ai">◒</div><div class="combatant-meta"><strong id="aiStatus"></strong><span id="aiTargetText"></span></div><div class="card-fan mini-fan" id="aiHandPreview"><span>?</span><span>?</span><span>?</span><span>?</span><span>?</span></div></div></article><div class="duel-divider"><span>VS</span><i></i></div><article class="combatant player-combatant"><div class="combatant-topline"><span>YOU // PLAYER-01</span><span id="playerAirText"></span></div><div class="air-meter player-meter"><span id="playerAirMeter"></span></div><div class="combatant-body"><div class="avatar avatar-player">◇</div><div class="combatant-meta"><strong id="playerStatus"></strong><span id="playerTargetText"></span></div><div class="tiny-stat"><span id="potLabel"></span><strong id="potText"></strong></div></div></article></div>
-        <div class="play-surface" id="playSurface"></div><div class="table-footer"><div class="deck-readout"><span class="deck-icon">▦</span><span id="deckLabel"></span><strong id="deckCount"></strong><small id="deckRemaining"></small></div><div class="breath-readout"><span class="breath-dot"></span><span id="breathText"></span></div></div>
-      </section>
-      <aside class="right-rail"><div class="right-rail-head"><span id="feedLabel"></span><span class="live-dot">● LIVE</span></div><div class="feed-list" id="feedList"></div><div class="discard-panel"><div class="right-rail-head"><span id="discardLabel"></span><span id="discardCount"></span></div><div class="discard-fan" id="discardFan"><span>—</span><span>—</span><span>—</span></div></div><div class="right-tip"><span class="tip-mark">↗</span><p id="tipText"></p></div></aside>
+        <div class="topbar-center">
+          <span class="signal"><i></i><span id="liveLink"></span></span><span class="slash">/</span
+          ><span class="muted" id="singlePlayer"></span>
+        </div>
+        <div class="top-actions">
+          <div class="language-switch" role="group" aria-label="Language">
+            <button class="lang-button active" data-lang="zh">中</button
+            ><button class="lang-button" data-lang="en">EN</button>
+          </div>
+          <button
+            class="icon-button"
+            id="rulesButton"
+            data-action="open-rules"
+            title="查看规则"
+            aria-label="查看规则"
+          >
+            ?</button
+          ><button
+            class="icon-button"
+            id="restartButton"
+            data-action="enter-match"
+            title="重新开始"
+            aria-label="重新开始"
+          >
+            ↻
+          </button>
+        </div>
+      </header>
+      <div class="screen-stack">
+        <section class="screen-page home-page page-visible" id="homeScreen">
+          <div class="home-hero-art" aria-hidden="true"></div>
+          <div class="home-copy">
+            <div class="home-eyebrow">
+              <span class="live-pip"></span><span id="homeLive"></span
+              ><span class="home-divider">/</span><span id="homeMode"></span>
+            </div>
+            <p class="home-kicker" id="homeKicker"></p>
+            <h2><span>AIR</span><em>POKER</em></h2>
+            <p class="home-subtitle" id="homeSubtitle"></p>
+            <div class="home-actions">
+              <button class="hero-button" id="enterGameButton" data-action="enter-match">
+                <span id="enterGameLabel"></span><b>↗</b></button
+              ><button class="text-button" id="openPlaybookButton" data-action="open-playbook">
+                <span id="playbookLabel"></span><b>＋</b>
+              </button>
+            </div>
+          </div>
+          <div class="home-bottom">
+            <div><span class="micro-label">SYSTEM / 01</span><strong id="homeSystem"></strong></div>
+            <div><span class="micro-label">AIR-BIOS</span><strong>25 / 25</strong></div>
+            <div><span class="micro-label">TABLE</span><strong>THE ABYSS</strong></div>
+          </div>
+          <div class="home-scroll"><span>SCROLL TO ENTER</span><i></i></div>
+        </section>
+        <section class="screen-page playbook-page" id="playbookScreen">
+          <div class="playbook-backdrop" aria-hidden="true"></div>
+          <div class="playbook-head">
+            <div>
+              <span class="page-kicker" id="playbookKicker"></span>
+              <h2 id="playbookTitle"></h2>
+            </div>
+            <button class="close-page" id="closePlaybook" data-action="close-playbook">
+              × <span id="closeLabel"></span>
+            </button>
+          </div>
+          <div class="playbook-grid">
+            <article class="playbook-card playbook-card-wide">
+              <div class="playbook-image image-hands"></div>
+              <div class="playbook-card-copy">
+                <span>01 / PRIVATE HAND</span>
+                <h3 id="playbookCard1Title"></h3>
+                <p id="playbookCard1Copy"></p>
+              </div>
+            </article>
+            <article class="playbook-card">
+              <div class="playbook-image image-bet"></div>
+              <div class="playbook-card-copy">
+                <span>02 / AIR BET</span>
+                <h3 id="playbookCard2Title"></h3>
+                <p id="playbookCard2Copy"></p>
+              </div>
+            </article>
+            <article class="playbook-card">
+              <div class="playbook-image image-calamity"></div>
+              <div class="playbook-card-copy">
+                <span>03 / CALAMITY</span>
+                <h3 id="playbookCard3Title"></h3>
+                <p id="playbookCard3Copy"></p>
+              </div>
+            </article>
+          </div>
+          <div class="playbook-footer">
+            <span id="playbookFooter"></span
+            ><button class="hero-button compact" id="playbookEnterButton" data-action="enter-match">
+              <span id="playbookEnterLabel"></span><b>↗</b>
+            </button>
+          </div>
+        </section>
+        <section class="screen-page intro-page" id="introScreen">
+          <div class="intro-ink" aria-hidden="true"></div>
+          <div class="intro-scanline"></div>
+          <div class="intro-kicker" id="introKicker"></div>
+          <div class="intro-versus">
+            <div class="intro-player">
+              <span>PLAYER-01</span><strong>YOU</strong><em>AIR-BIOS 25</em>
+            </div>
+            <div class="intro-vs">VS</div>
+            <div class="intro-player opponent">
+              <span>CPU-07</span><strong>THE OBSERVER</strong><em>AIR-BIOS 25</em>
+            </div>
+          </div>
+          <p class="intro-copy" id="introCopy"></p>
+          <div class="intro-loader"><i></i><span id="introReady"></span></div>
+        </section>
       </div>
-    </main>
-  </div>
-  <dialog class="rules-dialog" id="rulesDialog"><div class="dialog-head"><span id="rulesKicker"></span><button class="icon-button" id="closeRules" aria-label="关闭规则">×</button></div><div class="dialog-content"><h2 id="rulesTitle"></h2><p id="rulesCopy"></p><div class="rule-grid" id="rulesGrid"></div><p class="dialog-note" id="rulesNote"></p></div></dialog>
-  <div class="toast" id="toast" role="status"></div><script src="app.js"></script>
-</body>
+      <main class="screen-page game-page" id="gameScreen">
+        <div class="game-layout">
+          <aside class="left-rail">
+            <div class="rail-label" id="dossierLabel"></div>
+            <div class="opponent-card">
+              <div class="opponent-portrait" aria-hidden="true"></div>
+              <div class="opponent-copy">
+                <span class="small-label" id="opponentLabel"></span><strong>THE OBSERVER</strong
+                ><span class="opponent-status"><i></i><span id="breathStable"></span></span>
+              </div>
+            </div>
+            <div class="rail-section">
+              <div class="rail-section-head">
+                <span id="roundTraceLabel"></span><span id="traceCount"></span>
+              </div>
+              <div class="trace-list" id="traceList"></div>
+            </div>
+            <div class="rail-section note-block">
+              <div class="rail-section-head">
+                <span id="houseNoteLabel"></span><span>! 01</span>
+              </div>
+              <p id="houseNote"></p>
+            </div>
+            <div class="rail-footer">
+              <span>AP-01</span><span>O<sup>2</sup> / LOCKED</span>
+            </div>
+          </aside>
+          <section class="table-stage" id="tableStage">
+            <div class="comic-burst" aria-hidden="true"></div>
+            <div class="stage-header">
+              <div>
+                <span class="stage-kicker" id="phaseKicker"></span>
+                <h2 id="phaseTitle"></h2>
+              </div>
+              <div class="round-readout">
+                <span id="roundLabel"></span><strong id="roundNumber"></strong><em>/ 05</em>
+              </div>
+            </div>
+            <div class="combatants">
+              <article class="combatant opponent-combatant">
+                <div class="combatant-topline">
+                  <span>CPU // THE OBSERVER</span><span id="aiAirText"></span>
+                </div>
+                <div class="air-meter"><span id="aiAirMeter"></span></div>
+                <div class="combatant-body">
+                  <div class="avatar avatar-ai">◒</div>
+                  <div class="combatant-meta">
+                    <strong id="aiStatus"></strong><span id="aiTargetText"></span>
+                  </div>
+                  <div class="card-fan mini-fan" id="aiHandPreview">
+                    <span>?</span><span>?</span><span>?</span><span>?</span><span>?</span>
+                  </div>
+                </div>
+              </article>
+              <div class="duel-divider"><span>VS</span><i></i></div>
+              <article class="combatant player-combatant">
+                <div class="combatant-topline">
+                  <span>YOU // PLAYER-01</span><span id="playerAirText"></span>
+                </div>
+                <div class="air-meter player-meter"><span id="playerAirMeter"></span></div>
+                <div class="combatant-body">
+                  <div class="avatar avatar-player">◇</div>
+                  <div class="combatant-meta">
+                    <strong id="playerStatus"></strong><span id="playerTargetText"></span>
+                  </div>
+                  <div class="tiny-stat">
+                    <span id="potLabel"></span><strong id="potText"></strong>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <div class="play-surface" id="playSurface"></div>
+            <div class="table-footer">
+              <div class="deck-readout">
+                <span class="deck-icon">▦</span><span id="deckLabel"></span
+                ><strong id="deckCount"></strong><small id="deckRemaining"></small>
+              </div>
+              <div class="breath-readout">
+                <span class="breath-dot"></span><span id="breathText"></span>
+              </div>
+            </div>
+          </section>
+          <aside class="right-rail">
+            <div class="right-rail-head">
+              <span id="feedLabel"></span><span class="live-dot">● LIVE</span>
+            </div>
+            <div class="feed-list" id="feedList"></div>
+            <div class="discard-panel">
+              <div class="right-rail-head">
+                <span id="discardLabel"></span><span id="discardCount"></span>
+              </div>
+              <div class="discard-fan" id="discardFan">
+                <span>—</span><span>—</span><span>—</span>
+              </div>
+            </div>
+            <div class="right-tip">
+              <span class="tip-mark">↗</span>
+              <p id="tipText"></p>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+    <dialog class="rules-dialog" id="rulesDialog">
+      <div class="dialog-head">
+        <span id="rulesKicker"></span
+        ><button
+          class="icon-button"
+          id="closeRules"
+          data-action="close-rules"
+          aria-label="关闭规则"
+        >
+          ×
+        </button>
+      </div>
+      <div class="dialog-content">
+        <h2 id="rulesTitle"></h2>
+        <p id="rulesCopy"></p>
+        <div class="rule-grid" id="rulesGrid"></div>
+        <p class="dialog-note" id="rulesNote"></p>
+      </div>
+    </dialog>
+    <div class="toast" id="toast" role="status"></div>
+    <script type="module" src="app.js"></script>
+  </body>
 </html>

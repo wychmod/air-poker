@@ -1,0 +1,17 @@
+{
+  "name": "air-poker",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node scripts/serve.js",
+    "test": "node --test",
+    "format": "prettier --write app.js i18n.js game ui styles styles.css tests scripts index.html README.md package.json .github/workflows/pages.yml doc/maintainability",
+    "format:check": "prettier --check app.js i18n.js game ui styles styles.css tests scripts index.html README.md package.json .github/workflows/pages.yml doc/maintainability"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
+  }
+}
