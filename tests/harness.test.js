@@ -14,6 +14,8 @@ const available = new Set([
   'game/rules.js',
   'game/cards.js',
   'game/engine.js',
+  'game/betting.js',
+  'browser/turn-clock.js',
   'ui/render.js',
 ]);
 
@@ -34,6 +36,16 @@ test('architecture permits current layering and rejects reverse, missing and ext
   }
   assert.ok(
     checkModule('game/unregistered.js', 'export const value = 1;', available).errors.length,
+  );
+  assert.deepEqual(
+    checkModule('app.js', "import './browser/turn-clock.js';", available).errors,
+    [],
+  );
+  assert.ok(
+    checkModule('game/engine.js', "import '../browser/turn-clock.js';", available).errors.length,
+  );
+  assert.ok(
+    checkModule('browser/turn-clock.js', "import '../game/engine.js';", available).errors.length,
   );
 });
 
@@ -131,7 +143,7 @@ test('full runner returns failure, stops immediately and records the failed step
     assert.equal(dirname(fixture), parent);
     await rm(fixture, { recursive: true, force: true });
   });
-  for (const directory of ['scripts/harness', 'game', 'ui', 'tests']) {
+  for (const directory of ['scripts/harness', 'game', 'browser', 'ui', 'tests']) {
     await mkdir(join(fixture, directory), { recursive: true });
   }
   for (const file of ['check.js', 'config.js', 'syntax.js', 'files.js']) {

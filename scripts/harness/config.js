@@ -3,9 +3,9 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const SITE_ROOT = fileURLToPath(new URL('../../dist/site/', import.meta.url));
 export const SITE_FILES = ['index.html', 'styles.css', 'app.js', 'i18n.js'];
-export const SITE_DIRECTORIES = ['game', 'ui', 'styles', 'assets/generated'];
-export const CODE_ROOTS = ['app.js', 'i18n.js', 'game', 'ui', 'scripts', 'tests'];
-export const BROWSER_ROOTS = ['app.js', 'i18n.js', 'game', 'ui'];
+export const SITE_DIRECTORIES = ['game', 'browser', 'ui', 'styles', 'assets/generated'];
+export const CODE_ROOTS = ['app.js', 'i18n.js', 'game', 'browser', 'ui', 'scripts', 'tests'];
+export const BROWSER_ROOTS = ['app.js', 'i18n.js', 'game', 'browser', 'ui'];
 
 export const FORMAT_TARGETS = [
   ...CODE_ROOTS,
@@ -26,11 +26,13 @@ export const FORMAT_TARGETS = [
 export const LAYERS = [
   { name: 'data', path: 'game/data.js', allows: [] },
   { name: 'rules', path: 'game/rules.js', allows: [] },
+  { name: 'betting', path: 'game/betting.js', allows: [] },
   { name: 'cards', path: 'game/cards.js', allows: ['data', 'rules'] },
   { name: 'engine', path: 'game/engine.js', allows: ['data', 'rules', 'cards'] },
+  { name: 'browser', prefix: 'browser/', allows: [] },
   { name: 'i18n', path: 'i18n.js', allows: [] },
   { name: 'ui', prefix: 'ui/', allows: ['ui', 'data', 'rules', 'cards', 'engine', 'i18n'] },
-  { name: 'app', path: 'app.js', allows: ['engine', 'ui', 'i18n'] },
+  { name: 'app', path: 'app.js', allows: ['engine', 'browser', 'ui', 'i18n'] },
 ];
 
 export const NODE_GLOBALS = new Set([
