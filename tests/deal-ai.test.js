@@ -42,9 +42,9 @@ test('CPU chooses only its unused solvable positions, and reports no legal hand 
     chooseCpuPlay(targets, [0, 1, 2, 3, 4], [], () => 0),
     null,
   );
-  assert.equal(
+  assert.deepEqual(
     chooseCpuPlay(targets, [], createDeck(), () => 0),
-    null,
+    { index: 0, target: 6, hand: null, rank: null },
   );
 });
 

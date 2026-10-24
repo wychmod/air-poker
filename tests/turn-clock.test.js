@@ -9,7 +9,8 @@ function fixture() {
     callbacks = [];
   const ticks = [],
     expired = [],
-    cpu = [];
+    cpu = [],
+    upper = [];
   const clock = createTurnClock({
     now: () => time,
     schedule(callback, delay) {
@@ -24,6 +25,7 @@ function fixture() {
     onTick: (value) => ticks.push(value),
     onPlayerTimeout: (id) => expired.push(id),
     onCpuTurn: (id) => cpu.push(id),
+    onUpperTimeout: (id) => upper.push(id),
   });
   function advance(amount) {
     const target = time + amount;
@@ -43,6 +45,7 @@ function fixture() {
     ticks,
     expired,
     cpu,
+    upper,
     callbacks,
     tasks,
     advance,
@@ -152,4 +155,24 @@ test('expiration may synchronously switch to the next actor without scheduling t
   time = 30600;
   callback();
   assert.equal(scheduled, 2);
+});
+
+test('construction uses its remaining engine deadline and does not collide with a betting ID', () => {
+  const f = fixture();
+  const upper = {
+    phase: 'upper',
+    upper: { attemptId: 1, deadlineMs: 60000 },
+    respiration: { elapsedMs: 20000 },
+  };
+  f.clock.sync(upper);
+  assert.equal(f.ticks.at(-1), 40);
+  f.advance(10000);
+  f.clock.sync(upper);
+  assert.equal(f.ticks.at(-1), 30);
+  f.advance(30000);
+  assert.deepEqual(f.upper, [1]);
+  f.clock.sync(turn(1));
+  assert.equal(f.ticks.at(-1), 30);
+  f.advance(30000);
+  assert.deepEqual(f.expired, [1]);
 });

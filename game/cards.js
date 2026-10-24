@@ -25,6 +25,26 @@ export function createDeck() {
   return RANKS.flatMap(({ value }) => SUITS.map((_, index) => card(value, index)));
 }
 
+export function judgeHand(hand, target, discard = []) {
+  if (!Array.isArray(hand) || hand.length !== 5) return { valid: false, reason: 'incomplete' };
+  const deck = new Map(createDeck().map((next) => [next.id, next]));
+  const canonical = hand.map((next) => deck.get(next?.id));
+  if (canonical.some((next) => !next)) return { valid: false, reason: 'unknown-card' };
+  if (new Set(canonical.map((next) => next.id)).size !== 5)
+    return { valid: false, reason: 'duplicate' };
+  if (canonical.some((next) => discard.some((used) => used.id === next.id)))
+    return { valid: false, reason: 'used-card' };
+  if (canonical.reduce((sum, next) => sum + next.value, 0) !== target)
+    return { valid: false, reason: 'wrong-sum' };
+  if (
+    hand.some((next, index) =>
+      Object.keys(canonical[index]).some((key) => next[key] !== canonical[index][key]),
+    )
+  )
+    return { valid: false, reason: 'unknown-card' };
+  return { valid: true, hand: canonical, reason: null };
+}
+
 // Every feasible rank multiset has a representative; flushes need additional
 // suit representatives. The best poker rank is exact, but physical choices
 // are only a recommended subset, not all possible overlap-avoidance plays.

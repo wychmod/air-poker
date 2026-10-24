@@ -11,7 +11,10 @@ function seeded(seed) {
 function startBet(game, index = game.getState().targetPlayable.indexOf(true)) {
   assert.equal(game.dispatch({ type: 'choose-target', index }), true);
   assert.equal(game.getState().aiHand, null);
-  assert.equal(game.dispatch({ type: 'confirm-hand' }), true);
+  assert.equal(
+    game.dispatch({ type: 'confirm-hand', attemptId: game.getState().upper?.attemptId }),
+    true,
+  );
   if (game.getState().phase === 'bet') assert.equal(game.getState().aiHand, null);
 }
 function bet(game, action, amount) {
@@ -93,7 +96,7 @@ test('CPU locked target and physical hand do not change with player target or ca
       game.dispatch({ type: 'choose-target', index });
       assert.equal(game.getState().aiHand, null);
       assert.equal(game.dispatch({ type: 'select-candidate', index: candidate }), true);
-      game.dispatch({ type: 'confirm-hand' });
+      game.dispatch({ type: 'confirm-hand', attemptId: game.getState().upper?.attemptId });
       finishBet(game);
       const { aiTarget, aiHand } = game.getState();
       expected ??= { aiTarget, aiHand };
@@ -122,7 +125,7 @@ test('first-round smaller number leads and later rounds alternate regardless of 
   for (let seed = 1; seed <= 12; seed++) {
     const game = createGame({ random: seeded(seed) });
     let first;
-    while (game.getState().phase !== 'summary') {
+    while (game.getState().phase !== 'summary' && game.getState().phase !== 'endurance') {
       startBet(game);
       const state = game.getState();
       if (state.round === 1) {
@@ -147,7 +150,7 @@ test('wrong phases, illegal amounts, old action IDs and repeated settlement are 
   for (const action of [
     null,
     { type: 'unknown' },
-    { type: 'confirm-hand' },
+    { type: 'confirm-hand', attemptId: game.getState().upper?.attemptId },
     { type: 'advance-round' },
     { type: 'cpu-bet', turnId: 1 },
     { type: 'bet-timeout', turnId: 1 },
@@ -158,7 +161,7 @@ test('wrong phases, illegal amounts, old action IDs and repeated settlement are 
   ])
     rejectUnchanged(game, action);
   startBet(game);
-  rejectUnchanged(game, { type: 'confirm-hand' });
+  rejectUnchanged(game, { type: 'confirm-hand', attemptId: game.getState().upper?.attemptId });
   rejectUnchanged(game, { type: 'select-candidate', index: 1 });
   let state = game.getState();
   if (state.betting.turn === 'ai') {
@@ -223,7 +226,7 @@ test('complete multi-turn matches conserve AIR, support both folds and preserve 
       const game = createGame({ random: seeded(seed) }),
         initial = game.getState().targets;
       let burned = 0;
-      while (game.getState().phase !== 'summary') {
+      while (game.getState().phase !== 'summary' && game.getState().phase !== 'endurance') {
         const before = game.getState();
         assert.deepEqual(before.targets, initial);
         const legal = before.targetPlayable.flatMap((ok, index) => (ok ? [index] : []));
@@ -268,12 +271,14 @@ test('complete multi-turn matches conserve AIR, support both folds and preserve 
         assert.ok(next.completedRounds <= 5);
       }
       const final = game.getState();
-      endings.add(final.endReason);
+      endings.add(final.enduranceReason);
+      assert.equal(game.dispatch({ type: 'fast-forward', sessionId: final.sessionId }), true);
+      assert.equal(game.getState().phase, 'summary');
       assert.equal(final.completedRounds, final.traces.length);
       rejectUnchanged(game, { type: 'advance-round' });
       game.reset();
       assert.equal(game.getState().phase, 'lower');
-      assert.equal(game.getState().playerAir, 25);
+      assert.equal(game.getState().playerAir, 24);
       assert.deepEqual(game.getState().discard, []);
       assert.deepEqual(game.getState().usedTargets, []);
       assert.equal(game.getState().aiHand, null);
@@ -281,33 +286,8 @@ test('complete multi-turn matches conserve AIR, support both folds and preserve 
   assert.ok(turns > 200);
   assert.ok(overlaps > 0);
   assert.deepEqual([...folders].sort(), ['ai', 'player']);
-  assert.ok(endings.has('air-exhausted'));
+  assert.ok(endings.has('no-betting-air'));
   assert.ok(endings.has('round-limit'));
-});
-
-test('unavailable targets end early with four actual rounds and never fabricate replacements', () => {
-  const game = createGame({ random: () => 0.9 }),
-    initial = game.getState().targets;
-  let sawUnavailable = false;
-  while (game.getState().phase !== 'summary') {
-    const before = game.getState();
-    for (let index = 0; index < 5; index++)
-      if (!before.targetPlayable[index] && !before.usedTargets.includes(index)) {
-        sawUnavailable = true;
-        rejectUnchanged(game, { type: 'choose-target', index });
-      }
-    startBet(game);
-    finishBet(game, 'fold');
-    game.dispatch({ type: 'advance-round' });
-  }
-  const final = game.getState();
-  assert.ok(sawUnavailable);
-  assert.equal(final.endReason, 'no-legal-target');
-  assert.equal(final.completedRounds, 4);
-  assert.equal(final.traces.length, 4);
-  assert.deepEqual(final.targets, initial);
-  assert.equal(final.playerAir + final.aiAir + final.breathSpent, 50);
-  rejectUnchanged(game, { type: 'choose-target', index: 4 });
 });
 
 test('equal first-round numbers use the declared random tie-break', () => {
@@ -333,7 +313,7 @@ test('CPU betting history cannot depend on which hidden player candidate was sel
     const game = createGame({ random: seeded(73) });
     game.dispatch({ type: 'choose-target', index: 0 });
     game.dispatch({ type: 'select-candidate', index: candidate });
-    game.dispatch({ type: 'confirm-hand' });
+    game.dispatch({ type: 'confirm-hand', attemptId: game.getState().upper?.attemptId });
     finishBet(game);
     const history = game.getState().betting.history;
     expected ??= history;

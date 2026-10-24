@@ -1,5 +1,7 @@
-import { BET_SECONDS, createGame } from './game/engine.js';
+import { BET_SECONDS, UPPER_SECONDS, createGame } from './game/engine.js';
 import { createTurnClock } from './browser/turn-clock.js';
+import { createMatchClock } from './browser/match-clock.js';
+
 import { isLanguage, translate } from './i18n.js';
 import { createRenderer } from './ui/render.js';
 
@@ -21,10 +23,13 @@ const render = () => renderer.render(game.getState(), view);
 
 const turnClock = createTurnClock({
   seconds: BET_SECONDS,
+  upperSeconds: UPPER_SECONDS,
   onTick(remaining) {
     view.timer = remaining;
     const node = document.getElementById('betTimer');
     if (node) node.textContent = remaining == null ? '…' : remaining;
+    const upper = document.getElementById('upperTimer');
+    if (upper) upper.textContent = remaining;
   },
   onPlayerTimeout(turnId) {
     dispatch({ type: 'bet-timeout', turnId });
@@ -32,10 +37,34 @@ const turnClock = createTurnClock({
   onCpuTurn(turnId) {
     dispatch({ type: 'cpu-bet', turnId });
   },
+  onUpperTimeout(attemptId) {
+    dispatch({ type: 'upper-timeout', attemptId });
+  },
+});
+
+const matchClock = createMatchClock({
+  onPulse(action) {
+    const before = game.getState();
+    if (!game.dispatch(action)) return;
+    const after = game.getState();
+    if (
+      after.phase !== before.phase ||
+      after.playerAir !== before.playerAir ||
+      after.aiAir !== before.aiAir ||
+      after.betting?.turnId !== before.betting?.turnId ||
+      after.upper?.attemptId !== before.upper?.attemptId
+    ) {
+      matchClock.sync(after);
+      turnClock.sync(after);
+      render();
+    } else renderer.updateBreathing(after);
+  },
 });
 
 function dispatch(action) {
+  matchClock.flush();
   if (!game.dispatch(action)) return false;
+  matchClock.sync(game.getState());
   turnClock.sync(game.getState());
   render();
   return true;
@@ -49,12 +78,15 @@ function setScreen(screen) {
 
 function restart(withIntro) {
   turnClock.clear();
+  matchClock.clear();
   clearTimeout(introHandle);
   clearTimeout(toastHandle);
   document.getElementById('toast').classList.remove('show');
   game.reset();
+
   view.timer = BET_SECONDS;
   setScreen(withIntro ? 'intro' : 'game');
+  matchClock.sync(game.getState());
   if (withIntro) introHandle = setTimeout(() => setScreen('game'), 1350);
 }
 
@@ -81,6 +113,7 @@ function setLanguage(lang) {
 document.addEventListener('click', (event) => {
   const button = event.target.closest('[data-action], [data-lang]');
   if (!button || button.disabled) return;
+  matchClock.flush();
   const { action, lang } = button.dataset;
   if (lang) {
     setLanguage(lang);
@@ -113,6 +146,12 @@ document.addEventListener('click', (event) => {
       dispatch({ type: action, index: Number(button.dataset.index) });
       break;
     case 'confirm-hand':
+    case 'fail-hand':
+      dispatch({ type: action, attemptId: Number(button.dataset.attempt) });
+      break;
+    case 'fast-forward':
+      dispatch({ type: action, sessionId: game.getState().sessionId });
+      break;
     case 'advance-round':
       dispatch({ type: action });
       break;
@@ -137,6 +176,8 @@ document.addEventListener('click', (event) => {
 });
 
 window.addEventListener('pagehide', () => {
+  matchClock.flush();
+  matchClock.suspend();
   turnClock.suspend();
   clearTimeout(introHandle);
   clearTimeout(toastHandle);
@@ -144,6 +185,7 @@ window.addEventListener('pagehide', () => {
 window.addEventListener('pageshow', (event) => {
   if (!event.persisted) return;
   if (view.screen === 'intro') setScreen('game');
+  matchClock.sync(game.getState());
   turnClock.sync(game.getState());
   render();
 });

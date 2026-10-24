@@ -8,7 +8,12 @@ export function chooseCpuPlay(targets, usedTargets, discard, random = Math.rando
     if (usedTargets.includes(index)) return [];
     return makeCandidates(target, discard).map((candidate) => ({ index, target, ...candidate }));
   });
-  if (!plays.length) return null;
+  if (!plays.length) {
+    const remaining = targets.flatMap((target, index) =>
+      usedTargets.includes(index) ? [] : [{ index, target, hand: null, rank: null }],
+    );
+    return remaining.length ? remaining[randomIndex(random, remaining.length)] : null;
+  }
   plays.sort((a, b) => compareRanks(b.rank, a.rank));
   const strongest = plays.filter((play) => compareRanks(play.rank, plays[0].rank) === 0);
   return strongest[randomIndex(random, strongest.length)];
@@ -21,6 +26,7 @@ export function chooseCpuBet(
   random = Math.random,
 ) {
   if (!options.active) return null;
+  if (!hand) return { action: options.canCall ? 'fold' : 'check' };
   const opponentBest = makeCandidates(opponentTarget, discard)[0];
   const ownRank = rankHand(hand);
   const comparison = opponentBest ? compareRanks(ownRank, opponentBest.rank) : 1;

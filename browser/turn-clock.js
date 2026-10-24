@@ -5,9 +5,11 @@ export function createTurnClock({
   cancel = clearTimeout,
   seconds = 30,
   cpuDelay = 600,
+  upperSeconds = 60,
   onTick = () => {},
   onPlayerTimeout,
   onCpuTurn,
+  onUpperTimeout,
 }) {
   let active = null;
   let handle = null;
@@ -29,13 +31,14 @@ export function createTurnClock({
   function run(turn) {
     if (active !== turn || suspended || turn.done) return;
     const remaining = Math.max(0, turn.deadline - now());
-    onTick(turn.actor === 'player' ? Math.ceil(remaining / 1000) : null);
+    onTick(turn.actor === 'ai' ? null : Math.ceil(remaining / 1000));
     if (remaining > 0) {
-      later(turn, turn.actor === 'player' ? Math.min(250, remaining) : remaining);
+      later(turn, turn.actor === 'ai' ? remaining : Math.min(250, remaining));
       return;
     }
     turn.done = true;
-    if (turn.actor === 'player') onPlayerTimeout(turn.id);
+    if (turn.actor === 'upper') onUpperTimeout(turn.id);
+    else if (turn.actor === 'player') onPlayerTimeout(turn.id);
     else onCpuTurn(turn.id);
   }
   function clear() {
@@ -50,12 +53,21 @@ export function createTurnClock({
       suspended = true;
     },
     sync(snapshot) {
-      const betting = snapshot.phase === 'bet' ? snapshot.betting : null;
+      const betting =
+        snapshot.phase === 'upper'
+          ? {
+              turn: 'upper',
+              turnId: snapshot.upper.attemptId,
+              deadlineMs: snapshot.upper.deadlineMs,
+            }
+          : snapshot.phase === 'bet'
+            ? snapshot.betting
+            : null;
       if (!betting?.turn) {
         clear();
         return;
       }
-      if (active?.id === betting.turnId) {
+      if (active?.id === betting.turnId && active.actor === betting.turn) {
         if (suspended) {
           suspended = false;
           run(active);
@@ -67,7 +79,15 @@ export function createTurnClock({
       active = {
         id: betting.turnId,
         actor: betting.turn,
-        deadline: now() + (betting.turn === 'player' ? seconds * 1000 : cpuDelay),
+        deadline:
+          now() +
+          (Number.isFinite(betting.deadlineMs)
+            ? Math.max(0, betting.deadlineMs - snapshot.respiration.elapsedMs)
+            : betting.turn === 'upper'
+              ? upperSeconds * 1000
+              : betting.turn === 'player'
+                ? seconds * 1000
+                : cpuDelay),
         done: false,
       };
       run(active);

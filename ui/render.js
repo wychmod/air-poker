@@ -84,7 +84,7 @@ export function createRenderer(document) {
             >
               <span class="card-index">0${i + 1}</span><strong>${target}</strong
               ><small
-                >${t(used ? 'targetUsed' : playable ? 'available' : 'targetUnavailable')}</small
+                >${t(used ? 'targetUsed' : state.targetSolvable[i] ? 'available' : 'targetUnavailable')}</small
               ><em>${t('targetAir')}</em>
             </button>`;
           })
@@ -98,12 +98,16 @@ export function createRenderer(document) {
   }
 
   function renderUpper() {
+    const attemptId = state.upper.attemptId;
     return /* HTML */ `<div class="surface-instruction">
         <div>
           <span class="target-tag">TARGET ${state.playerTarget} // UPPER</span>
           <h3>${t('upperTitle')}</h3>
         </div>
-        <p>${t('upperCopy')}</p>
+        <p>
+          ${t(state.upper.retry ? 'upperRetryCopy' : 'upperCopy')}<br />${t('upperTime')}
+          <strong id="upperTimer">${view.timer}</strong>s
+        </p>
       </div>
       <div class="candidate-grid">
         ${state.candidates
@@ -123,9 +127,20 @@ export function createRenderer(document) {
           )
           .join('')}
       </div>
+      ${state.candidates.length ? '' : `<p class="action-note">${t('noCandidateCopy')}</p>`}
       <div class="surface-actions">
-        <button class="recommend-button" data-action="recommend-hand">✦ ${t('recommend')}</button
-        ><button class="primary-button" data-action="confirm-hand">${t('lock')} →</button>
+        <button class="recommend-button" data-action="fail-hand" data-attempt="${attemptId}">
+          ${t('failHand')}
+        </button>
+        <button
+          class="recommend-button"
+          data-action="recommend-hand"
+          ${state.candidates.length ? '' : 'disabled'}
+        >
+          ✦ ${t('recommend')}</button
+        ><button class="primary-button" data-action="confirm-hand" data-attempt="${attemptId}">
+          ${t(state.candidates.length ? 'lock' : 'submitFailure')} →
+        </button>
       </div>`;
   }
 
@@ -141,8 +156,12 @@ export function createRenderer(document) {
       </div>
       <div class="bet-layout">
         <div class="locked-hand">
-          <div class="hand-label">${t('you')} // ${t(rankHand(state.playerHand).key)}</div>
-          <div class="hand-cards">${state.playerHand.map((c) => cardMarkup(c)).join('')}</div>
+          <div class="hand-label">
+            ${t('you')} // ${t(state.playerHand ? rankHand(state.playerHand).key : 'upperFailed')}
+          </div>
+          <div class="hand-cards">
+            ${state.playerHand ? state.playerHand.map((c) => cardMarkup(c)).join('') : cardBacks()}
+          </div>
           <p class="action-note">
             TARGET ${state.playerTarget} · ${t('currentPot')} ${state.pot} AIR
           </p>
@@ -226,12 +245,12 @@ export function createRenderer(document) {
     const tie = result.winner === 'tie';
     const title = tie ? t('resultTie') : playerWon ? t('resultWin') : t('resultLose');
     const playerCards =
-      result.foldedBy === 'player'
+      result.foldedBy === 'player' || !state.playerHand
         ? cardBacks()
         : state.playerHand.map((c) => cardMarkup(c)).join('');
     const continueLabel =
       state.round >= state.maxRounds || state.playerAir <= 0 || state.aiAir <= 0
-        ? t('final')
+        ? t('enterEndurance')
         : t('next');
     return /* HTML */ `<div class="surface-instruction">
         <div>
@@ -245,7 +264,7 @@ export function createRenderer(document) {
           <div class="showdown-hand-head">
             <span
               >${t('you')} //
-              ${result.foldedBy === 'player' ? t('fold') : t(result.playerRank?.key || 'noHand')}</span
+              ${result.foldedBy === 'player' ? t('fold') : t(result.playerRank?.key || 'upperFailed')}</span
             ><strong>${state.playerTarget}</strong>
           </div>
           <div class="hand-cards">${playerCards}</div>
@@ -255,11 +274,11 @@ export function createRenderer(document) {
           <div class="showdown-hand-head">
             <span
               >${t('cpu')} //
-              ${result.foldedBy === 'ai' ? t('fold') : t(result.aiRank?.key || 'noHand')}</span
+              ${result.foldedBy === 'ai' ? t('fold') : t(result.aiRank?.key || 'upperFailed')}</span
             ><strong>${state.aiTarget}</strong>
           </div>
           <div class="hand-cards">
-            ${result.foldedBy === 'ai' ? cardBacks() : state.aiHand.map((c) => cardMarkup(c)).join('')}
+            ${result.foldedBy === 'ai' || !state.aiHand ? cardBacks() : state.aiHand.map((c) => cardMarkup(c)).join('')}
           </div>
         </div>
       </div>
@@ -275,9 +294,32 @@ export function createRenderer(document) {
       </div>`;
   }
 
+  function renderEndurance() {
+    return /* HTML */ `<div class="surface-instruction">
+        <div>
+          <span class="target-tag">${t('enduranceKicker')}</span>
+          <h3>${t('enduranceTitle')}</h3>
+        </div>
+        <p>${t('enduranceCopy')}</p>
+      </div>
+      <div class="summary-layout">
+        <div class="summary-hero">
+          <span>${t('enduranceReason')}</span>
+          <h3>
+            ${t({ 'round-limit': 'endRounds', 'no-betting-air': 'endBettingAir', 'upper-deadlock': 'endDeadlock' }[state.enduranceReason])}
+          </h3>
+          <p>${t('enduranceFair')}</p>
+        </div>
+      </div>
+      <div class="surface-actions">
+        <span class="action-note">${t('fastForwardCopy')}</span
+        ><button class="primary-button" data-action="fast-forward">${t('fastForward')} →</button>
+      </div>`;
+  }
+
   function renderSummary() {
-    const win = state.playerAir > state.aiAir;
-    const tie = state.playerAir === state.aiAir;
+    const win = state.winner === 'player';
+    const tie = state.winner === 'tie';
     const verdict = tie ? t('draw') : win ? t('survivor') : t('drowned');
     const copy = tie ? t('drawCopy') : win ? t('survivorCopy') : t('drownedCopy');
     return /* HTML */ `<div class="surface-instruction">
@@ -285,9 +327,7 @@ export function createRenderer(document) {
           <span class="target-tag">${t('summaryKicker')}</span>
           <h3>${t('summaryTitle')}</h3>
         </div>
-        <p>
-          ${t({ 'air-exhausted': 'endAir', 'no-legal-target': 'endTargets', 'round-limit': 'endRounds' }[state.endReason] || 'summaryCopy')}
-        </p>
+        <p>${t(state.endReason === 'breath-exhausted' ? 'endBreath' : 'summaryCopy')}</p>
       </div>
       <div class="summary-layout">
         <div class="summary-hero ${win ? '' : 'lose'}">
@@ -357,6 +397,7 @@ export function createRenderer(document) {
       bet: ['betKicker', 'betTitle', 'betWait', 'call'],
       showdown: ['showdownKicker', 'showdownTitle', 'showdownWait', 'showdownWait'],
       summary: ['summaryKicker', 'summaryTitle', 'summaryTitle', 'summaryTitle'],
+      endurance: ['enduranceKicker', 'enduranceTitle', 'enduranceTitle', 'enduranceTitle'],
     }[state.phase];
     $('phaseKicker').textContent = t(meta[0]);
     $('phaseTitle').textContent = t(meta[1]);
@@ -385,8 +426,7 @@ export function createRenderer(document) {
     $('potText').textContent = String(state.pot).padStart(2, '0');
     $('deckCount').textContent = state.deck;
     $('discardCount').textContent = String(state.discard.length).padStart(2, '0');
-    $('breathText').textContent =
-      state.phase === 'summary' ? t('summaryKicker') : t('breath', { n: 1 });
+    updateBreathing(state);
     $('playSurface').innerHTML =
       state.phase === 'lower'
         ? renderLower()
@@ -396,7 +436,9 @@ export function createRenderer(document) {
             ? renderBet()
             : state.phase === 'showdown'
               ? renderShowdown()
-              : renderSummary();
+              : state.phase === 'endurance'
+                ? renderEndurance()
+                : renderSummary();
     $('discardFan').innerHTML = state.discard.length
       ? state.discard
           .slice(-3)
@@ -405,6 +447,21 @@ export function createRenderer(document) {
       : '<span>—</span><span>—</span><span>—</span>';
     renderTrace();
     renderFeed();
+  }
+
+  function updateBreathing(snapshot) {
+    const seconds = (actor) => Math.ceil(snapshot.respiration[actor].remainingMs / 1000);
+    $('breathText').textContent = t('breathSupply', {
+      player: seconds('player'),
+      cpu: seconds('ai'),
+    });
+    const shortage =
+      snapshot.respiration.player.shortageMs > 0 || snapshot.respiration.ai.shortageMs > 0;
+    $('breathStable').textContent = t(
+      snapshot.phase === 'summary' ? 'breathClosed' : shortage ? 'breathLow' : 'breathSteady',
+    );
+    if (shortage && snapshot.phase !== 'summary')
+      $('breathText').textContent += ` · ${t('hypoxiaCopy')}`;
   }
 
   function applyPageCopy() {
@@ -438,6 +495,7 @@ export function createRenderer(document) {
   }
 
   return {
+    updateBreathing,
     render(snapshot, viewState) {
       state = snapshot;
       view = viewState;
