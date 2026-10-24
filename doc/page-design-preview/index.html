@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#030914" />
+    <link rel="icon" href="data:," />
+    <title>AIR POKER · 八页设计蓝图</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="preview.css" />
+    <script src="preview.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#canvas">跳到页面预览</a>
+    <header class="workbench-head">
+      <a class="atlas-brand" href="#p01">A<span>/</span>P <small>DESIGN ATLAS</small></a>
+      <span class="version">页面设计 V2.0 · 2026.10.24</span>
+      <a href="../2026-10-24-air-poker-page-design.md">完整设计文档 ↗</a>
+    </header>
+    <div class="workbench">
+      <aside class="navigator" aria-label="设计页面目录">
+        <p class="overline">08 SCREENS / ONE EXPERIENCE</p>
+        <h1>深海审判<br />页面档案。</h1>
+        <p class="nav-intro">6 个核心页面，2 个增强页面。<br />从潜入前厅，到看懂每一口空气。</p>
+        <nav id="pageNav" aria-label="八个页面"></nav>
+        <div class="nav-note">
+          <span class="note-line"></span>
+          <p>这是可交互的设计蓝图。所有牌面、数值与结果均为演示，不进行真实牌局计算。</p>
+        </div>
+      </aside>
+      <main id="canvas" tabindex="-1">
+        <section class="page-brief" aria-labelledby="pageTitle">
+          <div>
+            <p id="pageNumber" class="overline"></p>
+            <h2 id="pageTitle"></h2>
+            <p id="pagePurpose"></p>
+          </div>
+          <div class="view-switch" role="group" aria-label="预览宽度">
+            <button data-width="desktop" aria-pressed="true">桌面</button
+            ><button data-width="mobile" aria-pressed="false">手机</button>
+          </div>
+        </section>
+        <div id="phaseNav" class="phase-controls" aria-label="对战子状态"></div>
+        <div class="browser-frame" id="frame">
+          <div class="browser-chrome">
+            <div aria-hidden="true"><i></i><i></i><i></i></div>
+            <span id="previewPath"></span><span>CONCEPT / DEMO DATA</span>
+          </div>
+          <section class="mock" id="mock" aria-label="产品页面设计预览"></section>
+        </div>
+        <section class="design-notes" aria-label="当前页面设计说明">
+          <div>
+            <span class="overline">WHY THIS SCREEN</span>
+            <h3>设计要点</h3>
+          </div>
+          <ul id="pageNotes"></ul>
+        </section>
+      </main>
+    </div>
+    <dialog id="infoDialog">
+      <div class="modal-top">
+        <span class="overline">AIR POKER / CONTEXT</span
+        ><button data-close aria-label="关闭说明">×</button>
+      </div>
+      <div id="dialogBody"></div>
+      <button class="btn" data-close>返回当前页面</button>
+    </dialog>
+  </body>
+</html>
