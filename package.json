@@ -8,10 +8,16 @@
   "scripts": {
     "start": "node scripts/serve.js",
     "test": "node --test",
-    "format": "prettier --write app.js i18n.js game ui styles styles.css tests scripts index.html README.md package.json .github/workflows/pages.yml doc/maintainability",
-    "format:check": "prettier --check app.js i18n.js game ui styles styles.css tests scripts index.html README.md package.json .github/workflows/pages.yml doc/maintainability"
+    "check": "node scripts/harness/check.js",
+    "check:syntax": "node scripts/harness/syntax.js",
+    "check:architecture": "node scripts/harness/architecture.js",
+    "build": "node scripts/stage-site.js",
+    "check:smoke": "node scripts/harness/smoke.js",
+    "format": "node scripts/format.js --write",
+    "format:check": "node scripts/format.js --check"
   },
   "devDependencies": {
+    "acorn": "8.19.0",
     "prettier": "3.9.10"
   }
 }

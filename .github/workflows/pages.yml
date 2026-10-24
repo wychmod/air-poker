@@ -37,30 +37,23 @@ jobs:
       - name: Validate source
         run: |
           npm ci
-          npm test
-          npm run format:check
+          npm run check
+
+      - name: Save harness report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-report-pages
+          path: output/harness/latest.json
+          if-no-files-found: ignore
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
 
-      # The site is plain static files at the repository root. Stage only what
-      # the browser actually needs into _site/ so the artifact excludes .git,
-      # .github and doc/.
-      #
-      # assets/reference/ is 34 MB of design source material that nothing on
-      # the site links to, so it is left out. Add it back here if the pages
-      # ever start referencing it.
-      - name: Stage site
-        run: |
-          mkdir -p _site/assets
-          cp index.html styles.css app.js i18n.js _site/
-          cp -R game ui styles _site/
-          cp -R assets/generated _site/assets/
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: _site
+          path: dist/site
 
       - name: Deploy to GitHub Pages
         id: deployment

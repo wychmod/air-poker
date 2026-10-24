@@ -1,0 +1,77 @@
+import { fileURLToPath } from 'node:url';
+
+export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+export const SITE_ROOT = fileURLToPath(new URL('../../dist/site/', import.meta.url));
+export const SITE_FILES = ['index.html', 'styles.css', 'app.js', 'i18n.js'];
+export const SITE_DIRECTORIES = ['game', 'ui', 'styles', 'assets/generated'];
+export const CODE_ROOTS = ['app.js', 'i18n.js', 'game', 'ui', 'scripts', 'tests'];
+export const BROWSER_ROOTS = ['app.js', 'i18n.js', 'game', 'ui'];
+
+export const FORMAT_TARGETS = [
+  ...CODE_ROOTS,
+  'styles',
+  'styles.css',
+  'index.html',
+  'README.md',
+  'AGENTS.md',
+  'package.json',
+  '.prettierrc.json',
+  '.github/workflows',
+  'doc/README.md',
+  'doc/maintainability',
+  'doc/harness',
+];
+
+// New runtime modules must be assigned a layer deliberately.
+export const LAYERS = [
+  { name: 'data', path: 'game/data.js', allows: [] },
+  { name: 'rules', path: 'game/rules.js', allows: [] },
+  { name: 'cards', path: 'game/cards.js', allows: ['data', 'rules'] },
+  { name: 'engine', path: 'game/engine.js', allows: ['data', 'rules', 'cards'] },
+  { name: 'i18n', path: 'i18n.js', allows: [] },
+  { name: 'ui', prefix: 'ui/', allows: ['ui', 'data', 'rules', 'cards', 'engine', 'i18n'] },
+  { name: 'app', path: 'app.js', allows: ['engine', 'ui', 'i18n'] },
+];
+
+export const NODE_GLOBALS = new Set([
+  'process',
+  'Buffer',
+  'require',
+  'module',
+  '__dirname',
+  '__filename',
+]);
+export const GAME_SIDE_EFFECTS = new Set([
+  'window',
+  'document',
+  'globalThis',
+  'self',
+  'localStorage',
+  'sessionStorage',
+  'navigator',
+  'location',
+  'fetch',
+  'XMLHttpRequest',
+  'WebSocket',
+  'setTimeout',
+  'clearTimeout',
+  'setInterval',
+  'clearInterval',
+  'requestAnimationFrame',
+  'cancelAnimationFrame',
+]);
+
+export const MIME = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+  '.avif': 'image/avif',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+};

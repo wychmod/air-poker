@@ -18,12 +18,19 @@ npm start
 
 ```sh
 npm test
+npm run check
 npm run format:check
 npm run format
 ```
 
 测试使用 Node 内置测试运行器，覆盖牌型、候选、结算、阶段限制和完整对局的资源不变量。
 Prettier 仅用于开发时格式化源码。
+
+`npm run check` 顺序运行语法、架构、回归测试、格式、静态产物与 HTTP 资源检查，失败即停止。
+最近一次结果保存在忽略目录 `output/harness/latest.json`。单独检查产物时先执行 `npm run build`，再执行 `npm run check:smoke`。
+HTTP 检查不运行页面脚本；交互改动仍需浏览器验收。
+
+协作约束见 [AGENTS.md](AGENTS.md)，文档入口见 [doc/README.md](doc/README.md)，完整工程说明见 [Harness](doc/harness/README.md)。
 
 ## 代码组织
 
@@ -54,5 +61,6 @@ Prettier 仅用于开发时格式化源码。
 
 ## 部署
 
-GitHub Pages 工作流先运行测试及格式检查，再发布 HTML、JS 模块、CSS 和生成图片。
-本地服务器及开发文档不进入部署产物。
+`npm run build` 按白名单将 HTML、JS 模块、CSS 和生成图片复制到 `dist/site/`，没有代码编译步骤。
+Pull request 与 main 推送运行完整 harness 检查；GitHub Pages 发布前使用同一检查命令，再上传 `dist/site/`。
+开发依赖、本地服务器、测试、工程文档和待评审设计预览不进入部署产物。
