@@ -86,6 +86,8 @@ ui/record.js 只渲染快照与翻译，外来字符串转义。查看和导出�
 
 ## 漫画界面与表现层
 
+ui/hand-builder.js 持有纯视图草稿操作，按 sessionId 和 attemptId 隔离，使用 cards 的标准牌库和 judgeHand 展示预校验；它不写入引擎状态。app 确认时通过 submit-hand 提交，所有卡牌、筛选、推荐操作在同步时钟后校验 attemptId。
+
 ui/render.js 组合 pages、battle、tutorial 模板并维护渲染焦点；battle 读取 breathing 常量显示真实供气进度，不调用结算。教学只持有练习视图状态，独立于正式 createGame。ui/review.js 只消费 getRecord 快照，事件播放按记录序号展示，不重新运行 AI。
 
 browser/scene-motion.js 无运行模块依赖，从前后公开快照识别已接受动作，用真实 betting.history.paid 区分支付与呼吸开罐。表现副本不带可交互入口；动画结束不触发任何引擎动作。统一 Canvas 限制像素倍率、隐藏暂停绘制、尊重系统和用户偏好，恢复不补播过时事件。
