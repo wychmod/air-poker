@@ -1,0 +1,371 @@
+.review-heading {
+  padding: 30px 40px 22px;
+}
+.review-heading h2 {
+  font-size: clamp(26px, 3vw, 38px);
+  margin-bottom: 14px;
+}
+.review-heading p:last-child {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+.review-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+}
+.review-rounds {
+  padding: 24px 18px;
+  border-right: 1px solid var(--line);
+}
+.review-rounds button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 20px 14px;
+  gap: 8px;
+  font-size: 14px;
+}
+.review-rounds small {
+  grid-column: 1/-1;
+  color: var(--muted);
+}
+.review-rounds [aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.review-rounds [aria-pressed='true'] small {
+  color: #bbb;
+}
+.review-detail {
+  padding: 28px 36px;
+  min-width: 0;
+}
+.review-round-head {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.review-round-head h3 {
+  margin: 0;
+  font-size: 22px;
+}
+.review-attempts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.review-attempts .button {
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.review-attempts [aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.review-hands {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.review-hand {
+  min-width: 0;
+}
+.review-hand h3 {
+  font: 600 14px var(--sans);
+}
+.review-hand small {
+  color: var(--muted);
+  font-weight: 400;
+}
+.review-cards {
+  display: flex;
+  gap: 6px;
+}
+.review-card {
+  flex: 1;
+  min-width: 0;
+  max-width: 64px;
+  aspect-ratio: 0.7;
+  border: 1px solid #999;
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #fffdf8;
+  box-shadow: 2px 3px 0 #0000000c;
+}
+.review-card b {
+  font:
+    700 22px Georgia,
+    serif;
+}
+.review-card > span {
+  align-self: flex-end;
+  font-size: 22px;
+}
+.review-card.red {
+  color: var(--risk);
+}
+.review-hidden {
+  padding: 30px;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+.review-basis {
+  font-size: 13px;
+  margin: 22px 0;
+}
+.review-totals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 28px;
+}
+.review-totals strong,
+.review-totals span {
+  display: block;
+  font-size: 13px;
+  line-height: 1.9;
+}
+.review-totals span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.review-event {
+  border: 1px solid var(--ink);
+  padding: 24px;
+  min-height: 184px;
+  animation: event-in 0.18s ease-out;
+}
+.review-event h3 {
+  font-size: 23px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+.review-event > p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.transfer-path {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 16px;
+  background: #e8e7e1;
+}
+.transfer-token {
+  font:
+    700 20px Georgia,
+    serif;
+}
+.review-account-line {
+  margin: 14px 0 0;
+}
+.review-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+}
+.review-controls label {
+  flex: 1;
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 12px;
+}
+.review-controls input {
+  display: block;
+  width: 100%;
+  min-height: 30px;
+  accent-color: var(--ink);
+}
+.review-event-list {
+  list-style: none;
+  padding: 0;
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid var(--line);
+}
+.review-event-list button {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 48px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+}
+.review-event-list small {
+  min-width: 85px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+.review-event-list span {
+  font-size: 13px;
+}
+.review-event-list [aria-current='step'] {
+  background: #e1e0d8;
+  box-shadow: inset 3px 0 var(--ink);
+}
+.review-accounts,
+.review-full {
+  border-top: 1px solid var(--line);
+  padding: 20px 0;
+  margin-top: 20px;
+  font-size: 13px;
+}
+.review-accounts summary,
+.review-full summary {
+  cursor: pointer;
+  min-height: 30px;
+  font-weight: 600;
+}
+.review-accounts svg {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+}
+.review-full .rule-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.review-full .rule-grid div {
+  padding: 15px;
+  border: 1px solid var(--line);
+}
+.review-full .rule-grid b,
+.review-full .rule-grid span {
+  display: block;
+}
+.review-full details {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.review-full h2 {
+  margin-top: 25px;
+}
+.review-empty {
+  padding: 70px 35px;
+}
+.review-empty h2 {
+  font-size: 32px;
+}
+.review-full p {
+  overflow-wrap: anywhere;
+}
+@keyframes event-in {
+  from {
+    opacity: 0.65;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 760px) {
+  .review-heading {
+    padding: 25px 20px;
+  }
+  .review-layout {
+    grid-template-columns: 1fr;
+  }
+  .review-rounds {
+    display: flex;
+    gap: 8px;
+    overflow: auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    border-right: 0;
+  }
+  .review-rounds button {
+    min-width: 120px;
+    padding: 12px;
+  }
+  .review-detail {
+    padding: 22px 18px;
+  }
+  .review-round-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .review-hands {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .review-card {
+    max-width: 70px;
+  }
+  .review-totals {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .review-event {
+    padding: 18px;
+  }
+  .review-event h3 {
+    font-size: 19px;
+  }
+  .transfer-path {
+    gap: 16px;
+    font-size: 13px;
+  }
+  .review-controls {
+    flex-wrap: wrap;
+  }
+  .review-controls label {
+    flex-basis: 100%;
+    margin: 4px 0;
+  }
+  .review-controls .button {
+    font-size: 13px;
+  }
+  .review-event-list button {
+    gap: 10px;
+    padding: 10px;
+  }
+  .review-event-list small {
+    min-width: 65px;
+  }
+  .review-full .rule-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.transfer-token {
+  animation: recorded-transfer 350ms ease-out both;
+}
+@keyframes recorded-transfer {
+  from {
+    opacity: 0.35;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+html[data-motion='off'] .review-event,
+html[data-motion='off'] .transfer-token {
+  animation: none;
+}

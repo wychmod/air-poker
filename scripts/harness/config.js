@@ -42,7 +42,11 @@ export const LAYERS = [
   { name: 'archive', path: 'browser/record-store.js', allows: ['records'] },
   { name: 'browser', prefix: 'browser/', allows: [] },
   { name: 'i18n', path: 'i18n.js', allows: [] },
-  { name: 'ui', prefix: 'ui/', allows: ['ui', 'data', 'rules', 'cards', 'engine', 'i18n'] },
+  {
+    name: 'ui',
+    prefix: 'ui/',
+    allows: ['ui', 'data', 'rules', 'cards', 'engine', 'breathing', 'i18n'],
+  },
   { name: 'app', path: 'app.js', allows: ['engine', 'browser', 'archive', 'ui', 'i18n'] },
 ];
 

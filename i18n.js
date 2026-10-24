@@ -321,7 +321,7 @@ const I18N = {
     survivorCopy: '你把空气留在了自己的肺里。',
     drownedCopy: '最后一口空气，属于 THE OBSERVER。',
     drawCopy: '双方在同一时刻耗尽供气，判为平局。',
-    rulesKicker: '规则手册 // AIR POKER',
+    rulesKicker: '规则手册 // 空气扑克',
     rulesTitle: '空气，是生命也是筹码。',
     rulesCopy:
       '双方各有五张私有数字牌，每轮各消耗一张。用共享剩余牌库组成点数和等于自己数字的五张不同实体牌；A=1，已用牌不可复用。',
@@ -491,7 +491,7 @@ const I18N = {
     survivorCopy: 'You kept the air in your lungs.',
     drownedCopy: 'The last breath belongs to THE OBSERVER.',
     drawCopy: 'Both supplies exhausted at the same instant. Draw.',
-    rulesKicker: 'PLAYBOOK // AIR POKER',
+    rulesKicker: 'PLAYBOOK // Air Poker',
     rulesTitle: 'Air is life and currency.',
     rulesCopy:
       'Each side consumes one of its own five private number cards per round. Build five distinct unused cards from the shared deck to match that sum; A=1. Lock before betting.',

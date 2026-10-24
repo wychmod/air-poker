@@ -19,3 +19,6 @@ output/browser/
 
 *.local
 *.tsbuildinfo
+
+# Local visual verification fixtures
+output/ui-v2-qa/
