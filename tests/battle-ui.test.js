@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { createGame } from '../game/engine.js';
 import { battleMarkup, cardMarkup } from '../ui/battle.js';
 import { CANISTER_MS } from '../game/breathing.js';
+import { createDeck } from '../game/cards.js';
+import { translate } from '../i18n.js';
 
 const view = { lang: 'zh', timer: 30, selectedTarget: null };
 function constructedGame() {
@@ -40,18 +42,140 @@ test('number preview is local and preserves duplicate-position identity and unus
   assert.deepEqual(game.getState(), before);
 });
 
-test('candidate options show all five public cards and a guarded lock action', () => {
+function draftFor(state, hand = [], extra = {}) {
+  return {
+    sessionId: state.sessionId,
+    attemptId: state.upper.attemptId,
+    cardIds: hand.map((card) => card.id),
+    suit: 'all',
+    candidateIndex: null,
+    ...extra,
+  };
+}
+
+const buttonTag = (html, id) => html.match(new RegExp('<button[^>]*id="' + id + '"[^>]*>'))?.[0];
+const draftMarkup = (html) =>
+  html.match(/<div class="hand-draft" data-hand-draft>(.*?)<\/div>/s)?.[1];
+
+test('construction starts with an empty draft and all 52 physical cards, with recommendations as optional fills', () => {
   const game = createGame({ random: () => 0.41 });
   game.dispatch({ type: 'choose-target', index: 0 });
   const state = game.getState();
   const html = battleMarkup(state, view);
-  assert.equal((html.match(/data-card-id=/g) || []).length, state.candidates.length * 5);
-  assert.match(
-    html,
-    new RegExp('data-action="confirm-hand" data-attempt="' + state.upper.attemptId + '"'),
+  assert.equal((html.match(/id="hand-card-/g) || []).length, 52);
+  assert.equal((html.match(/class="hand-slot-empty"/g) || []).length, 5);
+  assert.equal(
+    (html.match(/data-action="select-candidate"/g) || []).length,
+    state.candidates.length,
   );
+  for (const [index, candidate] of state.candidates.entries()) {
+    assert.match(buttonTag(html, 'hand-candidate-' + index), /aria-pressed="false"/);
+    const recommendation = html.match(
+      new RegExp('<button[^>]*id="hand-candidate-' + index + '".*?<\/button>', 's'),
+    )[0];
+    assert.equal((recommendation.match(/data-card-id=/g) || []).length, 5);
+    for (const card of candidate.hand)
+      assert.ok(recommendation.includes('data-card-id="' + card.id + '"'));
+  }
+  assert.match(buttonTag(html, 'submitHand'), /data-action="submit-hand"/);
+  assert.match(buttonTag(html, 'submitHand'), /disabled/);
+  for (const card of createDeck()) {
+    const button = buttonTag(html, 'hand-card-' + card.id);
+    assert.ok(button, 'all physical ranks and suits remain reachable');
+    assert.match(button, new RegExp('data-attempt="' + state.upper.attemptId + '"'));
+    assert.ok(!button.includes('disabled'));
+  }
   assert.match(html, /双方各投入底注 1 AIR/);
   assert.ok(!html.includes('SCORE'));
+});
+
+test('a five-card draft is editable and enables locking without choosing a recommendation', () => {
+  const game = createGame({ random: () => 0.41 });
+  game.dispatch({ type: 'choose-target', index: 0 });
+  const state = game.getState();
+  const hand = state.candidates[0].hand;
+  const before = structuredClone(state);
+  const html = battleMarkup(state, { ...view, handDraft: draftFor(state, hand) });
+  const draft = draftMarkup(html);
+  assert.equal((draft.match(/data-card-id=/g) || []).length, 5);
+  assert.equal((draft.match(/data-action="toggle-hand-card"/g) || []).length, 5);
+  for (const card of hand) {
+    assert.ok(draft.includes('data-card-id="' + card.id + '"'));
+    assert.match(buttonTag(html, 'hand-card-' + card.id), /aria-pressed="true"/);
+  }
+  assert.ok(!buttonTag(html, 'submitHand').includes('disabled'));
+  assert.match(html, /符合目标，可锁定/);
+  assert.ok(
+    [...html.matchAll(/<button[^>]*data-action="select-candidate"[^>]*>/g)].every(([tag]) =>
+      tag.includes('aria-pressed="false"'),
+    ),
+  );
+  assert.deepEqual(state, before);
+  assert.deepEqual(game.getState(), before);
+});
+
+test('used physical cards stay selectable and a complete used-card draft explains the failed lock', () => {
+  const game = createGame({ random: () => 0.41 });
+  game.dispatch({ type: 'choose-target', index: 0 });
+  const state = game.getState();
+  const hand = state.candidates[0].hand;
+  state.discard = [hand[0]];
+  const html = battleMarkup(state, { ...view, handDraft: draftFor(state, hand) });
+  assert.match(buttonTag(html, 'hand-card-' + hand[0].id), /is-used/);
+  assert.ok(!buttonTag(html, 'hand-card-' + hand[0].id).includes('disabled'));
+  assert.ok(!buttonTag(html, 'submitHand').includes('disabled'));
+  assert.match(html, /含 1 张已用实体牌/);
+  assert.match(html, /锁定并判失败/);
+  assert.match(draftMarkup(html), /class="hand-card-used">已用/);
+});
+
+test('wrong sums remain a permitted failed submission, while incomplete and stale drafts cannot lock', () => {
+  const game = createGame({ random: () => 0.41 });
+  game.dispatch({ type: 'choose-target', index: 0 });
+  const state = game.getState();
+  const hand = createDeck().slice(0, 5);
+  state.playerTarget = 64;
+  const html = battleMarkup(state, { ...view, handDraft: draftFor(state, hand) });
+  assert.match(html, /点数和与目标相差/);
+  assert.ok(!buttonTag(html, 'submitHand').includes('disabled'));
+  const incomplete = battleMarkup(state, { ...view, handDraft: draftFor(state, hand.slice(0, 4)) });
+  assert.match(buttonTag(incomplete, 'submitHand'), /disabled/);
+  const stale = battleMarkup(state, {
+    ...view,
+    handDraft: draftFor(state, hand, { attemptId: state.upper.attemptId - 1 }),
+  });
+  assert.match(buttonTag(stale, 'submitHand'), /disabled/);
+  assert.equal((stale.match(/class="hand-slot-empty"/g) || []).length, 5);
+});
+
+test('suit filtering keeps the complete draft visible and recommendations derive selection from the draft', () => {
+  const game = createGame({ random: () => 0.41 });
+  game.dispatch({ type: 'choose-target', index: 0 });
+  const state = game.getState();
+  const hand = state.candidates[0].hand;
+  const html = battleMarkup(state, {
+    ...view,
+    handDraft: draftFor(state, hand, { suit: '2', candidateIndex: 0 }),
+  });
+  assert.equal((html.match(/id="hand-card-/g) || []).length, 13);
+  assert.equal((draftMarkup(html).match(/data-card-id=/g) || []).length, 5);
+  assert.match(buttonTag(html, 'hand-suit-2'), /aria-pressed="true"/);
+  assert.match(buttonTag(html, 'hand-candidate-0'), /aria-pressed="true"/);
+  assert.match(html, /已填入 · 可编辑/);
+});
+
+test('betting explains the specific failed-hand reason without consuming its cards', () => {
+  const game = createGame({ random: () => 0.41 });
+  game.dispatch({ type: 'choose-target', index: 0 });
+  game.dispatch({ type: 'fail-hand', attemptId: game.getState().upper.attemptId });
+  const state = game.getState();
+  assert.equal(state.phase, 'bet');
+  state.upper.playerReason = 'used-card';
+  for (const lang of ['zh', 'en']) {
+    const html = battleMarkup(state, { ...view, lang });
+    assert.ok(html.includes(translate(lang, 'failure_used-card')));
+    assert.ok(html.includes(lang === 'zh' ? '实体牌未消耗' : 'Physical cards preserved'));
+  }
 });
 
 test('betting never renders CPU card identities and previews call plus raise', () => {
@@ -246,7 +370,7 @@ test('tie refunds, folds and burns retain distinct ledger semantics', () => {
   assert.equal(folded, true);
 });
 
-test('retry preserves the pot and candidate selection, CPU turn cannot show a phantom raise', () => {
+test('retry preserves the pot and recommendations but starts with an empty editable draft, CPU turn cannot show a phantom raise', () => {
   const game = createGame({ random: seeded(1) });
   for (let round = 1; round <= 5; round++) {
     game.dispatch({
@@ -264,9 +388,11 @@ test('retry preserves the pot and candidate selection, CPU turn cannot show a ph
   assert.match(html, /本次为重做，底池保留 10 AIR/);
   assert.ok(!html.includes('双方各投入底注'));
   assert.match(
-    html,
-    new RegExp('data-candidate-index="' + retry.selectedCandidate + '" aria-pressed="true"'),
+    buttonTag(html, 'hand-candidate-' + retry.selectedCandidate),
+    /aria-pressed="false"/,
   );
+  assert.match(buttonTag(html, 'submitHand'), /disabled/);
+  assert.equal((html.match(/class="hand-slot-empty"/g) || []).length, 5);
   lock(game);
   assertRecordedLedger(game);
   const cpu = constructedGame();

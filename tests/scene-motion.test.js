@@ -179,3 +179,206 @@ test('scene lifecycle honors reduced motion, one frame loop, visibility and dest
   document.dispatchEvent(new Event('visibilitychange'));
   assert.equal(frames.size, 0, 'disposed listeners cannot restart a loop');
 });
+
+// These nodes only model the browser surfaces used by card feedback and flight.
+function cardMotionFixture() {
+  const selectors = new Map();
+  const lists = new Map();
+  const played = [];
+  const copies = [];
+  const media = Object.assign(new EventTarget(), { matches: false });
+  const win = Object.assign(new EventTarget(), {
+    matchMedia: () => media,
+    requestAnimationFrame: () => 1,
+    cancelAnimationFrame() {},
+  });
+  const document = Object.assign(new EventTarget(), {
+    defaultView: win,
+    documentElement: { dataset: {} },
+    hidden: false,
+    body: { append: (node) => copies.push(node) },
+  });
+  const root = {
+    ownerDocument: document,
+    dataset: {},
+    querySelector: (selector) => selectors.get(selector) ?? null,
+    querySelectorAll: (selector) => lists.get(selector) ?? [],
+  };
+  const cardNode = (id, area, left, top) => ({
+    dataset: { cardId: id },
+    textContent: id,
+    area,
+    style: {},
+    classList: { add() {} },
+    getBoundingClientRect: () => ({ left, top, width: 40, height: 60 }),
+    cloneNode: () => cardNode(id, area, left, top),
+    querySelectorAll: () => [],
+    removeAttribute(name) {
+      if (name === 'data-card-id') delete this.dataset.cardId;
+    },
+    setAttribute() {},
+    remove() {},
+    animate(frames, options) {
+      played.push({ node: this, frames, options });
+      return { finished: Promise.resolve(), cancel() {} };
+    },
+  });
+  function showDraft(ids) {
+    const nodes = ids.map((id, index) => cardNode(id, 'draft', index * 50, 100));
+    lists.set('[data-hand-draft] [data-card-id]', nodes);
+    for (const node of nodes)
+      selectors.set('[data-hand-draft] [data-card-id="' + node.dataset.cardId + '"]', node);
+    return nodes;
+  }
+  function showPool(ids) {
+    for (const id of ids)
+      selectors.set('[data-hand-pool] [data-card-id="' + id + '"]', cardNode(id, 'pool', 0, 300));
+  }
+  const motion = createSceneMotion({ root });
+  return { motion, selectors, lists, played, copies, cardNode, showDraft, showPool };
+}
+
+test('editing a free hand animates only newly selected slots and removed cards in the pool', () => {
+  const game = start();
+  choose(game);
+  const state = game.getState();
+  const fixture = cardMotionFixture();
+  const { motion, played } = fixture;
+  fixture.showPool(['1-0', '2-0', '3-0']);
+  fixture.showDraft(['1-0', '2-0']);
+  motion.update(state, { screen: 'game', lang: 'zh', handDraft: { cardIds: ['1-0', '2-0'] } });
+  assert.equal(played.length, 0);
+  fixture.showDraft(['1-0', '3-0']);
+  motion.update(structuredClone(state), {
+    screen: 'game',
+    lang: 'zh',
+    handDraft: { cardIds: ['1-0', '3-0'] },
+  });
+  assert.deepEqual(
+    played.map(({ node }) => [node.area, node.textContent]),
+    [
+      ['draft', '3-0'],
+      ['pool', '2-0'],
+    ],
+  );
+  assert.deepEqual(game.getState(), state, 'decorative feedback never changes the match');
+  motion.destroy();
+});
+
+test('language redraw and disabling motion never replay draft selection feedback', () => {
+  const game = start();
+  choose(game);
+  const state = game.getState();
+  const fixture = cardMotionFixture();
+  const { motion, played, copies } = fixture;
+  fixture.showPool(['1-0', '2-0']);
+  fixture.showDraft([]);
+  motion.update(state, { screen: 'game', lang: 'zh', handDraft: { cardIds: [] } });
+  fixture.showDraft(['1-0']);
+  motion.update(structuredClone(state), {
+    screen: 'game',
+    lang: 'zh',
+    handDraft: { cardIds: ['1-0'] },
+  });
+  assert.equal(played.length, 1);
+  fixture.showDraft(['1-0']);
+  motion.update(structuredClone(state), {
+    screen: 'game',
+    lang: 'en',
+    handDraft: { cardIds: ['1-0'] },
+  });
+  assert.equal(played.length, 1, 'a fresh language render does not select the card again');
+  motion.setEnabled(false);
+  fixture.showDraft(['2-0']);
+  motion.update(structuredClone(state), {
+    screen: 'game',
+    lang: 'en',
+    handDraft: { cardIds: ['2-0'] },
+  });
+  assert.equal(played.length, 1, 'disabled feedback neither adds nor removes cards visually');
+  assert.equal(copies.length, 0);
+  motion.setEnabled(true);
+  motion.update(structuredClone(state), {
+    screen: 'game',
+    lang: 'en',
+    handDraft: { cardIds: ['2-0'] },
+  });
+  assert.equal(played.length, 1, 'reenabling does not replay edits made while motion was disabled');
+  motion.destroy();
+});
+
+test('locking a manual hand flies the actual draft faces to matching physical-card destinations', () => {
+  const game = createGame({ random: seeded(1) });
+  choose(game);
+  const before = game.getState();
+  const hand = before.candidates[0].hand.map((card) =>
+    card.value === 1 ? { ...card, suit: '♣', id: '1-3' } : card,
+  );
+  assert.ok(
+    !before.candidates.some((candidate) => candidate.hand.some((card) => card.id === '1-3')),
+  );
+  const fixture = cardMotionFixture();
+  const { motion, played, copies, cardNode } = fixture;
+  const sources = fixture.showDraft(hand.map((card) => card.id));
+  const recommended = {
+    dataset: { candidateIndex: '0' },
+    querySelectorAll: () =>
+      before.candidates[0].hand.map((card, index) =>
+        cardNode(card.id, 'recommendation', 800 + index * 50, 500),
+      ),
+  };
+  fixture.lists.set('[data-candidate-index]', [recommended]);
+  motion.update(before, {
+    screen: 'game',
+    lang: 'zh',
+    handDraft: { cardIds: hand.map((card) => card.id) },
+  });
+  motion.capture();
+  assert.equal(
+    game.dispatch({
+      type: 'submit-hand',
+      attemptId: before.upper.attemptId,
+      hand,
+    }),
+    true,
+  );
+  const after = game.getState();
+  assert.equal(after.phase, 'bet');
+  fixture.showDraft([]);
+  const destinations = [...hand]
+    .reverse()
+    .map((card, index) => cardNode(card.id, 'player', 300 + index * 70, 200));
+  fixture.selectors.set('[data-hand="player"]', {
+    querySelectorAll: () => destinations,
+  });
+  motion.update(after, { screen: 'game', lang: 'zh', handDraft: null });
+  assert.equal(copies.length, 5);
+  assert.deepEqual(
+    copies.map((copy) => copy.textContent).sort(),
+    hand.map((card) => card.id).sort(),
+  );
+  assert.ok(
+    copies.every((copy) => copy.area === 'draft'),
+    'recommendations must not supply flight faces',
+  );
+  assert.equal(played.length, 5);
+  for (const { node, frames } of played) {
+    const from = sources
+      .find((source) => source.textContent === node.textContent)
+      .getBoundingClientRect();
+    const to = destinations
+      .find((destination) => destination.textContent === node.textContent)
+      .getBoundingClientRect();
+    assert.equal(node.style.left, from.left + 'px');
+    assert.equal(node.style.top, from.top + 'px');
+    assert.equal(
+      frames.at(-1).transform,
+      'translate(' + (to.left - from.left) + 'px,' + (to.top - from.top) + 'px) scale(1)',
+      'each face lands at its own ID even when destination order differs',
+    );
+  }
+  motion.update(structuredClone(after), { screen: 'game', lang: 'en', handDraft: null });
+  assert.equal(played.length, 5, 'language changes do not replay a committed hand');
+  assert.deepEqual(game.getState(), after);
+  motion.destroy();
+});

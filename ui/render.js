@@ -31,6 +31,9 @@ export function createRenderer(document) {
       const active = document.activeElement;
       const focusKey = active?.matches('[data-action], [data-lang]') ? { ...active.dataset } : null;
       const focusId = active?.id;
+      const draftFocusIndex = focusId?.startsWith('hand-draft-')
+        ? [...content.querySelectorAll('[data-hand-draft] [data-action]')].indexOf(active)
+        : -1;
       const input = document.getElementById('raiseAmount');
       const keepInput =
         previous?.sessionId === snapshot.sessionId &&
@@ -94,7 +97,15 @@ export function createRenderer(document) {
                   !node.disabled,
               )
             : null;
+        const remainingSlots = [...content.querySelectorAll('[data-hand-draft] [data-action]')];
+        const cardFallback =
+          draftFocusIndex >= 0
+            ? (document.getElementById('hand-card-' + focusKey?.card) ??
+              remainingSlots[Math.min(draftFocusIndex, remainingSlots.length - 1)] ??
+              content.querySelector('[data-action="filter-hand-suit"][aria-pressed="true"]'))
+            : null;
         if (same && !same.disabled) same.focus({ preventScroll: true });
+        else if (cardFallback) cardFallback.focus({ preventScroll: true });
         else {
           const title = content.querySelector('h1, h2');
           if (title) {

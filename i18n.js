@@ -267,7 +267,7 @@ const I18N = {
     upperKicker: '上层 // 锁定私牌',
     upperTitle: '把五张牌藏起来',
     upperCopy:
-      '对手已独立锁定目标与私牌。这里展示至多三个合法推荐成手，确认后冻结；并非所有花色组合。',
+      '对手已独立锁定目标与私牌。你可自由选五张牌，或填入推荐后编辑；确认后冻结，重复使用前轮实体牌会失败。',
     betKicker: '下注 // 读取空气',
     betTitle: '现在，轮到空气发言',
     betCopy:
@@ -442,7 +442,7 @@ const I18N = {
     upperKicker: 'UPPER // LOCK PRIVATE HAND',
     upperTitle: 'Hide five cards',
     upperCopy:
-      'The opponent committed independently. Choose from up to three legal recommendations and lock before betting; not all suit combinations are shown.',
+      'The opponent committed independently. Choose five cards freely, or fill and edit a recommendation. Lock before betting; reusing a previously used physical card fails the hand.',
     betKicker: 'BET // READ THE AIR',
     betTitle: 'Now let the air speak',
     betCopy:

@@ -171,10 +171,16 @@ export function createSceneMotion({ root, canvas }) {
     fly(copyAt(node, from), from, to);
   }
   function playLock(event) {
-    const sources = positions.candidates?.get(event.index) ?? [];
-    const destinations = query('[data-hand="player"]')?.querySelectorAll('[data-card-id]') ?? [];
+    const sources = positions.draft?.length
+      ? positions.draft
+      : (positions.candidates?.get(event.index) ?? []);
+    const destinations = [
+      ...(query('[data-hand="player"]')?.querySelectorAll('[data-card-id]') ?? []),
+    ];
     sources.forEach((source, index) => {
-      const to = rectOf(destinations[index]);
+      const to = rectOf(
+        destinations.find((card) => card.dataset.cardId === source.node.dataset.cardId),
+      );
       if (to) fly(copyAt(source.node, source.rect), source.rect, to, 250, index * 12);
     });
   }
@@ -336,6 +342,9 @@ export function createSceneMotion({ root, canvas }) {
     positions = {
       targets,
       candidates,
+      draft: [...root.querySelectorAll('[data-hand-draft] [data-card-id]')]
+        .map((card) => ({ node: card.cloneNode(true), rect: rectOf(card) }))
+        .filter((card) => card.rect),
       air: Object.fromEntries(
         actors.map((actor) => [actor, rectOf(query('[data-air="' + actor + '"]'))]),
       ),
@@ -370,6 +379,31 @@ export function createSceneMotion({ root, canvas }) {
           animate(old, [{ transform: 'translateY(-10px)' }, { transform: 'translateY(0)' }], {
             duration: 160,
           });
+        }
+        if (
+          snapshot.phase === 'upper' &&
+          previous.phase === 'upper' &&
+          previous.upper?.attemptId === snapshot.upper?.attemptId
+        ) {
+          const oldIds = previousView.handDraft?.cardIds ?? [];
+          const nextIds = view.handDraft?.cardIds ?? [];
+          for (const id of nextIds.filter((id) => !oldIds.includes(id))) {
+            const slot = query('[data-hand-draft] [data-card-id="' + id + '"]');
+            animate(
+              slot,
+              [
+                { transform: 'translateY(14px) rotate(-4deg) scale(.93)', opacity: 0.35 },
+                { transform: 'translateY(0) rotate(0) scale(1)', opacity: 1 },
+              ],
+              { duration: 220 },
+            );
+          }
+          for (const id of oldIds.filter((id) => !nextIds.includes(id))) {
+            const card = query('[data-hand-pool] [data-card-id="' + id + '"]');
+            animate(card, [{ transform: 'scale(.92)' }, { transform: 'scale(1)' }], {
+              duration: 180,
+            });
+          }
         }
         const events = classifyMotion(previous, snapshot);
         const locked = events.some((event) => event.type === 'lock');

@@ -1,5 +1,7 @@
 import { translate } from '../i18n.js';
 import { rankHand } from '../game/rules.js';
+import { createDeck } from '../game/cards.js';
+import { getDraftCards, getDraftStatus } from './hand-builder.js';
 import { CANISTER_MS, HYPOXIA_MS } from '../game/breathing.js';
 
 const esc = (value) =>
@@ -237,38 +239,232 @@ function lower(state, view) {
   );
 }
 
-function upper(state, view) {
+function handStatusCopy(state, status, usedCount, lang) {
+  if (usedCount) {
+    return copy(
+      lang,
+      '含 ' + usedCount + ' 张已用实体牌；锁定后本次成手将判失败。可点击牌面移除。',
+      usedCount +
+        ' used physical card(s). Locking will fail this hand. Select a card again to remove it.',
+    );
+  }
+  if (!status.complete) {
+    return copy(
+      lang,
+      '再选 ' +
+        (5 - status.hand.length) +
+        ' 张牌。' +
+        (status.sum > state.playerTarget
+          ? '点数和已超出目标，请调整牌面。'
+          : 'A = 1，J = 11，Q = 12，K = 13。'),
+      'Choose ' +
+        (5 - status.hand.length) +
+        ' more cards. ' +
+        (status.sum > state.playerTarget
+          ? 'The sum exceeds your target; adjust the cards.'
+          : 'A = 1, J = 11, Q = 12, K = 13.'),
+    );
+  }
+  if (status.valid) {
+    return (
+      copy(lang, '符合目标，可锁定 · ', 'Ready to lock · ') +
+      translate(lang, rankHand(status.hand).key)
+    );
+  }
+  if (status.reason === 'wrong-sum') {
+    return copy(
+      lang,
+      '点数和与目标相差 ' + Math.abs(status.sum - state.playerTarget) + '；现在锁定会判成手失败。',
+      'The sum differs from your target by ' +
+        Math.abs(status.sum - state.playerTarget) +
+        '. Locking now will fail this hand.',
+    );
+  }
+  return copy(
+    lang,
+    '这手牌不符合规则；锁定后将判成手失败。',
+    'This hand is invalid. Locking it will count as a failed hand.',
+  );
+}
+
+function handDraftMarkup(state, view, status, used) {
   const lang = view.lang;
-  const ante = Math.min(state.round, state.playerAir, state.aiAir);
+  const usedCount = status.hand.filter((card) => used.has(card.id)).length;
+  const warning =
+    usedCount > 0 || (status.complete && !status.valid) || status.sum > state.playerTarget;
+  const slots = Array.from({ length: 5 }, (_, index) => {
+    const card = status.hand[index];
+    if (!card)
+      return (
+        '<span class="hand-slot-empty" aria-label="' +
+        copy(lang, '空牌位 ', 'Empty slot ') +
+        (index + 1) +
+        '"><span>0' +
+        (index + 1) +
+        '</span><small>' +
+        copy(lang, '待选', 'EMPTY') +
+        '</small></span>'
+      );
+    const isUsed = used.has(card.id);
+    return (
+      '<button type="button" id="hand-draft-' +
+      esc(card.id) +
+      '" class="hand-draft-card' +
+      (isUsed ? ' is-used' : '') +
+      '" data-action="toggle-hand-card" data-card="' +
+      esc(card.id) +
+      '" data-attempt="' +
+      state.upper.attemptId +
+      '" aria-label="' +
+      esc(
+        copy(lang, '移除 ', 'Remove ') +
+          card.rank +
+          card.suit +
+          (isUsed ? copy(lang, '，已用实体牌', ', used physical card') : ''),
+      ) +
+      '">' +
+      cardMarkup(card) +
+      '<span class="hand-remove" aria-hidden="true">×</span>' +
+      (isUsed ? '<span class="hand-card-used">' + copy(lang, '已用', 'USED') + '</span>' : '') +
+      '</button>'
+    );
+  }).join('');
+  return (
+    '<section class="hand-workbench" aria-labelledby="handDraftTitle"><div class="hand-workbench-heading"><h3 id="handDraftTitle">' +
+    copy(lang, '我的暂选手牌', 'YOUR HAND') +
+    '</h3><span>' +
+    status.hand.length +
+    ' / 5</span><button type="button" id="clearHand" class="hand-clear" data-action="clear-hand" data-attempt="' +
+    state.upper.attemptId +
+    '"' +
+    (!status.hand.length ? ' disabled' : '') +
+    '>' +
+    copy(lang, '清空', 'Clear') +
+    '</button></div><div class="hand-draft-row"><div class="hand-draft" data-hand-draft>' +
+    slots +
+    '</div><div class="hand-total"><span>' +
+    copy(lang, '点数和 / 目标', 'SUM / TARGET') +
+    '</span><strong' +
+    (warning ? ' class="is-warning"' : '') +
+    '>' +
+    status.sum +
+    '<small> / ' +
+    state.playerTarget +
+    '</small></strong></div></div><p id="handDraftStatus" class="hand-status' +
+    (warning ? ' is-warning' : status.valid ? ' is-valid' : '') +
+    '" data-hand-status>' +
+    esc(handStatusCopy(state, status, usedCount, lang)) +
+    '</p></section>'
+  );
+}
+
+function handPoolMarkup(state, view, cards, used) {
+  const lang = view.lang;
+  const draft = view.handDraft;
+  const current =
+    draft?.sessionId === state.sessionId && draft?.attemptId === state.upper.attemptId;
+  const suit = current && ['0', '1', '2', '3'].includes(draft.suit) ? draft.suit : 'all';
+  const selected = new Set(cards.map((card) => card.id));
+  const labels = [
+    copy(lang, '黑桃', 'Spades'),
+    copy(lang, '红桃', 'Hearts'),
+    copy(lang, '方块', 'Diamonds'),
+    copy(lang, '梅花', 'Clubs'),
+  ];
+  const symbols = ['♠', '♥', '♦', '♣'];
+  const filters = ['all', '0', '1', '2', '3']
+    .map(
+      (value) =>
+        '<button type="button" id="hand-suit-' +
+        value +
+        '" data-action="filter-hand-suit" data-suit="' +
+        value +
+        '" data-attempt="' +
+        state.upper.attemptId +
+        '" aria-pressed="' +
+        (value === suit) +
+        '" aria-label="' +
+        (value === 'all'
+          ? copy(lang, '全部 52 张实体牌', 'All 52 physical cards')
+          : labels[Number(value)]) +
+        '">' +
+        (value === 'all' ? copy(lang, '全部 52', 'ALL 52') : symbols[Number(value)]) +
+        '</button>',
+    )
+    .join('');
+  const deck = createDeck().filter((card) => suit === 'all' || card.id.endsWith('-' + suit));
+  return (
+    '<section class="hand-library" aria-labelledby="handLibraryTitle"><div class="hand-library-heading"><h3 id="handLibraryTitle">' +
+    copy(lang, '自由选牌', 'BUILD YOUR HAND') +
+    '</h3><div class="hand-suit-filters" role="group" aria-label="' +
+    copy(lang, '按花色筛选', 'Filter by suit') +
+    '">' +
+    filters +
+    '</div></div><p class="hand-library-help">' +
+    copy(
+      lang,
+      '点击选牌，再点取消，最多 5 张。同点数不同花色是不同实体；灰标「已用」牌再次使用会失败。',
+      'Select a card to add or remove it, up to 5. Different suits are distinct cards; cards marked USED will fail your hand.',
+    ) +
+    '</p><div class="hand-pool" data-hand-pool>' +
+    deck
+      .map((card) => {
+        const isSelected = selected.has(card.id);
+        const isUsed = used.has(card.id);
+        return (
+          '<button type="button" id="hand-card-' +
+          esc(card.id) +
+          '" class="hand-pool-card' +
+          (isSelected ? ' is-selected' : '') +
+          (isUsed ? ' is-used' : '') +
+          '" data-action="toggle-hand-card" data-card="' +
+          esc(card.id) +
+          '" data-attempt="' +
+          state.upper.attemptId +
+          '" aria-pressed="' +
+          isSelected +
+          '" aria-label="' +
+          esc(
+            card.rank +
+              card.suit +
+              (isUsed ? copy(lang, '，已用，锁定会失败', ', used, locking will fail') : ''),
+          ) +
+          '">' +
+          cardMarkup(card) +
+          (isSelected ? '<span class="hand-picked" aria-hidden="true">✓</span>' : '') +
+          (isUsed ? '<span class="hand-card-used">' + copy(lang, '已用', 'USED') + '</span>' : '') +
+          '</button>'
+        );
+      })
+      .join('') +
+    '</div></section>'
+  );
+}
+
+function handRecommendations(state, view) {
+  const lang = view.lang;
+  const draft = view.handDraft;
+  const current =
+    draft?.sessionId === state.sessionId && draft?.attemptId === state.upper.attemptId;
   const candidates = state.candidates.slice(0, 3);
   return (
-    targetSlots(state, lang) +
-    heading(
-      '02 / ' + copy(lang, '完整成手', 'CONSTRUCT'),
-      copy(lang, '选择一手牌。', 'Choose your hand.'),
-      state.upper.retry
-        ? copy(
-            lang,
-            '双方成手失败。保留目标与底池，重新构造；不重复底注。',
-            'Both hands failed. Rebuild with the same targets and pot; no second ante.',
-          )
-        : copy(
-            lang,
-            '选择整手五张牌，再确认锁定。A 在点数和中为 1。',
-            'Choose all five cards together, then lock. A counts as 1 in the sum.',
-          ),
-      view.timer,
-      lang,
-    ) +
-    '<div class="battle-candidates">' +
+    '<section class="hand-recommendations" aria-labelledby="handRecommendationsTitle"><div class="hand-recommendations-heading"><h3 id="handRecommendationsTitle">' +
+    copy(lang, '快速填入推荐', 'QUICK PICKS') +
+    '</h3><p>' +
+    copy(lang, '只是参考，填入后仍可逐张调整。', 'A starting point. Every card stays editable.') +
+    '</p></div><div class="battle-candidates" data-hand-recommendations>' +
     candidates
       .map((candidate, index) => {
-        const selected = index === state.selectedCandidate;
+        const selected = current && draft.candidateIndex === index;
         return (
-          '<button type="button" class="battle-candidate' +
+          '<button type="button" id="hand-candidate-' +
+          index +
+          '" class="battle-candidate' +
           (selected ? ' is-selected' : '') +
           '" data-action="select-candidate" data-index="' +
           index +
+          '" data-attempt="' +
+          state.upper.attemptId +
           '" data-candidate-index="' +
           index +
           '" aria-pressed="' +
@@ -286,24 +482,52 @@ function upper(state, view) {
           candidate.hand.reduce((sum, card) => sum + card.value, 0) +
           '</span><b>' +
           (selected
-            ? copy(lang, '暂选 · 尚未锁定', 'SELECTED · UNLOCKED')
-            : copy(lang, '选择这手', 'SELECT HAND')) +
+            ? copy(lang, '已填入 · 可编辑', 'LOADED · EDITABLE')
+            : copy(lang, '填入这手', 'USE THESE CARDS')) +
           '</b></span></button>'
         );
       })
       .join('') +
     '</div>' +
     (!candidates.length
-      ? '<div class="battle-empty"><strong>' +
-        copy(lang, '当前数字无法组成合法五张牌。', 'No valid five-card hand for this number.') +
-        '</strong><p>' +
+      ? '<p class="hand-library-help">' +
         copy(
           lang,
-          '提交成手失败，保留所有未用实体牌。数字牌仍已使用。',
-          'Submit a failed hand. Unused physical cards are preserved; this number remains used.',
+          '当前目标无合法推荐。仍可自行选牌并提交失败，或主动失败。',
+          'No valid recommendation for this target. You can still build and submit a failed hand, or forfeit.',
         ) +
-        '</p></div>'
+        '</p>'
       : '') +
+    '</section>'
+  );
+}
+
+function upper(state, view) {
+  const lang = view.lang;
+  const ante = Math.min(state.round, state.playerAir, state.aiAir);
+  const cards = getDraftCards(state, view.handDraft);
+  const status = getDraftStatus(state, view.handDraft);
+  const used = new Set(state.discard.map((card) => card.id));
+  return (
+    targetSlots(state, lang) +
+    heading(
+      '02 / ' + copy(lang, '完整成手', 'CONSTRUCT'),
+      copy(lang, '自己组出这一手。', 'Build your five-card hand.'),
+      state.upper.retry
+        ? copy(
+            lang,
+            '双方成手失败。保留目标与底池，重新构造；不重复底注。',
+            'Both hands failed. Rebuild with the same targets and pot; no second ante.',
+          )
+        : copy(
+            lang,
+            '从 52 张实体牌中自由选择 5 张，让点数和等于你的目标。',
+            'Choose any 5 physical cards whose values add up to your target.',
+          ),
+      view.timer,
+      lang,
+    ) +
+    handDraftMarkup(state, view, status, used) +
     actionBar(
       state.upper.retry
         ? copy(
@@ -314,21 +538,24 @@ function upper(state, view) {
         : copy(
             lang,
             '本次锁定后，双方各投入底注 ' + ante + ' AIR。',
-            'Locking starts betting: each side pays an ante of ' + ante + ' AIR.',
+            'After locking, each side pays an ante of ' + ante + ' AIR.',
           ),
-      '<button class="button secondary" data-action="fail-hand" data-attempt="' +
+      '<button type="button" id="forfeitHand" class="button secondary" data-action="fail-hand" data-attempt="' +
         state.upper.attemptId +
         '">' +
         copy(lang, '主动失败', 'Forfeit hand') +
-        '</button>' +
-        (candidates.length
-          ? '<button class="button primary" data-action="confirm-hand" data-attempt="' +
-            state.upper.attemptId +
-            '">' +
-            copy(lang, '锁定这手牌', 'Lock this hand') +
-            ' <span aria-hidden="true">→</span></button>'
-          : ''),
-    )
+        '</button><button type="button" id="submitHand" class="button primary" data-action="submit-hand" data-attempt="' +
+        state.upper.attemptId +
+        '" aria-describedby="handDraftStatus"' +
+        (!status.complete ? ' disabled' : '') +
+        '>' +
+        (status.complete && !status.valid
+          ? copy(lang, '锁定并判失败', 'Lock failed hand')
+          : copy(lang, '锁定这手牌', 'Lock this hand')) +
+        ' <span aria-hidden="true">→</span></button>',
+    ) +
+    handPoolMarkup(state, view, cards, used) +
+    handRecommendations(state, view)
   );
 }
 

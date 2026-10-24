@@ -70,8 +70,8 @@ export function rulesMarkup(lang) {
       'hand',
       c('数字与完整成手', 'Targets and complete hands'),
       c(
-        '五张数字牌各使用一次，不补牌。实体成手必须是五张不同、未弃掉的牌，点数和等于目标；A=1，J/Q/K=11/12/13。比较通常 A 高，A2345 为五高。界面最多给出三个完整推荐，按整手选择；构造限时 60 秒。无解数字仍能选择，主动放弃或超时均记为成手失败，不消耗失败实体牌。',
-        'Each of five number cards is used once. A valid hand has five different unused cards whose values sum to the target: A=1, J/Q/K=11/12/13. Aces usually compare high; A2345 is five-high. Choose an entire hand from up to three recommendations within 60 seconds. Unsolvable targets remain selectable. Giving up or timing out fails the hand without consuming its cards.',
+        '五张数字牌各使用一次，不补牌。实体成手必须是五张不同、未弃掉的牌，点数和等于目标；A=1，J/Q/K=11/12/13。比较通常 A 高，A2345 为五高。可从牌库自由选择五张，或填入最多三个推荐后编辑；构造限时 60 秒。前轮双方有效成手中的实体牌不可再用，锁定含已用牌的手牌会判成手失败；同点不同花色仍是不同牌。无解数字仍能选择，主动放弃或超时均记为成手失败，不消耗失败实体牌。',
+        'Each of five number cards is used once. A valid hand has five different unused cards whose values sum to the target: A=1, J/Q/K=11/12/13. Aces usually compare high; A2345 is five-high. Choose five cards freely, or fill and edit one of up to three recommendations within 60 seconds. Reusing any physical card from either valid hand in a previous round fails your hand on lock; a different suit is a different card. Unsolvable targets remain selectable. Giving up or timing out fails the hand without consuming its cards.',
       ),
     ],
     [

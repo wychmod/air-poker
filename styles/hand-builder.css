@@ -1,0 +1,444 @@
+/* Editable cards remain a paper-and-ink work surface, not a second game state. */
+.hand-workbench {
+  border: 1px solid #c7c8be;
+  border-top: 2px solid #252820;
+  padding: 18px 22px 0;
+  background: #efeee6;
+}
+.hand-workbench-heading,
+.hand-library-heading,
+.hand-recommendations-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.hand-workbench h3,
+.hand-library h3,
+.hand-recommendations h3 {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+.hand-workbench-heading > span {
+  font:
+    12px 'Courier New',
+    monospace;
+  color: #686b63;
+}
+.hand-clear {
+  margin-left: auto;
+  padding: 7px 0 7px 16px;
+  color: #44483f;
+  background: transparent;
+  border: 0;
+  font-size: 12px !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hand-clear:disabled {
+  opacity: 0.45;
+}
+.hand-draft-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px 42px;
+  padding: 20px 0 18px;
+}
+.hand-draft {
+  display: grid;
+  grid-template-columns: repeat(5, 65px);
+  gap: 10px;
+  min-width: 0;
+}
+.hand-draft-card,
+.hand-pool-card {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  min-width: 0;
+  color: inherit;
+  transition: transform 160ms ease;
+}
+.hand-draft-card .battle-card {
+  width: 100%;
+  height: 92px;
+}
+.hand-slot-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 92px;
+  border: 1px dashed #b7b9ae;
+  border-radius: 3px;
+  color: #7a7e72;
+  background: #ffffff42;
+}
+.hand-slot-empty > span {
+  font:
+    20px 'Courier New',
+    monospace;
+}
+.hand-slot-empty > small {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+.hand-remove,
+.hand-picked {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  top: -7px;
+  right: -6px;
+  border: 1px solid #22251e;
+  border-radius: 50%;
+  background: #22251e;
+  color: #fffef9;
+  font: 15px/1 sans-serif;
+  pointer-events: none;
+}
+.hand-picked {
+  width: 16px;
+  height: 16px;
+  top: -5px;
+  right: -4px;
+  font-size: 11px;
+}
+.hand-total {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 130px;
+}
+.hand-total > span {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #686b63;
+}
+.hand-total > strong {
+  font:
+    700 40px/1 'Courier New',
+    monospace;
+}
+.hand-total > strong > small {
+  font-size: 21px;
+  font-weight: 400;
+  color: #686b63;
+}
+.hand-total .is-warning,
+.hand-status.is-warning {
+  color: #923939;
+}
+.hand-status {
+  border-top: 1px solid #d1d2c8;
+  margin: 0;
+  padding: 12px 0;
+  min-height: 43px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #60655b;
+}
+.hand-status.is-valid {
+  font-weight: 700;
+  color: #20241e;
+}
+.hand-workbench + .battle-actions {
+  margin-top: 0;
+}
+.hand-library {
+  margin-top: 30px;
+}
+.hand-library-heading {
+  justify-content: space-between;
+}
+.hand-suit-filters {
+  display: flex;
+  gap: 4px;
+}
+.hand-suit-filters > button {
+  min-width: 40px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #c7c8be;
+  background: #f8f7f2;
+  color: #363a31;
+  font-size: 15px;
+}
+.hand-suit-filters > button:first-child {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.hand-suit-filters > button[aria-pressed='true'] {
+  background: #252820;
+  border-color: #252820;
+  color: #fffef9;
+}
+.hand-library-help {
+  margin: 10px 0 15px;
+  color: #686b63;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.hand-pool {
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 14px 10px;
+  padding: 4px 0 8px;
+}
+.hand-pool-card .battle-card {
+  width: 100%;
+  height: 76px;
+  box-shadow: 1px 2px 0 #d4d5cb;
+}
+.hand-pool-card .battle-card-corner {
+  top: 5px;
+  left: 5px;
+  font-size: 17px;
+}
+.hand-pool-card .battle-card-corner small {
+  font-size: 12px;
+}
+.hand-pool-card .battle-card-suit {
+  font-size: 24px;
+}
+.hand-pool-card .battle-card-foot {
+  font-size: 9px;
+  right: 4px;
+}
+.hand-pool-card.is-selected {
+  transform: translateY(-3px);
+}
+.hand-pool-card.is-selected .battle-card {
+  border-color: #171917;
+  outline: 1px solid #171917;
+  background: #f5f2df;
+  box-shadow: 1px 4px 0 #33372c;
+}
+.hand-pool-card.is-used .battle-card,
+.hand-draft-card.is-used .battle-card {
+  color: #73776d;
+  background: repeating-linear-gradient(-45deg, #e2e3db 0, #e2e3db 1px, #eeeee7 1px, #eeeee7 7px);
+  border-color: #989c91;
+}
+.hand-card-used {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  padding: 3px 1px;
+  background: #62685d;
+  color: #fffef9;
+  text-align: center;
+  font:
+    8px/1 'Courier New',
+    monospace;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+.hand-pool-card.is-used.is-selected .battle-card,
+.hand-draft-card.is-used .battle-card {
+  outline: 1px solid #923939;
+  border-color: #923939;
+}
+.hand-pool-card.is-used.is-selected .hand-picked,
+.hand-draft-card.is-used .hand-remove {
+  background: #923939;
+  border-color: #923939;
+}
+.hand-recommendations {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid #d1d2c8;
+}
+.hand-recommendations-heading {
+  margin-bottom: 16px;
+}
+.hand-recommendations-heading > p {
+  margin: 0;
+  color: #686b63;
+  font-size: 11px;
+}
+.hand-recommendations .battle-candidates {
+  gap: 12px;
+  margin-bottom: 24px;
+}
+@media (hover: hover) {
+  .hand-pool-card:hover,
+  .hand-draft-card:hover {
+    transform: translateY(-4px);
+  }
+  .hand-pool-card:hover .battle-card {
+    border-color: #171917;
+  }
+}
+.hand-pool-card:active,
+.hand-draft-card:active {
+  transform: translateY(1px);
+}
+@media (max-width: 1000px) {
+  .hand-pool {
+    gap: 12px 7px;
+  }
+  .hand-pool-card .battle-card {
+    height: 68px;
+  }
+  .hand-pool-card .battle-card-corner {
+    left: 4px;
+    font-size: 15px;
+  }
+  .hand-pool-card .battle-card-suit {
+    font-size: 20px;
+  }
+  .hand-pool-card .battle-card-foot {
+    font-size: 8px;
+  }
+}
+@media (max-width: 720px) {
+  .hand-workbench {
+    padding: 12px 12px 0;
+  }
+  .hand-workbench-heading {
+    gap: 8px;
+  }
+  .hand-workbench h3,
+  .hand-library h3,
+  .hand-recommendations h3 {
+    font-size: 12px;
+  }
+  .hand-draft-row {
+    gap: 16px;
+    padding: 18px 0 14px;
+  }
+  .hand-draft {
+    width: 100%;
+    max-width: 360px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .hand-draft-card .battle-card,
+  .hand-slot-empty {
+    height: 78px;
+  }
+  .hand-draft-card .battle-card-corner {
+    font-size: 18px;
+  }
+  .hand-total {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 360px;
+    min-width: 0;
+  }
+  .hand-total > strong {
+    font-size: 30px;
+  }
+  .hand-total > strong > small {
+    font-size: 17px;
+  }
+  .hand-status {
+    font-size: 11px;
+    min-height: 0;
+  }
+  .hand-library {
+    margin-top: 24px;
+  }
+  .hand-library-heading {
+    gap: 10px;
+  }
+  .hand-suit-filters {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+  .hand-suit-filters > button {
+    min-width: 36px;
+    min-height: 40px;
+    padding: 6px 8px;
+  }
+  .hand-library-help {
+    font-size: 10px;
+  }
+  .hand-pool {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 12px 7px;
+  }
+  .hand-pool-card .battle-card {
+    height: 64px;
+  }
+  .hand-pool-card .battle-card-corner small {
+    margin-top: 2px;
+  }
+  .hand-pool-card .battle-card-suit {
+    left: 57%;
+    top: 53%;
+    font-size: 20px;
+  }
+  .hand-recommendations-heading {
+    gap: 7px;
+  }
+}
+@media (max-width: 365px) {
+  .hand-workbench {
+    padding: 10px 8px 0;
+  }
+  .hand-draft {
+    gap: 6px;
+  }
+  .hand-draft-card .battle-card,
+  .hand-slot-empty {
+    height: 68px;
+  }
+  .hand-draft-card .battle-card-corner {
+    font-size: 15px;
+    left: 4px;
+  }
+  .hand-draft-card .battle-card-suit {
+    font-size: 22px;
+  }
+  .hand-draft-card .battle-card-foot {
+    font-size: 8px;
+  }
+  .hand-remove {
+    width: 17px;
+    height: 17px;
+    right: -4px;
+    font-size: 13px;
+  }
+  .hand-library-heading {
+    display: block;
+  }
+  .hand-suit-filters {
+    margin-top: 10px;
+    justify-content: space-between;
+  }
+  .hand-suit-filters > button {
+    min-width: 40px;
+    min-height: 44px;
+  }
+  .hand-pool {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px 7px;
+  }
+}
+html[data-motion='off'] .hand-pool-card,
+html[data-motion='off'] .hand-draft-card {
+  transition: none;
+}
+html[data-motion='off'] .hand-pool-card,
+html[data-motion='off'] .hand-draft-card {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hand-pool-card,
+  .hand-draft-card {
+    transition: none;
+    transform: none !important;
+  }
+}

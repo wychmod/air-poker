@@ -9,6 +9,7 @@ import { createRenderer } from './ui/render.js';
 import { cardMarkup, updateBetPreview } from './ui/battle.js';
 import { createTutorial, tutorialAction } from './ui/tutorial.js';
 import { reviewMarkup, reviewEvents } from './ui/review.js';
+import { syncHandDraft, editHandDraft, getDraftStatus } from './ui/hand-builder.js';
 
 function stored(key, fallback) {
   try {
@@ -34,6 +35,7 @@ const view = {
   screen: 'home',
   timer: BET_SECONDS,
   selectedTarget: null,
+  handDraft: null,
   tutorial: createTutorial(),
   motionEnabled: stored('air-poker-motion', 'on') !== 'off',
   hasLastRecord: false,
@@ -75,6 +77,7 @@ function liveClocks() {
 }
 function render() {
   const snapshot = game.getState();
+  view.handDraft = syncHandDraft(snapshot, view.handDraft);
   if (matchStarted && snapshot.phase === 'summary' && savedSession !== snapshot.sessionId) {
     lastRecord = game.getRecord();
     storageStatus = recordStore.save(lastRecord) ? 'saved' : 'memory';
@@ -479,8 +482,38 @@ document.addEventListener('click', (event) => {
       break;
     }
     case 'select-candidate':
-      dispatch({ type: action, index: Number(data.index) });
+    case 'toggle-hand-card':
+    case 'filter-hand-suit':
+    case 'clear-hand': {
+      const state = game.getState();
+      const next = editHandDraft(state, view.handDraft, action, data);
+      if (next === view.handDraft) {
+        if (
+          action === 'toggle-hand-card' &&
+          state.phase === 'upper' &&
+          Number(data.attempt) === state.upper.attemptId &&
+          view.handDraft?.cardIds.length === 5
+        )
+          toast(
+            c(
+              '已选满五张，请先移除一张再替换。',
+              'Five cards selected. Remove one before replacing it.',
+            ),
+          );
+        break;
+      }
+      view.handDraft = next;
+      render();
       break;
+    }
+    case 'submit-hand': {
+      const state = game.getState();
+      if (state.phase !== 'upper' || Number(data.attempt) !== state.upper.attemptId) break;
+      const draft = getDraftStatus(state, view.handDraft);
+      if (draft.complete)
+        dispatch({ type: 'submit-hand', attemptId: Number(data.attempt), hand: draft.hand });
+      break;
+    }
     case 'confirm-hand':
     case 'fail-hand':
       dispatch({ type: action, attemptId: Number(data.attempt) });
