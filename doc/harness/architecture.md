@@ -18,7 +18,7 @@
 | ai                                       | cards、deal、rules                                  |
 | engine                                   | rules、cards、deal、ai、betting、breathing、records |
 | i18n                                     | 无运行模块依赖                                      |
-| ui                                       | ui、data、rules、cards、engine、i18n                |
+| ui                                       | ui、data、rules、cards、engine、breathing、i18n     |
 | app                                      | engine、browser、archive、ui、i18n                  |
 
 ui 只消费快照和只读函数，不创建第二份对局状态或自行下注结算。计时器、事件与语言存储属于入口层；game 不使用 DOM、网络、平台时钟或存储。新增模块要明确职责并更新矩阵与说明。
@@ -81,3 +81,11 @@ ui/record.js 只渲染快照与翻译，外来字符串转义。查看和导出�
 3. 真实浏览器的加载行为，以及资源递归检查是否覆盖新的引用方式。
 
 资源检查覆盖当前 HTML `src/href/poster`、CSS `url/@import`、JS 模块导入和静态图片/字体字符串。新增 `srcset`、动态拼接资源路径或其他加载方式时，先扩展检查器并补反例测试，不能假设已有检查全部覆盖。
+
+## 漫画界面与表现层
+
+ui/render.js 组合 pages、battle、tutorial 模板并维护渲染焦点；battle 读取 breathing 常量显示真实供气进度，不调用结算。教学只持有练习视图状态，独立于正式 createGame。ui/review.js 只消费 getRecord 快照，事件播放按记录序号展示，不重新运行 AI。
+
+browser/scene-motion.js 无运行模块依赖，从前后公开快照识别已接受动作，用真实 betting.history.paid 区分支付与呼吸开罐。表现副本不带可交互入口；动画结束不触发任何引擎动作。统一 Canvas 限制像素倍率、隐藏暂停绘制、尊重系统和用户偏好，恢复不补播过时事件。
+
+app.js 继续负责事件委托、对话框、实际时钟、教学状态、复盘播放与偏好存储。页面离开清理时钟，规则和记录保持只读且不中断对局；未完成局离开需确认，未创建新的游戏恢复能力。
