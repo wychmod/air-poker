@@ -20,6 +20,7 @@ export const FORMAT_TARGETS = [
   'doc/README.md',
   'doc/maintainability',
   'doc/harness',
+  'doc/rules',
 ];
 
 // New runtime modules must be assigned a layer deliberately.
