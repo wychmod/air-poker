@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const SITE_ROOT = fileURLToPath(new URL('../../dist/site/', import.meta.url));
-export const SITE_FILES = ['index.html', 'styles.css', 'app.js', 'i18n.js'];
+export const SITE_FILES = ['index.html', 'motion-demo.html', 'styles.css', 'app.js', 'i18n.js'];
 export const SITE_DIRECTORIES = ['game', 'browser', 'ui', 'styles', 'assets/generated'];
 export const CODE_ROOTS = ['app.js', 'i18n.js', 'game', 'browser', 'ui', 'scripts', 'tests'];
 export const BROWSER_ROOTS = ['app.js', 'i18n.js', 'game', 'browser', 'ui'];
@@ -12,6 +12,7 @@ export const FORMAT_TARGETS = [
   'styles',
   'styles.css',
   'index.html',
+  'motion-demo.html',
   'README.md',
   'AGENTS.md',
   'package.json',

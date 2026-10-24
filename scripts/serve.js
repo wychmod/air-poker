@@ -22,7 +22,7 @@ createServer(async (request, response) => {
     const relative = path === '/' ? 'index.html' : path.slice(1);
     const file = resolve(root, relative);
     const publicPath =
-      ['index.html', 'app.js', 'i18n.js', 'styles.css'].includes(relative) ||
+      ['index.html', 'motion-demo.html', 'app.js', 'i18n.js', 'styles.css'].includes(relative) ||
       /^(assets|game|browser|ui|styles)\//.test(relative);
     if (!publicPath || !file.startsWith(root + sep)) {
       response.writeHead(404).end('Not found');

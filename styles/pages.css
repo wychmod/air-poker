@@ -705,3 +705,25 @@
     height: 100vw;
   }
 }
+
+.motion-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 8px 0;
+  color: var(--silver);
+  font: 500 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+.motion-preview-link:hover {
+  color: var(--cyan);
+}
+
+.motion-preview-link:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 5px;
+}

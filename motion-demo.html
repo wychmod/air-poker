@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f3f2ee" />
+    <link rel="icon" href="data:," />
+    <title>AIR POKER / 水下呼吸 · 动态漫画</title>
+    <link rel="stylesheet" href="styles/motion-demo.css" />
+  </head>
+  <body>
+    <div class="motion-demo" id="motionDemo">
+      <header class="demo-header">
+        <a class="demo-brand" href="index.html" aria-label="AIR POKER 首页"
+          ><b>A<span>/</span>P</b><span>AIR POKER</span></a
+        >
+        <span class="header-caption">水下呼吸 <i>／</i> 动态漫画</span>
+        <a class="return-link" href="index.html">回到游戏 <span aria-hidden="true">↗</span></a>
+      </header>
+      <main>
+        <div class="scene-heading">
+          <p><span class="edition-number">01</span> THE SILENCE BEFORE THE BET</p>
+          <span class="scene-status"
+            ><i></i><span id="motionStatus" role="status">运行中</span></span
+          >
+        </div>
+        <figure class="scene-frame">
+          <div
+            class="motion-stage"
+            id="motionStage"
+            role="img"
+            aria-label="黑白水下漫画：左右人物佩戴呼吸面罩，随水流轻浮，气泡缓缓上升。"
+          >
+            <img
+              class="motion-original"
+              id="motionOriginal"
+              src="assets/generated/air-poker-v1/usogui-page-assets/manga-introduction-background.png"
+              alt=""
+              width="1672"
+              height="941"
+            />
+            <div class="motion-paper" aria-hidden="true"></div>
+            <div class="motion-actor motion-actor-left" aria-hidden="true">
+              <img
+                src="assets/generated/air-poker-v1/usogui-page-assets/manga-introduction-background.png"
+                alt=""
+                width="1672"
+                height="941"
+              />
+            </div>
+            <div class="motion-actor motion-actor-right" aria-hidden="true">
+              <img
+                src="assets/generated/air-poker-v1/usogui-page-assets/manga-introduction-background.png"
+                alt=""
+                width="1672"
+                height="941"
+              />
+            </div>
+            <canvas id="motionCanvas" aria-hidden="true"></canvas>
+            <div class="scene-copy" id="motionCopy" aria-hidden="true">
+              <p class="scene-overline"><span></span> AIR POKER <span></span></p>
+              <h1>把呼吸，<br />留到最后。</h1>
+              <p class="scene-subtitle">在这里，每一次下注<br />都是下一口呼吸。</p>
+              <div class="breath-mark"><span></span><i></i><span></span></div>
+              <p class="scene-english">EVERY BREATH IS A BET.</p>
+            </div>
+            <span class="scene-margin scene-margin-left" aria-hidden="true">空 気 を 賭 け る</span>
+            <span class="scene-margin scene-margin-right" aria-hidden="true"
+              >BREATHE. BET. SURVIVE.</span
+            >
+            <div class="scene-bottom" aria-hidden="true">
+              <span>水面之下 · 无声对峙</span><span class="scene-coordinate">AP — 001 / MANGA</span>
+            </div>
+            <span class="original-badge" aria-hidden="true">原始素材</span>
+          </div>
+          <figcaption class="motion-controls">
+            <div class="transport-controls">
+              <button
+                class="play-button"
+                type="button"
+                id="playButton"
+                data-action="toggle-play"
+                aria-pressed="true"
+              >
+                <span class="play-symbol" aria-hidden="true"></span><span id="playLabel">暂停</span>
+              </button>
+              <button
+                class="restart-button"
+                type="button"
+                data-action="restart-motion"
+                aria-label="重新播放"
+                title="重新播放"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 10a8 8 0 1 1 1 7M4 4v6h6" />
+                </svg>
+              </button>
+            </div>
+            <div class="timeline-group">
+              <label class="sr-only" for="timeline">动画进度（秒）</label
+              ><input id="timeline" type="range" min="0" max="12" value="0" step="0.01" /><output
+                id="timeReadout"
+                for="timeline"
+                >00.0 / 12.0</output
+              >
+            </div>
+            <div class="intensity-group" role="group" aria-label="动效强度">
+              <span class="control-label">动效</span
+              ><button
+                type="button"
+                data-action="set-intensity"
+                data-intensity="calm"
+                aria-pressed="false"
+              >
+                轻柔</button
+              ><button
+                type="button"
+                data-action="set-intensity"
+                data-intensity="cinematic"
+                aria-pressed="true"
+              >
+                沉浸
+              </button>
+            </div>
+            <button
+              class="original-button"
+              type="button"
+              data-action="toggle-original"
+              id="originalButton"
+              aria-pressed="false"
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M10 2v16M7 4H3v12h4M13 4h4v12h-4" /></svg
+              ><span id="originalLabel">原图对比</span>
+            </button>
+          </figcaption>
+        </figure>
+        <footer class="demo-footer">
+          <p><span class="cursor-symbol" aria-hidden="true">↗</span> 移动光标，感受水下景深</p>
+          <p>人物浮动 <span>·</span> 呼吸气泡 <span>·</span> 流动水光</p>
+          <span>12 秒 / 无缝循环</span>
+        </footer>
+        <noscript
+          ><p class="script-notice">启用 JavaScript 后可播放动效，当前显示静态素材。</p></noscript
+        >
+      </main>
+    </div>
+    <script type="module" src="browser/motion-demo.js"></script>
+  </body>
+</html>
