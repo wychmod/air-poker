@@ -1,5 +1,5 @@
 import { translate, pageCopy } from '../i18n.js';
-import { rankHand, effectiveHand } from '../game/rules.js';
+import { rankHand } from '../game/rules.js';
 import { STARTING_AIR } from '../game/engine.js';
 
 export function createRenderer(document) {
@@ -72,10 +72,27 @@ export function createRenderer(document) {
         <p>${t('lowerCopy')}</p>
       </div>
       <div class="number-row">
-        ${state.targets.map((target, i) => /* HTML */ `<button class="number-card ${state.usedTargets.includes(i) ? 'used' : ''}" ${state.usedTargets.includes(i) ? 'disabled' : ''} data-action="choose-target" data-index="${i}"><span class="card-index">0${i + 1}</span><strong>${target}</strong><small>${t('available')}</small><em>${t('targetAir')}</em></button>`).join('')}
+        ${state.targets
+          .map((target, i) => {
+            const used = state.usedTargets.includes(i);
+            const playable = state.targetPlayable[i];
+            return /* HTML */ `<button
+              class="number-card ${used ? 'used' : ''}"
+              ${!playable ? 'disabled' : ''}
+              data-action="choose-target"
+              data-index="${i}"
+            >
+              <span class="card-index">0${i + 1}</span><strong>${target}</strong
+              ><small
+                >${t(used ? 'targetUsed' : playable ? 'available' : 'targetUnavailable')}</small
+              ><em>${t('targetAir')}</em>
+            </button>`;
+          })
+          .join('')}
       </div>
       <div class="surface-actions">
-        <span class="action-note">${t('lowerCopy')}</span
+        <span class="action-note"
+          >${t('targetCounts', { player: 5 - state.usedTargets.length, cpu: state.aiRemaining })}</span
         ><button class="ghost-button" data-action="target-help">↗</button>
       </div>`;
   }
@@ -113,6 +130,8 @@ export function createRenderer(document) {
   }
 
   function renderBet() {
+    const options = state.legalBets;
+    const turnId = state.betting.turnId;
     return /* HTML */ `<div class="surface-instruction">
         <div>
           <span class="target-tag">${t('betKicker')}</span>
@@ -122,9 +141,7 @@ export function createRenderer(document) {
       </div>
       <div class="bet-layout">
         <div class="locked-hand">
-          <div class="hand-label">
-            ${t('you')} // ${t(rankHand(effectiveHand(state.playerHand, state.discard)).key)}
-          </div>
+          <div class="hand-label">${t('you')} // ${t(rankHand(state.playerHand).key)}</div>
           <div class="hand-cards">${state.playerHand.map((c) => cardMarkup(c)).join('')}</div>
           <p class="action-note">
             TARGET ${state.playerTarget} · ${t('currentPot')} ${state.pot} AIR
@@ -132,41 +149,72 @@ export function createRenderer(document) {
         </div>
         <div class="bet-panel">
           <div class="bet-panel-head">
-            <span>${t('currentPot')}</span><strong>${state.pot}</strong>
+            <span>${t(state.betting.turn === 'player' ? 'yourTurn' : 'cpuThinking')}</span
+            ><strong>${state.pot} AIR</strong>
           </div>
+          <p class="action-note">
+            ${t('betStakes', { player: state.playerBet, cpu: state.aiBet })}<br />${t('callAmount', { n: options.toCall })}<br />${options.maxRaise > 0 ? t('raiseRange', { n: options.maxRaise }) : t('raiseUnavailable')}
+          </p>
           <div class="bet-actions">
-            <button class="bet-button" data-action="bet" data-bet="check">${t('check')}</button
-            ><button class="bet-button" data-action="bet" data-bet="call">${t('call')}</button>
+            <button
+              class="bet-button"
+              data-action="bet"
+              data-bet="check"
+              data-turn="${turnId}"
+              ${options.canCheck ? '' : 'disabled'}
+            >
+              ${t('check')}</button
+            ><button
+              class="bet-button"
+              data-action="bet"
+              data-bet="call"
+              data-turn="${turnId}"
+              ${options.canCall ? '' : 'disabled'}
+            >
+              ${t('call')} ${options.toCall}
+            </button>
             <div class="raise-control">
               <input
                 id="raiseAmount"
                 type="number"
                 min="1"
-                max="4"
-                value="2"
+                max="${Math.max(1, options.maxRaise)}"
+                value="${Math.min(2, options.maxRaise) || 1}"
+                ${options.canRaise ? '' : 'disabled'}
                 aria-label="${t('raise')}"
               /><span>AIR</span
               ><button
                 class="bet-button"
                 data-action="bet"
                 data-bet="raise"
-                ${Math.min(state.playerAir, state.aiAir) <= 0 ? 'disabled' : ''}
+                data-turn="${turnId}"
+                ${options.canRaise ? '' : 'disabled'}
               >
                 ${t('raise')} ↗
               </button>
             </div>
-            <button class="bet-button danger" data-action="bet" data-bet="fold">${t('fold')}</button
+            <button
+              class="bet-button danger"
+              data-action="bet"
+              data-bet="fold"
+              data-turn="${turnId}"
+              ${options.canFold ? '' : 'disabled'}
+            >
+              ${t('fold')}</button
             ><button
               class="bet-button danger"
               data-action="bet"
               data-bet="all-in"
-              ${Math.min(state.playerAir, state.aiAir) <= 0 ? 'disabled' : ''}
+              data-turn="${turnId}"
+              title="${t('allinLimit')}"
+              ${options.canAllIn ? '' : 'disabled'}
             >
-              ${t('allin')}
+              ${t('allin')} ${options.allInCost}
             </button>
           </div>
           <div class="bet-timer">
-            <span class="timer-ring" id="betTimer">${view.timer}</span><span>${t('timer')}</span>
+            <span class="timer-ring" id="betTimer">${view.timer == null ? '…' : view.timer}</span
+            ><span>${t(state.betting.turn === 'player' ? 'timer' : 'cpuThinking')}</span>
           </div>
         </div>
       </div>`;
@@ -177,9 +225,10 @@ export function createRenderer(document) {
     const playerWon = result.winner === 'player';
     const tie = result.winner === 'tie';
     const title = tie ? t('resultTie') : playerWon ? t('resultWin') : t('resultLose');
-    const playerCards = result.folded
-      ? cardBacks()
-      : state.playerHand.map((c) => cardMarkup(c)).join('');
+    const playerCards =
+      result.foldedBy === 'player'
+        ? cardBacks()
+        : state.playerHand.map((c) => cardMarkup(c)).join('');
     const continueLabel =
       state.round >= state.maxRounds || state.playerAir <= 0 || state.aiAir <= 0
         ? t('final')
@@ -196,7 +245,7 @@ export function createRenderer(document) {
           <div class="showdown-hand-head">
             <span
               >${t('you')} //
-              ${result.folded ? t('fold') : t(result.playerRank?.key || 'noHand')}</span
+              ${result.foldedBy === 'player' ? t('fold') : t(result.playerRank?.key || 'noHand')}</span
             ><strong>${state.playerTarget}</strong>
           </div>
           <div class="hand-cards">${playerCards}</div>
@@ -204,16 +253,20 @@ export function createRenderer(document) {
         <div class="showdown-vs">VS</div>
         <div class="showdown-hand ${!playerWon && !tie ? 'winner' : tie ? '' : 'loser'}">
           <div class="showdown-hand-head">
-            <span>${t('cpu')} // ${t(result.aiRank?.key || 'noHand')}</span
+            <span
+              >${t('cpu')} //
+              ${result.foldedBy === 'ai' ? t('fold') : t(result.aiRank?.key || 'noHand')}</span
             ><strong>${state.aiTarget}</strong>
           </div>
-          <div class="hand-cards">${state.aiHand.map((c) => cardMarkup(c)).join('')}</div>
+          <div class="hand-cards">
+            ${result.foldedBy === 'ai' ? cardBacks() : state.aiHand.map((c) => cardMarkup(c)).join('')}
+          </div>
         </div>
       </div>
       <div class="result-banner ${result.calamity && !tie ? 'calamity' : ''}">
         <strong>${result.calamity && !tie ? t('calamity') : title}</strong
         ><span
-          >${result.calamity && !tie ? t('calamityCopy', { n: result.overlap.length }) : tie ? t('sameHand') : t('poolDone', { n: state.playerBet + state.aiBet })}</span
+          >${result.calamity && !tie ? t('calamityCopy', { n: result.overlap.length, burned: result.burned }) : tie ? t('sameHand') : t('poolDone', { n: state.playerBet + state.aiBet })}</span
         >
       </div>
       <div class="surface-actions">
@@ -232,7 +285,9 @@ export function createRenderer(document) {
           <span class="target-tag">${t('summaryKicker')}</span>
           <h3>${t('summaryTitle')}</h3>
         </div>
-        <p>${t('summaryCopy')}</p>
+        <p>
+          ${t({ 'air-exhausted': 'endAir', 'no-legal-target': 'endTargets', 'round-limit': 'endRounds' }[state.endReason] || 'summaryCopy')}
+        </p>
       </div>
       <div class="summary-layout">
         <div class="summary-hero ${win ? '' : 'lose'}">
@@ -248,7 +303,9 @@ export function createRenderer(document) {
           <div class="summary-stat">
             <span>${t('finalAir')} / ${t('cpu')}</span><strong>${Math.max(0, state.aiAir)}</strong>
           </div>
-          <div class="summary-stat"><span>${t('rounds')}</span><strong>${state.round}</strong></div>
+          <div class="summary-stat">
+            <span>${t('rounds')}</span><strong>${state.completedRounds}</strong>
+          </div>
           <div class="summary-stat">
             <span>${t('used')}</span><strong>${state.discard.length}</strong>
           </div>
@@ -270,7 +327,8 @@ export function createRenderer(document) {
   }
 
   function renderTrace() {
-    $('traceCount').textContent = `${String(Math.min(state.round, 5)).padStart(2, '0')} / 05`;
+    $('traceCount').textContent =
+      `${String(state.phase === 'summary' ? state.completedRounds : state.round).padStart(2, '0')} / 05`;
     $('traceList').innerHTML = Array.from({ length: 5 }, (_, i) => {
       const trace = state.traces[i];
       const label = trace
@@ -279,11 +337,11 @@ export function createRenderer(document) {
           : trace.winner === 'tie'
             ? 'DRAW'
             : 'CPU'
-        : i + 1 === state.round
+        : i + 1 === state.round && state.phase !== 'summary'
           ? 'LIVE'
           : 'LOCKED';
       return /* HTML */ `<div
-        class="trace-row ${i + 1 === state.round ? 'active' : ''} ${trace ? 'done' : ''}"
+        class="trace-row ${i + 1 === state.round && state.phase !== 'summary' ? 'active' : ''} ${trace ? 'done' : ''}"
       >
         <span class="trace-num">R${i + 1}</span><span class="trace-line"></span
         ><span>${label}</span>
@@ -305,6 +363,10 @@ export function createRenderer(document) {
     $('roundNumber').textContent = String(state.round).padStart(2, '0');
     $('playerStatus').textContent = t(meta[3]);
     $('aiStatus').textContent = t(meta[2]);
+    if (state.phase === 'bet') {
+      $('playerStatus').textContent = t(state.betting.turn === 'player' ? 'yourTurn' : 'waiting');
+      $('aiStatus').textContent = t(state.betting.turn === 'ai' ? 'cpuThinking' : 'betWait');
+    }
     $('playerTargetText').textContent =
       state.playerTarget == null
         ? `${view.lang === 'zh' ? '目标值' : 'TARGET'}: ${view.lang === 'zh' ? '未公开' : 'HIDDEN'}`
@@ -313,6 +375,7 @@ export function createRenderer(document) {
       state.aiTarget == null
         ? `${view.lang === 'zh' ? '目标值' : 'TARGET'}: ${view.lang === 'zh' ? '未公开' : 'HIDDEN'}`
         : `TARGET: ${state.aiTarget}`;
+    $('aiTargetText').textContent += ` · ${t('targetsLeft', { n: state.aiRemaining })}`;
     $('playerAirText').textContent = `${t('air')} ${Math.max(0, state.playerAir)}`;
     $('aiAirText').textContent = `${t('air')} ${Math.max(0, state.aiAir)}`;
     $('playerAirMeter').style.width =

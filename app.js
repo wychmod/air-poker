@@ -1,4 +1,5 @@
 import { BET_SECONDS, createGame } from './game/engine.js';
+import { createTurnClock } from './browser/turn-clock.js';
 import { isLanguage, translate } from './i18n.js';
 import { createRenderer } from './ui/render.js';
 
@@ -13,41 +14,29 @@ function savedLanguage() {
 const game = createGame();
 const renderer = createRenderer(document);
 const view = { lang: savedLanguage(), screen: 'home', timer: BET_SECONDS };
-let timerHandle = null;
 let introHandle = null;
 let toastHandle = null;
 
 const render = () => renderer.render(game.getState(), view);
 
-function stopTimer() {
-  clearInterval(timerHandle);
-  timerHandle = null;
-}
-
-function startTimer(seconds = BET_SECONDS) {
-  stopTimer();
-  view.timer = seconds;
-  const deadline = performance.now() + seconds * 1000;
-  timerHandle = setInterval(() => {
-    // Throttled background tabs still use actual elapsed time.
-    view.timer = Math.max(0, Math.ceil((deadline - performance.now()) / 1000));
+const turnClock = createTurnClock({
+  seconds: BET_SECONDS,
+  onTick(remaining) {
+    view.timer = remaining;
     const node = document.getElementById('betTimer');
-    if (node) node.textContent = view.timer;
-    if (view.timer === 0) {
-      stopTimer();
-      dispatch({ type: 'bet', action: 'check' });
-    }
-  }, 250);
-}
+    if (node) node.textContent = remaining == null ? '…' : remaining;
+  },
+  onPlayerTimeout(turnId) {
+    dispatch({ type: 'bet-timeout', turnId });
+  },
+  onCpuTurn(turnId) {
+    dispatch({ type: 'cpu-bet', turnId });
+  },
+});
 
 function dispatch(action) {
-  const previous = game.getState().phase;
   if (!game.dispatch(action)) return false;
-  const phase = game.getState().phase;
-  if (phase !== previous) {
-    if (phase === 'bet') startTimer();
-    else stopTimer();
-  }
+  turnClock.sync(game.getState());
   render();
   return true;
 }
@@ -59,7 +48,7 @@ function setScreen(screen) {
 }
 
 function restart(withIntro) {
-  stopTimer();
+  turnClock.clear();
   clearTimeout(introHandle);
   clearTimeout(toastHandle);
   document.getElementById('toast').classList.remove('show');
@@ -141,20 +130,22 @@ document.addEventListener('click', (event) => {
         type: 'bet',
         action: button.dataset.bet,
         amount: Number(document.getElementById('raiseAmount')?.value),
+        turnId: Number(button.dataset.turn),
       });
       break;
   }
 });
 
 window.addEventListener('pagehide', () => {
-  stopTimer();
+  turnClock.suspend();
   clearTimeout(introHandle);
   clearTimeout(toastHandle);
 });
 window.addEventListener('pageshow', (event) => {
   if (!event.persisted) return;
   if (view.screen === 'intro') setScreen('game');
-  if (game.getState().phase === 'bet') startTimer(view.timer);
+  turnClock.sync(game.getState());
+  render();
 });
 
 render();

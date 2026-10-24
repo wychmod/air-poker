@@ -67,8 +67,10 @@ export function rankHand(hand) {
 }
 
 export function compareHands(a, b) {
-  const first = rankHand(a);
-  const second = rankHand(b);
+  return compareRanks(rankHand(a), rankHand(b));
+}
+
+export function compareRanks(first, second) {
   return first.category - second.category || compareArrays(first.tie, second.tie);
 }
 

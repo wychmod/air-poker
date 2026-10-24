@@ -1,21 +1,29 @@
-import { TARGET_SETS } from './data.js';
-import { makeCandidates, makeHand } from './cards.js';
-import { compareHands, effectiveHand, rankHand, settleBets } from './rules.js';
+import { makeCandidates } from './cards.js';
+import { dealTargets, randomIndex } from './deal.js';
+import { chooseCpuPlay, chooseCpuBet } from './ai.js';
+import { applyBetAction, getBetOptions, otherPlayer } from './betting.js';
+import { compareHands, rankHand, settleBets } from './rules.js';
 
 export const STARTING_AIR = 25;
 export const BET_SECONDS = 30;
 
-function initialState() {
+function initialState(targets) {
   return {
     phase: 'lower',
     round: 1,
-    maxRounds: TARGET_SETS.length,
+    maxRounds: 5,
+    completedRounds: 0,
+    endReason: null,
+    breathSpent: 0,
     playerAir: STARTING_AIR,
     aiAir: STARTING_AIR,
     pot: 0,
     deck: 52,
     discard: [],
-    targets: [...TARGET_SETS[0]],
+    targets,
+    targetPlayable: [],
+    aiRemaining: 5,
+    aiPlayedTargets: [],
     usedTargets: [],
     playerTarget: null,
     aiTarget: null,
@@ -23,6 +31,8 @@ function initialState() {
     selectedCandidate: 0,
     playerHand: null,
     aiHand: null,
+    firstBettor: null,
+    betting: null,
     playerBet: 0,
     aiBet: 0,
     lastResult: null,
@@ -31,9 +41,14 @@ function initialState() {
   };
 }
 
-export function createGame() {
+export function createGame({ random = Math.random } = {}) {
   let state;
   let sequence;
+  let betSerial = 0;
+  let aiTargets;
+  let aiUsed;
+  let cpuPlay;
+  let candidatesByTarget;
 
   function log(key, args = {}, strong = '') {
     state.feed.unshift({
@@ -45,11 +60,33 @@ export function createGame() {
     state.feed = state.feed.slice(0, 7);
   }
 
+  function finish(reason) {
+    state.phase = 'summary';
+    state.endReason = reason;
+  }
+
+  function prepareRound() {
+    candidatesByTarget = state.targets.map((target, index) =>
+      state.usedTargets.includes(index) ? [] : makeCandidates(target, state.discard),
+    );
+    state.targetPlayable = candidatesByTarget.map((candidates) => candidates.length > 0);
+    cpuPlay = chooseCpuPlay(aiTargets, aiUsed, state.discard, random);
+    if (!cpuPlay || !state.targetPlayable.some(Boolean)) {
+      finish('no-legal-target');
+      return false;
+    }
+    return true;
+  }
+
   function reset() {
-    state = initialState();
+    const deal = dealTargets(random);
+    state = initialState(deal.player.map((group) => group.target));
+    aiTargets = deal.ai.map((group) => group.target);
+    aiUsed = [];
     sequence = 0;
     log('readyLog', {}, 'LINK');
     log('reserveLog', {}, 'READY');
+    prepareRound();
   }
 
   function chooseTarget(index) {
@@ -58,16 +95,28 @@ export function createGame() {
       !Number.isInteger(index) ||
       index < 0 ||
       index >= state.targets.length ||
-      state.usedTargets.includes(index)
+      !state.targetPlayable[index]
     )
       return false;
     state.playerTarget = state.targets[index];
-    state.aiTarget = state.targets[(index + 2) % state.targets.length];
+    state.aiTarget = cpuPlay.target;
     state.usedTargets.push(index);
-    state.candidates = makeCandidates(state.playerTarget, state.discard);
+    state.targetPlayable[index] = false;
+    aiUsed.push(cpuPlay.index);
+    state.aiRemaining = aiTargets.length - aiUsed.length;
+    state.aiPlayedTargets.push(cpuPlay.target);
+    state.candidates = candidatesByTarget[index];
     state.selectedCandidate = 0;
-    // CPU hand is chosen privately when its target is revealed.
-    state.aiHand = makeHand(state.aiTarget, state.round % 2);
+    if (state.round === 1) {
+      state.firstBettor =
+        state.playerTarget < state.aiTarget
+          ? 'player'
+          : state.playerTarget > state.aiTarget
+            ? 'ai'
+            : randomIndex(random, 2)
+              ? 'ai'
+              : 'player';
+    }
     log('lowerLog', { n: state.playerTarget }, 'LOWER');
     log('cpuLock', {}, 'CPU');
     state.phase = 'upper';
@@ -101,16 +150,34 @@ export function createGame() {
     log('handLog', { nameKey: candidate.rank.key }, 'UPPER');
     log('entryLog', { n: state.pot }, 'POT');
     state.phase = 'bet';
+    state.betting = {
+      first: state.firstBettor,
+      turn: state.firstBettor,
+      turnId: ++betSerial,
+      checks: 0,
+      history: [],
+    };
+    log('firstBetLog', { nameKey: state.firstBettor === 'player' ? 'you' : 'cpu' }, 'BET');
+    if (Math.min(state.playerAir, state.aiAir) === 0) resolveRound();
     return true;
   }
 
-  function resolveRound(folded) {
-    const player = effectiveHand(state.playerHand, state.discard);
-    const ai = effectiveHand(state.aiHand, state.discard);
+  function resolveRound(foldedBy = null) {
+    const folded = foldedBy !== null;
+    state.betting.turn = null;
+    const player = state.playerHand;
+    const ai = cpuPlay.hand;
+    state.aiHand = ai;
     const comparison = compareHands(player, ai);
-    const winner = folded ? 'ai' : comparison > 0 ? 'player' : comparison < 0 ? 'ai' : 'tie';
+    const winner = folded
+      ? otherPlayer(foldedBy)
+      : comparison > 0
+        ? 'player'
+        : comparison < 0
+          ? 'ai'
+          : 'tie';
     const overlap = player.filter((card) => ai.some((other) => other.id === card.id));
-    const calamity = overlap.length > 0;
+    const calamity = !folded && overlap.length > 0;
     const settled = settleBets({ ...state, winner, calamity });
     state.playerAir = settled.playerAir;
     state.aiAir = settled.aiAir;
@@ -119,6 +186,7 @@ export function createGame() {
       calamity,
       overlap,
       folded,
+      foldedBy,
       playerRank: rankHand(player),
       aiRank: rankHand(ai),
       burned: settled.burned,
@@ -131,6 +199,7 @@ export function createGame() {
     state.deck = 52 - state.discard.length;
     state.pot = 0;
     state.traces[state.round - 1] = { winner, calamity };
+    state.completedRounds += 1;
     log(
       winner === 'player' ? 'winLog' : winner === 'ai' ? 'loseLog' : 'tieLog',
       {},
@@ -140,40 +209,91 @@ export function createGame() {
     state.phase = 'showdown';
   }
 
-  function resolveBet(action, amount) {
-    if (state.phase !== 'bet' || !['check', 'call', 'raise', 'fold', 'all-in'].includes(action))
-      return false;
-    if (action === 'raise' && (!Number.isInteger(amount) || amount < 1 || amount > 4)) return false;
-    if (action === 'fold') {
-      log('foldLog', {}, 'FOLD');
-      resolveRound(true);
-      return true;
-    }
-    const limit = Math.min(state.playerAir, state.aiAir);
-    const extra = action === 'all-in' ? limit : action === 'raise' ? Math.min(amount, limit) : 0;
-    if ((action === 'all-in' || action === 'raise') && extra <= 0) return false;
-    state.playerAir -= extra;
-    state.playerBet += extra;
-    state.aiAir -= extra;
-    state.aiBet += extra;
-    state.pot += extra * 2;
-    if (action === 'all-in') log('allinLog', { n: extra }, 'BET');
-    else if (action === 'raise') log('raiseLog', { n: extra }, 'BET');
-    else log(action === 'call' ? 'callLog' : 'checkLog', {}, 'BET');
-    log('cpuCall', {}, 'CPU');
-    resolveRound(false);
+  function isBetTurn(actor, turnId) {
+    return (
+      state.phase === 'bet' &&
+      state.betting.turn === actor &&
+      Number.isInteger(turnId) &&
+      turnId === state.betting.turnId
+    );
+  }
+
+  function resolveBet(actor, action, amount, turnId, timedOut = false) {
+    if (!isBetTurn(actor, turnId)) return false;
+    const result = applyBetAction(state, actor, action, amount);
+    if (!result) return false;
+    state = result.state;
+    betSerial = state.betting.turnId;
+    const cpu = actor === 'ai';
+    const event = result.event;
+    if (timedOut) log(action === 'fold' ? 'timeoutFoldLog' : 'timeoutCheckLog', {}, 'TIME');
+    const key =
+      action === 'check'
+        ? cpu
+          ? 'cpuCheck'
+          : 'checkLog'
+        : action === 'call'
+          ? cpu
+            ? 'cpuCall'
+            : 'callLog'
+          : action === 'raise'
+            ? cpu
+              ? 'cpuRaise'
+              : 'raiseLog'
+            : action === 'all-in'
+              ? cpu
+                ? 'cpuAllin'
+                : 'allinLog'
+              : cpu
+                ? 'cpuFold'
+                : 'foldLog';
+    log(
+      key,
+      { n: action === 'raise' ? event.raised : event.paid, call: event.called },
+      cpu ? 'CPU' : 'BET',
+    );
+    if (result.outcome !== 'continue') resolveRound(result.foldedBy);
     return true;
+  }
+
+  function actCpu(turnId) {
+    if (!isBetTurn('ai', turnId)) return false;
+    const decision = chooseCpuBet(
+      {
+        hand: cpuPlay.hand,
+        opponentTarget: state.playerTarget,
+        discard: state.discard,
+        options: getBetOptions(state, 'ai'),
+        history: state.betting.history,
+      },
+      random,
+    );
+    return resolveBet('ai', decision.action, decision.amount, turnId);
   }
 
   function advanceRound() {
     if (state.phase !== 'showdown') return false;
-    if (state.playerAir <= 0 || state.aiAir <= 0 || state.round >= state.maxRounds) {
-      state.phase = 'summary';
+    if (state.playerAir <= 0 || state.aiAir <= 0) {
+      finish('air-exhausted');
       return true;
     }
-    state.round += 1;
-    state.targets = [...TARGET_SETS[state.round - 1]];
-    state.usedTargets = [];
+    if (state.completedRounds >= state.maxRounds) {
+      finish('round-limit');
+      return true;
+    }
+    if (!prepareRound()) return true;
+    const playerCost = Math.min(1, state.playerAir);
+    const aiCost = Math.min(1, state.aiAir);
+    state.playerAir -= playerCost;
+    state.aiAir -= aiCost;
+    state.breathSpent += playerCost + aiCost;
+    if (state.playerAir <= 0 || state.aiAir <= 0) {
+      finish('air-exhausted');
+      return true;
+    }
+    state.round = state.completedRounds + 1;
+    state.firstBettor = otherPlayer(state.firstBettor);
+    state.betting = null;
     state.playerTarget = null;
     state.aiTarget = null;
     state.playerHand = null;
@@ -183,10 +303,8 @@ export function createGame() {
     state.candidates = [];
     state.selectedCandidate = 0;
     state.lastResult = null;
-    state.playerAir = Math.max(0, state.playerAir - 1);
-    state.aiAir = Math.max(0, state.aiAir - 1);
     log('roundLog', { n: state.round }, 'ROUND');
-    state.phase = state.playerAir <= 0 || state.aiAir <= 0 ? 'summary' : 'lower';
+    state.phase = 'lower';
     return true;
   }
 
@@ -202,7 +320,17 @@ export function createGame() {
       case 'confirm-hand':
         return confirmHand();
       case 'bet':
-        return resolveBet(action.action, action.amount);
+        return resolveBet('player', action.action, action.amount, action.turnId);
+      case 'cpu-bet':
+        return actCpu(action.turnId);
+      case 'bet-timeout':
+        return resolveBet(
+          'player',
+          getBetOptions(state, 'player').toCall > 0 ? 'fold' : 'check',
+          undefined,
+          action.turnId,
+          true,
+        );
       case 'advance-round':
         return advanceRound();
       default:
@@ -211,5 +339,9 @@ export function createGame() {
   }
 
   reset();
-  return { getState: () => structuredClone(state), dispatch, reset };
+  return {
+    getState: () => structuredClone({ ...state, legalBets: getBetOptions(state, 'player') }),
+    dispatch,
+    reset,
+  };
 }
