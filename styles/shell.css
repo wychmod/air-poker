@@ -137,6 +137,7 @@ a {
   font-weight: 700;
   text-align: left;
   letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 .brand small {
   display: block;
@@ -164,6 +165,29 @@ a {
   padding: 10px 0;
   font-size: 13px;
   white-space: nowrap;
+}
+.repository-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 0 8px 18px;
+  border-left: 1px solid var(--line);
+  font-size: 12px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.repository-link svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+.repository-link:hover > span {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .language-switch {
   display: flex;
@@ -386,6 +410,15 @@ dialog .dialog-toolbar {
   .site-header nav > .nav-link:nth-child(2) {
     display: none;
   }
+  .repository-link {
+    min-width: 36px;
+    padding: 0;
+    border-left: 0;
+    flex-shrink: 0;
+  }
+  .repository-link > span {
+    display: none;
+  }
   .language-switch {
     padding: 1px;
   }
@@ -451,7 +484,7 @@ dialog .dialog-toolbar {
     gap: 8px;
   }
   .site-header nav {
-    gap: 8px;
+    gap: 6px;
   }
   .brand {
     font-size: 13px;

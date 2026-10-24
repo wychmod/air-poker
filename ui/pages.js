@@ -16,7 +16,7 @@ export function homeMarkup(_state, view) {
       <button class="button primary home-enter" data-action="enter-match">${c('开始对局', 'Enter the match')} <span aria-hidden="true">→</span></button>
       <div class="home-secondary"><button data-action="open-playbook">${c('了解玩法', 'How to play')}</button><span aria-hidden="true">／</span><button data-action="open-tutorial">${c('先练一次', 'Try the tutorial')}</button></div>
     </div>
-    <footer class="home-foot"><p>${c('本地单人', 'SINGLE PLAYER')}<span>25 AIR × 2</span>${c('五轮后耐息', 'FIVE ROUNDS. THEN ENDURANCE.')}</p>${view.hasLastRecord ? `<button data-action="previous-record">${c('最近完成局', 'Last completed match')} ↗</button>` : '<span class="home-edition">THE ABYSS / 01</span>'}</footer>
+    <footer class="home-foot"><p>${c('本地单人', 'SINGLE PLAYER')}<span>25 AIR × 2</span>${c('五轮后耐息', 'FIVE ROUNDS. THEN ENDURANCE.')}</p><div class="home-foot-actions">${view.hasLastRecord ? `<button data-action="previous-record">${c('最近完成局', 'Last completed match')} ↗</button>` : '<span class="home-edition">THE ABYSS / 01</span>'}<a id="homeStarLink" class="star-link" href="https://github.com/wychmod/air-poker" target="_blank" rel="noopener noreferrer" aria-label="${c('前往 GitHub 为项目点 Star（新标签页打开）', 'Star this project on GitHub (opens in a new tab)')}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.78 5.63 6.22.91-4.5 4.38 1.06 6.2L12 17.19l-5.56 2.93 1.06-6.2L3 9.54l6.22-.91Z"/></svg>${c('给项目点个 Star', 'Star on GitHub')}<span aria-hidden="true">↗</span></a></div></footer>
   </section>`;
 }
 
