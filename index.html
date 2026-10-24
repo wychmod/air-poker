@@ -35,6 +35,15 @@
           </div>
           <button
             class="icon-button"
+            id="recordButton"
+            data-action="open-record"
+            title="对局账目"
+            aria-label="对局账目"
+          >
+            ≡
+          </button>
+          <button
+            class="icon-button"
             id="rulesButton"
             data-action="open-rules"
             title="查看规则"
@@ -259,6 +268,35 @@
         <p id="rulesCopy"></p>
         <div class="rule-grid" id="rulesGrid"></div>
         <p class="dialog-note" id="rulesNote"></p>
+      </div>
+    </dialog>
+    <dialog class="rules-dialog" id="recordDialog" aria-labelledby="recordTitle">
+      <div class="dialog-head">
+        <span id="recordTitle"></span
+        ><button
+          class="icon-button"
+          id="closeRecord"
+          data-action="close-record"
+          aria-label="关闭账目"
+        >
+          ×
+        </button>
+      </div>
+      <div class="dialog-content">
+        <div class="surface-actions">
+          <button class="recommend-button" id="currentRecord" data-action="current-record"></button>
+          <button
+            class="recommend-button"
+            id="previousRecord"
+            data-action="previous-record"
+          ></button>
+        </div>
+        <p class="dialog-note" id="recordStorageStatus"></p>
+        <div id="recordContent"></div>
+        <div class="surface-actions">
+          <button class="recommend-button" id="refreshRecord" data-action="refresh-record"></button>
+          <button class="primary-button" id="exportRecord" data-action="export-record"></button>
+        </div>
       </div>
     </dialog>
     <div class="toast" id="toast" role="status"></div>

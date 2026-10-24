@@ -29,18 +29,20 @@ export const LAYERS = [
   { name: 'rules', path: 'game/rules.js', allows: [] },
   { name: 'betting', path: 'game/betting.js', allows: [] },
   { name: 'breathing', path: 'game/breathing.js', allows: [] },
+  { name: 'records', path: 'game/records.js', allows: [] },
   { name: 'cards', path: 'game/cards.js', allows: ['data', 'rules'] },
   { name: 'deal', path: 'game/deal.js', allows: ['cards'] },
   { name: 'ai', path: 'game/ai.js', allows: ['cards', 'deal', 'rules'] },
   {
     name: 'engine',
     path: 'game/engine.js',
-    allows: ['rules', 'cards', 'deal', 'ai', 'betting', 'breathing'],
+    allows: ['rules', 'cards', 'deal', 'ai', 'betting', 'breathing', 'records'],
   },
+  { name: 'archive', path: 'browser/record-store.js', allows: ['records'] },
   { name: 'browser', prefix: 'browser/', allows: [] },
   { name: 'i18n', path: 'i18n.js', allows: [] },
   { name: 'ui', prefix: 'ui/', allows: ['ui', 'data', 'rules', 'cards', 'engine', 'i18n'] },
-  { name: 'app', path: 'app.js', allows: ['engine', 'browser', 'ui', 'i18n'] },
+  { name: 'app', path: 'app.js', allows: ['engine', 'browser', 'archive', 'ui', 'i18n'] },
 ];
 
 export const NODE_GLOBALS = new Set([

@@ -254,7 +254,14 @@ test('a breathing refill returns unmatched excess without wagering opened AIR', 
           Math.max(before.playerBet, before.aiBet) - 1,
         );
         assert.equal(after.breathSpent, 4);
-
+        assert.ok(
+          game
+            .getRecord()
+            .ledger.some((entry) => entry.reason === 'unmatched-refund' && entry.amount === 1),
+        );
+        assert.equal(game.getRecord().accounts.pot, after.pot);
+        assert.equal(game.getRecord().accounts.player, after.playerAir);
+        assert.equal(game.getRecord().accounts.ai, after.aiAir);
         assert.equal(after.playerAir + after.aiAir + after.breathSpent + after.pot, 50);
         assert.equal(after.respiration.player.remainingMs, CANISTER_MS);
         assert.equal(after.respiration.ai.remainingMs, CANISTER_MS);

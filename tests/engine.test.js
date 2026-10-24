@@ -26,6 +26,11 @@ function rejectUnchanged(game, action) {
   assert.deepEqual(game.getState(), before);
 }
 function assertInvariants(state) {
+  assert.equal(state.accounting.player, state.playerAir);
+  assert.equal(state.accounting.ai, state.aiAir);
+  assert.equal(state.accounting.pot, state.pot);
+  assert.equal(state.accounting.breathing, state.breathSpent);
+  assert.equal(state.accounting.balanced, true);
   for (const value of [
     state.playerAir,
     state.aiAir,

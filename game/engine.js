@@ -3,7 +3,14 @@ import { dealTargets, randomIndex } from './deal.js';
 import { chooseCpuPlay, chooseCpuBet } from './ai.js';
 import { applyBetAction, getBetOptions, otherPlayer } from './betting.js';
 import { compareHands, rankHand, settleBets } from './rules.js';
-import { advanceBreathing, startBreathing, timeToDrowning, HYPOXIA_MS } from './breathing.js';
+import {
+  advanceBreathing,
+  startBreathing,
+  timeToDrowning,
+  CANISTER_MS,
+  HYPOXIA_MS,
+} from './breathing.js';
+import { createRecorder } from './records.js';
 
 export const STARTING_AIR = 25;
 export const BET_SECONDS = 30;
@@ -47,9 +54,9 @@ function initialState(targets) {
   };
 }
 
-export function createGame({ random = Math.random } = {}) {
+export function createGame({ random = Math.random, recordId = 'local' } = {}) {
   let state;
-
+  let recorder;
   let sequence;
   let betSerial = 0;
   let upperSerial = 0;
@@ -73,9 +80,12 @@ export function createGame({ random = Math.random } = {}) {
     state.phase = 'summary';
     state.endReason = reason;
     state.winner = winner;
+    recorder.finish(state);
   }
 
-  function refundPot() {
+  function refundPot(reason = 'termination-refund') {
+    recorder.transfer(state, reason, 'pot', 'player', state.playerBet);
+    recorder.transfer(state, reason, 'pot', 'ai', state.aiBet);
     state.playerAir += state.playerBet;
     state.aiAir += state.aiBet;
     state.playerBet = 0;
@@ -84,9 +94,10 @@ export function createGame({ random = Math.random } = {}) {
   }
 
   function breathe(duration) {
+    const before = { respiration: state.respiration };
     const { drowned, ...next } = advanceBreathing(state, duration);
     Object.assign(state, next);
-
+    recorder.breathing(before, state);
     if (drowned.length) {
       if (state.pot) refundPot();
       if (state.betting) state.betting.turn = null;
@@ -109,7 +120,7 @@ export function createGame({ random = Math.random } = {}) {
       let refunded = 0;
       for (const actor of ['player', 'ai']) {
         const excess = Math.max(0, state[`${actor}Bet`] - limit);
-
+        recorder.transfer(state, 'unmatched-refund', 'pot', actor, excess);
         state[`${actor}Bet`] -= excess;
         state[`${actor}Air`] += excess;
         state.pot -= excess;
@@ -126,11 +137,12 @@ export function createGame({ random = Math.random } = {}) {
   }
 
   function enterEndurance(reason) {
+    if (reason === 'no-betting-air') recorder.closeRound(state, 'interrupted', reason);
     state.phase = 'endurance';
     state.enduranceReason = reason;
     state.upper = null;
     if (state.betting) state.betting.turn = null;
-
+    recorder.event(state, 'endurance-started', { reason });
     log('enduranceLog', {}, 'AIR');
   }
 
@@ -202,13 +214,35 @@ export function createGame({ random = Math.random } = {}) {
     state.sessionId = ++sessionSerial;
     const { drowned, ...breathing } = startBreathing(STARTING_AIR, STARTING_AIR);
     Object.assign(state, breathing);
-
+    recorder = createRecorder({
+      matchId: `${recordId}-${state.sessionId}`,
+      initialAir: STARTING_AIR,
+      rules: {
+        canisterMs: CANISTER_MS,
+        hypoxiaMs: HYPOXIA_MS,
+        upperSeconds: UPPER_SECONDS,
+        betSeconds: BET_SECONDS,
+        maxRounds: 5,
+      },
+    });
+    recorder.event(state, 'match-started');
+    recorder.breathing(
+      {
+        respiration: {
+          elapsedMs: 0,
+          player: { opened: 0, remainingMs: 0 },
+          ai: { opened: 0, remainingMs: 0 },
+        },
+      },
+      state,
+    );
     aiTargets = deal.ai.map((group) => group.target);
     aiUsed = [];
     sequence = 0;
     log('readyLog', {}, 'LINK');
     log('reserveLog', {}, 'READY');
     prepareRound();
+    recorder.openRound(state);
   }
 
   function chooseTarget(index) {
@@ -249,11 +283,12 @@ export function createGame({ random = Math.random } = {}) {
     log('lowerLog', { n: state.playerTarget }, 'LOWER');
     log('cpuLock', {}, 'CPU');
     state.phase = 'upper';
-
+    recorder.chooseTargets(state, index, cpuPlay.index);
+    recorder.startAttempt(state, cpuPlay.hand);
     return true;
   }
 
-  function selectCandidate(index) {
+  function selectCandidate(index, via = 'select-candidate') {
     if (
       state.phase !== 'upper' ||
       !Number.isInteger(index) ||
@@ -262,7 +297,11 @@ export function createGame({ random = Math.random } = {}) {
     )
       return false;
     state.selectedCandidate = index;
-
+    recorder.event(state, 'candidate-selected', {
+      index,
+      via,
+      cardIds: state.candidates[index].hand.map((card) => card.id),
+    });
     return true;
   }
 
@@ -272,7 +311,7 @@ export function createGame({ random = Math.random } = {}) {
     const judged = judgeHand(hand, state.playerTarget, state.discard);
     state.playerHand = judged.valid ? judged.hand : null;
     state.upper.playerReason = judged.valid ? null : failed || judged.reason;
-
+    recorder.lockAttempt(state);
     if (state.upper.retry) {
       resolveRound();
       return true;
@@ -284,7 +323,8 @@ export function createGame({ random = Math.random } = {}) {
     state.pot = entry * 2;
     state.playerAir -= entry;
     state.aiAir -= entry;
-
+    recorder.transfer(state, 'ante', 'player', 'pot', entry);
+    recorder.transfer(state, 'ante', 'ai', 'pot', entry);
     log(
       judged.valid ? 'handLog' : failed === 'timeout' ? 'upperTimeoutLog' : 'handFailedLog',
       { nameKey: judged.valid ? rankHand(hand).key : 'upperFailed' },
@@ -313,15 +353,16 @@ export function createGame({ random = Math.random } = {}) {
     const aiJudged = judgeHand(cpuPlay.hand, state.aiTarget, state.discard);
     const ai = aiJudged.valid ? aiJudged.hand : null;
     state.aiHand = ai;
-
+    recorder.revealAttempt(state);
     if (!folded && !player && !ai) {
+      recorder.event(state, 'both-hands-failed', { attemptId: state.upper.attemptId });
       log('bothFailedLog', {}, 'UPPER');
       if (
         !makeCandidates(state.playerTarget, state.discard).length &&
         !makeCandidates(state.aiTarget, state.discard).length
       ) {
-        refundPot();
-
+        refundPot('deadlock-refund');
+        recorder.closeRound(state, 'void', 'upper-deadlock');
         enterEndurance('upper-deadlock');
         return;
       }
@@ -339,7 +380,7 @@ export function createGame({ random = Math.random } = {}) {
       cpuPlay = { ...cpuPlay, hand: cpuCandidates[0]?.hand ?? null };
       state.selectedCandidate = 0;
       state.phase = 'upper';
-
+      recorder.startAttempt(state, cpuPlay.hand);
       return;
     }
     const comparison = player && ai ? compareHands(player, ai) : player ? 1 : -1;
@@ -354,7 +395,20 @@ export function createGame({ random = Math.random } = {}) {
       player && ai ? player.filter((card) => ai.some((other) => other.id === card.id)) : [];
     const calamity = !folded && overlap.length > 0;
     const settled = settleBets({ ...state, winner, calamity });
-
+    const received = {
+      player: winner === 'tie' ? state.playerBet : winner === 'player' ? state.pot : 0,
+      ai: winner === 'tie' ? state.aiBet : winner === 'ai' ? state.pot : 0,
+    };
+    for (const actor of ['player', 'ai'])
+      recorder.transfer(
+        state,
+        winner === 'tie' ? 'tie-refund' : 'payout',
+        'pot',
+        actor,
+        received[actor],
+      );
+    if (settled.burned)
+      recorder.transfer(state, 'calamity', otherPlayer(winner), 'burned', settled.burned);
     state.playerAir = settled.playerAir;
     state.aiAir = settled.aiAir;
     state.lastResult = {
@@ -379,7 +433,14 @@ export function createGame({ random = Math.random } = {}) {
     state.pot = 0;
     state.traces[state.round - 1] = { winner, calamity };
     state.completedRounds += 1;
-
+    recorder.settle(state, {
+      ...state.lastResult,
+      reason: folded ? 'fold' : !player || !ai ? 'hand-failure' : winner === 'tie' ? 'tie' : 'rank',
+      committed: { player: state.playerBet, ai: state.aiBet },
+      received,
+      comparison: player && ai ? Math.sign(compareHands(player, ai)) : null,
+      discardedCardIds: state.discard.map((card) => card.id),
+    });
     if (!folded && (!player || !ai))
       log('upperLossLog', { nameKey: player ? 'cpu' : 'you' }, 'UPPER');
     log(
@@ -411,7 +472,8 @@ export function createGame({ random = Math.random } = {}) {
       state.respiration.elapsedMs + (state.betting.turn === 'ai' ? 600 : BET_SECONDS * 1000);
     const cpu = actor === 'ai';
     const event = result.event;
-
+    recorder.bet(state, event, timedOut);
+    recorder.transfer(state, 'bet', actor, 'pot', event.paid, undefined, { turnId });
     if (timedOut) log(action === 'fold' ? 'timeoutFoldLog' : 'timeoutCheckLog', {}, 'TIME');
     const key =
       action === 'check'
@@ -483,7 +545,7 @@ export function createGame({ random = Math.random } = {}) {
     state.lastResult = null;
     log('roundLog', { n: state.round }, 'ROUND');
     state.phase = 'lower';
-
+    recorder.openRound(state);
     return true;
   }
 
@@ -495,7 +557,7 @@ export function createGame({ random = Math.random } = {}) {
       case 'select-candidate':
         return selectCandidate(action.index);
       case 'recommend-hand':
-        return selectCandidate(0);
+        return selectCandidate(0, 'recommend-hand');
       case 'confirm-hand':
         return confirmHand(action.attemptId);
       case 'submit-hand':
@@ -541,7 +603,9 @@ export function createGame({ random = Math.random } = {}) {
       structuredClone({
         ...state,
         legalBets: getBetOptions(state, 'player'),
+        accounting: recorder.summary(),
       }),
+    getRecord: () => recorder.snapshot(state),
     dispatch,
     reset,
   };

@@ -4,21 +4,22 @@
 
 浏览器直接通过 HTTP 加载 ES modules，无编译步骤与后端。开发工具和测试使用 Node.js；Acorn 与 Prettier 仅为开发依赖，不进入站点。
 
-依赖流：app → browser 时钟 / ui / engine；engine → cards / deal / ai / rules / betting / breathing。实体牌与候选属于 cards，时间与资金的权威变化属于 engine 及纯函数，浏览器时钟只提交动作。
+依赖流：app → browser 时钟 / ui / engine；engine → cards / deal / ai / rules / betting / breathing / records；app → archive → records。实体牌与候选属于 cards，时间与资金的权威变化属于 engine 及纯函数，浏览器时钟只提交动作。
 
 完整可执行矩阵位于 scripts/harness/config.js 的 LAYERS：
 
-| 层                              | 允许依赖                                   |
-| ------------------------------- | ------------------------------------------ |
-| data、rules、betting、breathing | 无运行模块依赖                             |
-| browser                         | 无运行模块依赖，负责平台调度               |
-| cards                           | data、rules                                |
-| deal                            | cards                                      |
-| ai                              | cards、deal、rules                         |
-| engine                          | rules、cards、deal、ai、betting、breathing |
-| i18n                            | 无运行模块依赖                             |
-| ui                              | ui、data、rules、cards、engine、i18n       |
-| app                             | engine、browser、ui、i18n                  |
+| 层                                       | 允许依赖                                            |
+| ---------------------------------------- | --------------------------------------------------- |
+| data、rules、betting、breathing、records | 无运行模块依赖                                      |
+| archive（browser/record-store.js）       | records；只负责归档平台读写                         |
+| browser（时钟模块）                      | 无运行模块依赖，负责平台调度                        |
+| cards                                    | data、rules                                         |
+| deal                                     | cards                                               |
+| ai                                       | cards、deal、rules                                  |
+| engine                                   | rules、cards、deal、ai、betting、breathing、records |
+| i18n                                     | 无运行模块依赖                                      |
+| ui                                       | ui、data、rules、cards、engine、i18n                |
+| app                                      | engine、browser、archive、ui、i18n                  |
 
 ui 只消费快照和只读函数，不创建第二份对局状态或自行下注结算。计时器、事件与语言存储属于入口层；game 不使用 DOM、网络、平台时钟或存储。新增模块要明确职责并更新矩阵与说明。
 
@@ -26,9 +27,10 @@ ui 只消费快照和只读函数，不创建第二份对局状态或自行下�
 
 ## 状态与动作
 
-createGame({ random = Math.random } = {}) 持有私有状态，可注入随机源：
+createGame({ random = Math.random, recordId = 'local' } = {}) 持有私有状态，可注入随机源：
 
 - getState() 返回深拷贝快照，隐藏 CPU 未出数字、来源证明及摊牌前成手。
+- getRecord() 按需深拷贝完整事件、轮次、逐笔账目和派生统计；进行中隐藏未揭示尝试的 CPU 成手，不包含未来 CPU 数字。recordId 由浏览器生成，session 后缀区分重开。getState() 的 accounting 只保留当前五账户摘要，不每次复制完整历史。
 - dispatch(action) 接受当前阶段合法动作，成功返回 true；拒绝的动作返回 false，状态不变。数组形式的无效成手提交是合法游戏动作，会记录成手失败；错误请求类型则被拒绝。
 - reset() 开新局，sessionId、attemptId 和 turnId 跨重开递增；入口同时清理计时器和视图。
 
@@ -57,6 +59,16 @@ browser/match-clock.js 用单调时钟同步绝对时长；browser/turn-clock.js
 - completedRounds 仅在真正结算后递增；双方重做与双无解未结算轮不计入。五轮后耐息期间不补数字、不增加下注回合。
 
 行为与数字版边界见 [当前规则](../rules/current.md)，二手来源及历史差异见 [核对报告](../rules/audit.md)。历史页面提案不是默认需求，当前不能称为原作 1:1 复刻。
+
+## 记录与归档边界
+
+engine 在已接受动作和实际资金写入点通知 records。事件 id 单调递增，使用对局 elapsedMs；轮外呼吸与耐息归为 round=null。ledger 以同一 id 关联空气转移，保存 from/to/amount/reason 和 before/after 五账户，能够连续重放到实际状态。长时间快进按真实开罐时刻拆笔，不依赖浏览器脉冲频率。
+
+rounds 保留目标、先动方、每次成手及失败原因、下注、结算牌型与踢脚向量、实际收款和 burned、前后余额与弃牌。双方失败增加尝试，数学无解轮为 void，耗尽时未结束轮为 interrupted；只有 settled 计入完成数。
+
+app 在每个 session 首次进入 summary 时保存一次完整记录。archive 只读写 air-poker-last-record-v1，检查版本、基本结构和连续账目，重算派生统计；失败返回状态，不阻断游戏。新局不会覆盖此前完成局，下一局完成才替换。此机制不提供对局恢复、导入执行或防篡改认证。
+
+ui/record.js 只渲染快照与翻译，外来字符串转义。查看和导出使用打开时快照，不暂停计时；刷新按钮主动读取最新状态。导出通过浏览器 Blob 下载 JSON，保存失败时仍可导出内存记录。
 
 ## 发布与资源
 

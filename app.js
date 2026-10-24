@@ -1,9 +1,10 @@
 import { BET_SECONDS, UPPER_SECONDS, createGame } from './game/engine.js';
 import { createTurnClock } from './browser/turn-clock.js';
 import { createMatchClock } from './browser/match-clock.js';
-
+import { createRecordStore } from './browser/record-store.js';
 import { isLanguage, translate } from './i18n.js';
 import { createRenderer } from './ui/render.js';
+import { recordMarkup } from './ui/record.js';
 
 function savedLanguage() {
   try {
@@ -13,13 +14,72 @@ function savedLanguage() {
   }
 }
 
-const game = createGame();
+const game = createGame({ recordId: crypto.randomUUID() });
 const renderer = createRenderer(document);
 const view = { lang: savedLanguage(), screen: 'home', timer: BET_SECONDS };
 let introHandle = null;
 let toastHandle = null;
+const recordStore = createRecordStore();
+const savedRecord = recordStore.load();
+let lastRecord = savedRecord.record;
+let storageStatus = savedRecord.status;
+let savedSession = null;
+let matchStarted = false;
+let shownRecord = null;
+let recordSource = 'current';
 
-const render = () => renderer.render(game.getState(), view);
+const render = () => {
+  const snapshot = game.getState();
+  if (matchStarted && snapshot.phase === 'summary' && savedSession !== snapshot.sessionId) {
+    lastRecord = game.getRecord();
+    storageStatus = recordStore.save(lastRecord) ? 'saved' : 'memory';
+    savedSession = snapshot.sessionId;
+  }
+  renderer.render(snapshot, view);
+};
+
+function renderRecord() {
+  const t = (key) => translate(view.lang, key);
+  for (const [id, key] of Object.entries({
+    recordTitle: 'recordTitle',
+    currentRecord: 'recordCurrent',
+    previousRecord: 'recordPrevious',
+    refreshRecord: 'recordRefresh',
+    exportRecord: 'recordExport',
+  }))
+    document.getElementById(id).textContent = t(key);
+  document.getElementById('closeRecord').ariaLabel = t('recordClose');
+  document.getElementById('currentRecord').disabled = !matchStarted;
+  document.getElementById('previousRecord').disabled = !lastRecord;
+  document.getElementById('refreshRecord').disabled = recordSource !== 'current' || !matchStarted;
+  document.getElementById('exportRecord').disabled = !shownRecord;
+  document.getElementById('recordStorageStatus').textContent = t(
+    recordSource === 'previous' || shownRecord?.status === 'completed'
+      ? `storage_${storageStatus}`
+      : 'recordSnapshot',
+  );
+  document.getElementById('recordContent').innerHTML = recordMarkup(shownRecord, view.lang);
+}
+
+function showRecord(source) {
+  recordSource = source;
+  shownRecord = source === 'previous' ? lastRecord : matchStarted ? game.getRecord() : null;
+  renderRecord();
+  const dialog = document.getElementById('recordDialog');
+  if (!dialog.open) dialog.showModal();
+}
+
+function exportRecord() {
+  if (!shownRecord) return;
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(shownRecord, null, 2)], { type: 'application/json' }),
+  );
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `air-poker-${shownRecord.matchId.replace(/[^a-zA-Z0-9_-]/g, '_')}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 const turnClock = createTurnClock({
   seconds: BET_SECONDS,
@@ -83,7 +143,8 @@ function restart(withIntro) {
   clearTimeout(toastHandle);
   document.getElementById('toast').classList.remove('show');
   game.reset();
-
+  matchStarted = true;
+  document.getElementById('recordDialog').close();
   view.timer = BET_SECONDS;
   setScreen(withIntro ? 'intro' : 'game');
   matchClock.sync(game.getState());
@@ -107,6 +168,7 @@ function setLanguage(lang) {
     /* Continue when browser storage is unavailable. */
   }
   render();
+  if (document.getElementById('recordDialog').open) renderRecord();
 }
 
 // One listener handles the static shell and replaced phase templates.
@@ -120,6 +182,22 @@ document.addEventListener('click', (event) => {
     return;
   }
   switch (action) {
+    case 'open-record':
+      showRecord(matchStarted ? 'current' : 'previous');
+      break;
+    case 'current-record':
+    case 'refresh-record':
+      showRecord('current');
+      break;
+    case 'previous-record':
+      showRecord('previous');
+      break;
+    case 'close-record':
+      document.getElementById('recordDialog').close();
+      break;
+    case 'export-record':
+      exportRecord();
+      break;
     case 'enter-match':
       restart(true);
       break;

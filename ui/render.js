@@ -41,6 +41,8 @@ export function createRenderer(document) {
     $('rulesButton').ariaLabel = t('rules');
     $('restartButton').title = t('restart');
     $('restartButton').ariaLabel = t('restart');
+    $('recordButton').title = t('recordTitle');
+    $('recordButton').ariaLabel = t('recordTitle');
     $('closeRules').ariaLabel = view.lang === 'zh' ? '关闭规则' : 'CLOSE RULES';
     document.documentElement.lang = view.lang === 'zh' ? 'zh-CN' : 'en';
     document.title =

@@ -16,6 +16,8 @@ const available = new Set([
   'game/engine.js',
   'game/betting.js',
   'game/breathing.js',
+  'game/records.js',
+  'browser/record-store.js',
   'browser/turn-clock.js',
   'ui/render.js',
 ]);
@@ -50,6 +52,16 @@ test('architecture permits current layering and rejects reverse, missing and ext
   );
   assert.deepEqual(checkModule('game/engine.js', "import './breathing.js';", available).errors, []);
   assert.ok(checkModule('game/breathing.js', "import './engine.js';", available).errors.length);
+  assert.deepEqual(
+    checkModule('browser/record-store.js', "import '../game/records.js';", available).errors,
+    [],
+  );
+  assert.ok(
+    checkModule('game/records.js', "import '../browser/record-store.js';", available).errors.length,
+  );
+  assert.ok(
+    checkModule('browser/turn-clock.js', "import '../game/records.js';", available).errors.length,
+  );
 });
 
 test('architecture checks lazy imports, platform calls and cycles without matching text or properties', () => {
