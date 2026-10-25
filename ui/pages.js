@@ -16,7 +16,7 @@ export function homeMarkup(_state, view) {
       <button class="button primary home-enter" data-action="enter-match">${c('开始对局', 'Enter the match')} <span aria-hidden="true">→</span></button>
       <div class="home-secondary"><button data-action="open-playbook">${c('了解玩法', 'How to play')}</button><span aria-hidden="true">／</span><button data-action="open-tutorial">${c('先练一次', 'Try the tutorial')}</button></div>
     </div>
-    <footer class="home-foot"><p>${c('本地单人', 'SINGLE PLAYER')}<span>25 AIR × 2</span>${c('五轮后耐息', 'FIVE ROUNDS. THEN ENDURANCE.')}</p><div class="home-foot-actions">${view.hasLastRecord ? `<button data-action="previous-record">${c('最近完成局', 'Last completed match')} ↗</button>` : '<span class="home-edition">THE ABYSS / 01</span>'}<a id="homeStarLink" class="star-link" href="https://github.com/wychmod/air-poker" target="_blank" rel="noopener noreferrer" aria-label="${c('前往 GitHub 为项目点 Star（新标签页打开）', 'Star this project on GitHub (opens in a new tab)')}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.78 5.63 6.22.91-4.5 4.38 1.06 6.2L12 17.19l-5.56 2.93 1.06-6.2L3 9.54l6.22-.91Z"/></svg>${c('给项目点个 Star', 'Star on GitHub')}<span aria-hidden="true">↗</span></a></div></footer>
+    <footer class="home-foot"><div class="home-foot-copy"><p>${c('本地单人', 'SINGLE PLAYER')}<span>25 AIR × 2</span>${c('五轮后耐息', 'FIVE ROUNDS. THEN ENDURANCE.')}</p><p class="manga-credit">${translate(view.lang, 'mangaSource')}</p></div><div class="home-foot-actions">${view.hasLastRecord ? `<button data-action="previous-record">${c('最近完成局', 'Last completed match')} ↗</button>` : '<span class="home-edition">THE ABYSS / 01</span>'}<a id="homeStarLink" class="star-link" href="https://github.com/wychmod/air-poker" target="_blank" rel="noopener noreferrer" aria-label="${c('前往 GitHub 为项目点 Star（新标签页打开）', 'Star this project on GitHub (opens in a new tab)')}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.78 5.63 6.22.91-4.5 4.38 1.06 6.2L12 17.19l-5.56 2.93 1.06-6.2L3 9.54l6.22-.91Z"/></svg>${c('给项目点个 Star', 'Star on GitHub')}<span aria-hidden="true">↗</span></a></div></footer>
   </section>`;
 }
 
@@ -51,6 +51,7 @@ export function introductionMarkup(view) {
         ['7', '♠'],
       ])}</div><span class="risk-caption">${c('四条胜三条 · 同实体牌重叠', 'Four of a kind wins · physical cards overlap')}</span></div><h2>${c('摊牌，才知道代价。', 'The reveal has a price.')}</h2><p>${c('两手完整牌比较牌型。双方有效、实体重叠且分出胜负时，败者额外烧毁空气。本例双方各投 6、败方剩 18，实际烧毁 6；普通弃牌不触发灾厄。', 'Compare complete hands. If both are valid, overlap and do not tie, the loser burns reserve. Here each invested 6 and the loser has 18 left: 6 actually burns. Folding does not trigger calamity.')}</p><button class="button secondary" data-action="play-concept" data-concept="risk">${c('看演示', 'Play example')} <span aria-hidden="true">↗</span></button></article>
     </div>
+    <p class="manga-credit">${translate(view.lang, 'mangaSource')}</p>
     <footer class="narrative-footer"><button class="button secondary" data-action="open-rules">${c('查看完整规则', 'Read full rules')}</button><div><button class="button secondary" data-action="open-tutorial">${c('进入教学', 'Try the tutorial')}</button><button class="button primary" data-action="enter-match">${c('开始对局', 'Enter the match')} →</button></div></footer>
   </section>`;
 }

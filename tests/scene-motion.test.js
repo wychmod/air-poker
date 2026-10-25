@@ -15,7 +15,7 @@ const choose = (game) => game.dispatch({ type: 'choose-target', index: 0 });
 const lock = (game) =>
   game.dispatch({ type: 'confirm-hand', attemptId: game.getState().upper.attemptId });
 
-test('motion classification preserves target position and never exposes a hidden CPU hand', () => {
+test('motion classification preserves target position and never exposes a hidden opponent hand', () => {
   const game = start();
   const before = game.getState();
   choose(game);

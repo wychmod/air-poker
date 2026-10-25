@@ -76,7 +76,7 @@ test('each new player turn gets 30 seconds, while same-turn renders do not exten
   assert.deepEqual(f.expired, [1, 2]);
 });
 
-test('CPU thinking uses its own delay and does not consume the following player turn', () => {
+test('opponent thinking uses its own delay and does not consume the following player turn', () => {
   const f = fixture();
   f.clock.sync(turn(8, 'ai'));
   assert.equal(f.ticks.at(-1), null);

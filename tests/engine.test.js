@@ -78,7 +78,7 @@ function finishBet(game, policy = 'passive', observe = () => {}) {
   }
 }
 
-test('snapshots are independent and expose no CPU future cards, proof or locked hand', () => {
+test('snapshots are independent and expose no opponent future cards, proof or locked hand', () => {
   const game = createGame({ random: seeded(7) }),
     before = game.getState(),
     copy = game.getState();
@@ -93,7 +93,7 @@ test('snapshots are independent and expose no CPU future cards, proof or locked 
   assert.equal(createGame({ random: seeded(8) }).getState().phase, 'lower');
 });
 
-test('CPU locked target and physical hand do not change with player target or candidate', () => {
+test('opponent locked target and physical hand do not change with player target or candidate', () => {
   let expected;
   for (let index = 0; index < 5; index++)
     for (let candidate = 0; candidate < 3; candidate++) {
@@ -335,7 +335,7 @@ test('equal first-round numbers use the declared random tie-break', () => {
   }
 });
 
-test('CPU betting history cannot depend on which hidden player candidate was selected', () => {
+test('opponent betting history cannot depend on which hidden player candidate was selected', () => {
   let expected;
   for (let candidate = 0; candidate < 3; candidate++) {
     const game = createGame({ random: seeded(73) });

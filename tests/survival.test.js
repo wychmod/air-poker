@@ -222,7 +222,7 @@ test('long background elapsed time processes hand and betting deadlines before s
   assert.equal(after.respiration.elapsedMs, 24 * CANISTER_MS + HYPOXIA_MS);
 });
 
-test('a single background jump equals small time steps across construction and CPU actions', () => {
+test('a single background jump equals small time steps across construction and opponent actions', () => {
   const games = [createGame({ random: seeded(7) }), createGame({ random: seeded(7) })];
   for (const game of games) choose(game);
   const sessionId = games[0].getState().sessionId;

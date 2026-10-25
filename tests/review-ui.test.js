@@ -56,7 +56,7 @@ function freeze(value) {
   return value;
 }
 
-test('active review shows five own cards and keeps unrevealed CPU cards out of its hand DOM', () => {
+test('active review shows five own cards and keeps unrevealed opponent cards out of its hand DOM', () => {
   const game = atBet();
   const record = game.getRecord();
   assert.equal(record.rounds[0].attempts[0].ai, null);

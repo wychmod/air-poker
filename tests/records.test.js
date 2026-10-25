@@ -107,7 +107,7 @@ test('full records preserve all rounds, real stakes and calamity, independently 
   assert.equal(game.getRecord().rounds.length, 1);
 });
 
-test('records hide pending CPU hands, return independent snapshots, and ignore rejected actions', () => {
+test('records hide pending opponent hands, return independent snapshots, and ignore rejected actions', () => {
   const game = createGame({ random: seeded(3) });
   choose(game);
   lock(game);

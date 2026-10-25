@@ -8,7 +8,7 @@ const pages = [
     purpose: '先建立赌局的吸引力，再给玩家一个清晰的开始入口。',
     notes: [
       '唯一强主按钮是开始对局，新手教学与完整规则作为辅助入口。',
-      '用 25 AIR、单人 CPU、最多五回合陈述真实范围；没有假联网和假继续。',
+      '用 25 AIR、单人对战、最多五回合陈述真实范围；没有假联网和假继续。',
       '偏左标题和右侧空气刻度形成分镜，手机把装饰退到背景。',
     ],
   },
@@ -180,7 +180,7 @@ function home() {
       ><span class="depth-label">FIVE ROUNDS · ONE RESERVE</span>
     </div>
     <div class="home-facts">
-      <span><strong>25</strong>初始 AIR</span><span><strong>01</strong>单人 CPU</span
+      <span><strong>25</strong>初始 AIR</span><span><strong>01</strong>单人对战</span
       ><span><strong>05</strong>最多五回合</span>
     </div>
   </div>`;
@@ -193,7 +193,7 @@ const chapters = [
     body: /* HTML */ `<div class="flow-row">
         <span>01 选目标</span><span>02 锁成手</span><span>03 下注</span><span>04 摊牌</span>
       </div>
-      <p class="hint">成手在下注前锁定，下注后不能更换。CPU 的牌在摊牌前保持隐藏。</p>`,
+      <p class="hint">成手在下注前锁定，下注后不能更换。对手的牌在摊牌前保持隐藏。</p>`,
   },
   {
     title: '24 是目标，不是战斗力。',
@@ -206,7 +206,7 @@ const chapters = [
   },
   {
     title: '每笔下注，都用同一口空气。',
-    text: '第 R 回合底注为 R AIR。额外加注每次 1–4 AIR，并受双方可匹配空气限制。当前体验版由 CPU 匹配后直接摊牌。',
+    text: '第 R 回合底注为 R AIR。额外加注每次 1–4 AIR，并受双方可匹配空气限制。当前体验版由对手匹配后直接摊牌。',
     body: /* HTML */ `<table class="ledger">
         <tr>
           <th>第 2 回合</th>
@@ -243,7 +243,7 @@ const chapters = [
       <tr>
         <th>双方各投入 3 AIR</th>
         <th>你</th>
-        <th>CPU</th>
+        <th>对手</th>
       </tr>
       <tr>
         <td>开始</td>
@@ -314,7 +314,7 @@ function tutorial() {
     ],
     [
       '分清新增额，和你的总投入。',
-      '底注 1 AIR，额外增加 2 AIR。你与 CPU 各投入 3 AIR，底池是 6 AIR。',
+      '底注 1 AIR，额外增加 2 AIR。你与对手各投入 3 AIR，底池是 6 AIR。',
       /* HTML */ `<table class="ledger">
         <tr>
           <td>底注</td>
@@ -391,7 +391,7 @@ function matchBody() {
     case 'hand':
       return /* HTML */ `<p class="page-kicker">UPPER / PRIVATE HAND</p>
         <h4 class="scene-title">五张牌，藏在你这边。</h4>
-        <p class="lede">目标 58 / CPU 目标 36。暂选不等于锁定。</p>
+        <p class="lede">目标 58 / 对手目标 36。暂选不等于锁定。</p>
         <div class="candidates">
           <article class="candidate">
             <div><strong>三条 K</strong><span class="meta">有效 5 张 / 目标 58</span></div>
@@ -448,7 +448,7 @@ function matchBody() {
             ${cards(playerHand)}
           </div>
           <div class="reveal-item">
-            <div class="hand-label"><span>CPU / 目标 36</span><span>一对 6</span></div>
+            <div class="hand-label"><span>对手 / 目标 36</span><span>一对 6</span></div>
             ${cards(cpuHand)}
           </div>
         </div>
@@ -463,7 +463,7 @@ function matchBody() {
           <tr>
             <th>本轮账目</th>
             <th>你</th>
-            <th>CPU</th>
+            <th>对手</th>
           </tr>
           <tr>
             <td>开始空气</td>
@@ -527,7 +527,7 @@ function match() {
       <div class="pot-center">POT<strong>${pot}</strong></div>
       <article class="air-side cpu">
         <header>
-          <span>CPU / OBSERVER</span><strong>${air[1]} <small>AIR</small></strong>
+          <span>对手</span><strong>${air[1]} <small>AIR</small></strong>
         </header>
         <div class="air-line"><i style="width:${Math.min(100, air[1] * 4)}%"></i></div>
       </article>
@@ -536,7 +536,7 @@ function match() {
       <div class="match-main">${matchBody()}</div>
       <aside class="match-side">
         <p class="overline">ROUND TRACE</p>
-        ${['你赢', 'CPU 赢', '你赢', 'CPU 赢', '当前'].map((text, index) => /* HTML */ `<div class="trace-item ${index === 4 ? 'live' : ''}"><span>R0${index + 1}</span><span>${text}</span></div>`).join('')}
+        ${['你赢', '对手赢', '你赢', '对手赢', '当前'].map((text, index) => /* HTML */ `<div class="trace-item ${index === 4 ? 'live' : ''}"><span>R0${index + 1}</span><span>${text}</span></div>`).join('')}
         <div class="divider"></div>
         <button class="text-link" data-info="discard">查看弃牌 →</button
         ><button class="text-link" data-info="log">查看回合记录 →</button>
@@ -594,7 +594,7 @@ function result() {
         </div>
         <span class="separator">${state.page === 'p07' ? '=' : ':'}</span>
         <div>
-          <span class="side-label">CPU / FINAL AIR</span><strong>${value.scores[1]}</strong>
+          <span class="side-label">对手 / FINAL AIR</span><strong>${value.scores[1]}</strong>
         </div>
       </div>
       <p class="end-reason">${value.reason}</p>
@@ -620,16 +620,16 @@ function result() {
 
 const winRows = [
   [25, 25, 3, '你', 28, 22],
-  [27, 21, 2, 'CPU', 25, 23],
+  [27, 21, 2, '对手', 25, 23],
   [24, 22, 4, '你', 28, 18],
-  [27, 17, 4, 'CPU', 23, 21],
+  [27, 17, 4, '对手', 23, 21],
   [22, 20, 7, '你', 29, 13],
 ];
 const drawRows = [
   [25, 25, 3, '你', 28, 22],
-  [27, 21, 3, 'CPU', 24, 24],
+  [27, 21, 3, '对手', 24, 24],
   [23, 23, 4, '你', 27, 19],
-  [26, 18, 4, 'CPU', 22, 22],
+  [26, 18, 4, '对手', 22, 22],
   [21, 21, 5, '平', 21, 21],
 ];
 
@@ -639,11 +639,11 @@ function review() {
     state.resultOrigin === 'p07'
       ? drawRows
       : state.resultOrigin === 'p06'
-        ? winRows.map((r) => [r[1], r[0], r[2], r[3] === '你' ? 'CPU' : '你', r[5], r[4]])
+        ? winRows.map((r) => [r[1], r[0], r[2], r[3] === '你' ? '对手' : '你', r[5], r[4]])
         : winRows;
   const row = rows[state.round];
   const received = row[3] === '平' ? row[2] : row[3] === '你' ? row[2] * 2 : 0;
-  const otherReceived = row[3] === '平' ? row[2] : row[3] === 'CPU' ? row[2] * 2 : 0;
+  const otherReceived = row[3] === '平' ? row[2] : row[3] === '对手' ? row[2] * 2 : 0;
   const line = (side) =>
     [25, ...rows.map((r) => r[side])]
       .map((air, index) => `${20 + index * 112},${123 - air * 3.2}`)
@@ -657,7 +657,7 @@ function review() {
       <span class="badge">本局${origin.label} / ${origin.scores.join(' : ')}</span>
     </div>
     <div class="air-chart">
-      <div class="chart-legend"><span>━ 你</span><span>━ CPU</span></div>
+      <div class="chart-legend"><span>━ 你</span><span>━ 对手</span></div>
       <svg viewBox="0 0 610 145" role="img" aria-label="演示对局每回合结束后的双方 AIR 变化">
         <g stroke="#a9becf20"><path d="M20 30H580M20 70H580M20 110H580" /></g>
         <polyline points="${line(4)}" fill="none" stroke="#60d8ff" stroke-width="3" />
@@ -669,7 +669,7 @@ function review() {
     </div>
     <div class="review-layout">
       <nav class="round-tabs" aria-label="选择复盘回合">
-        ${rows.map((r, index) => /* HTML */ `<button data-round="${index}" class="${index === state.round ? 'active' : ''}">R${index + 1} / ${r[3] === '平' ? '平局' : r[3] === '你' ? '你赢' : 'CPU 赢'}</button>`).join('')}
+        ${rows.map((r, index) => /* HTML */ `<button data-round="${index}" class="${index === state.round ? 'active' : ''}">R${index + 1} / ${r[3] === '平' ? '平局' : r[3] === '你' ? '你赢' : '对手赢'}</button>`).join('')}
       </nav>
       <article class="review-detail">
         <h4>R${state.round + 1} · ${row[3] === '平' ? '双方退回本轮投入' : row[3] + '赢下本轮'}</h4>
@@ -678,7 +678,7 @@ function review() {
           <tr>
             <th>空气明细</th>
             <th>你</th>
-            <th>CPU</th>
+            <th>对手</th>
           </tr>
           <tr>
             <td>本轮开始</td>
@@ -794,7 +794,7 @@ const info = {
   ],
   log: [
     '回合记录',
-    '这里查看已完成回合与当前已公开事件，不能提前读取 CPU 的暗牌。',
+    '这里查看已完成回合与当前已公开事件，不能提前读取对手的暗牌。',
     '<p>完整对局结束后，使用复盘页查看完整快照与账目。</p>',
   ],
   fold: [
@@ -804,7 +804,7 @@ const info = {
   ],
   allin: [
     '按对手上限匹配',
-    '你当前 17 AIR，CPU 15 AIR。实际可匹配上限为 15 AIR，操作后你剩余 2 AIR。',
+    '你当前 17 AIR，对手 15 AIR。实际可匹配上限为 15 AIR，操作后你剩余 2 AIR。',
     '<p>该动作不产生边池。界面应展示实际投入，而非声称消耗你的全部 17 AIR。</p>',
   ],
   check: [

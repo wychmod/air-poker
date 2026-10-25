@@ -32,7 +32,7 @@ test('independent number cards have ten disjoint proof hands, with two cards lef
   for (const bad of [() => 1, () => -1, () => NaN]) assert.throws(() => dealTargets(bad));
 });
 
-test('CPU chooses only its unused solvable positions, and reports no legal hand explicitly', () => {
+test('opponent chooses only its unused solvable positions, and reports no legal hand explicitly', () => {
   const targets = [6, 47, 64, 35, 25];
   const play = chooseCpuPlay(targets, [1], [], () => 0);
   assert.notEqual(play.index, 1);
@@ -48,7 +48,7 @@ test('CPU chooses only its unused solvable positions, and reports no legal hand 
   );
 });
 
-test('a failed CPU hand always receives a legal fallback action', () => {
+test('a failed opponent hand always receives a legal fallback action', () => {
   const stranded = {
     phase: 'bet',
     playerAir: 10,
@@ -101,7 +101,7 @@ test('a failed CPU hand always receives a legal fallback action', () => {
   assert.ok(applyBetAction(unpressured, 'ai', 'check'));
 });
 
-test('CPU responds with legal check, call, raise, fold and all-in using only allowed information', () => {
+test('opponent responds with legal check, call, raise, fold and all-in using only allowed information', () => {
   const strong = makeCandidates(6)[0].hand;
   const weak = [2, 3, 7, 10, 13].map((rank, index) => card(rank, index % 4));
   const base = {
@@ -143,7 +143,7 @@ test('CPU responds with legal check, call, raise, fold and all-in using only all
     for (const secret of ['playerHand', 'playerTargets', 'candidates'])
       Object.defineProperty(information, secret, {
         get() {
-          throw Error('CPU accessed hidden ' + secret);
+          throw Error('opponent accessed hidden ' + secret);
         },
       });
     const decision = chooseCpuBet(information, () => roll);

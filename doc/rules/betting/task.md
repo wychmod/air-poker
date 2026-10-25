@@ -5,7 +5,7 @@
 | 任务 | 文件                                                                                        | 操作与验证                                                       |
 | ---- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | T1   | game/betting.js、tests/betting.test.js                                                      | 新增纯下注转换；先验证原作示例、资金和合法动作                   |
-| T2   | game/engine.js、game/ai.js、tests/engine.test.js、tests/deal-ai.test.js                     | 接入交替回合、CPU 响应、序号与双向弃牌；验证私牌隔离和整局       |
+| T2   | game/engine.js、game/ai.js、tests/engine.test.js、tests/deal-ai.test.js                     | 接入交替回合、对手响应、序号与双向弃牌；验证私牌隔离和整局       |
 | T3   | browser/turn-clock.js、tests/turn-clock.test.js                                             | 新增可注入时钟；验证新行动、超时、后台、旧回调                   |
 | T4   | app.js、ui/render.js、i18n.js                                                               | 接入时钟与动作序号，更新投入、范围和禁用状态；浏览器验证         |
 | T5   | scripts/harness/config.js、scripts/serve.js、tests/harness.test.js                          | 新目录加入明确依赖与发布范围，反向依赖仍失败；运行架构与资源检查 |

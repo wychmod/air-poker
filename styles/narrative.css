@@ -179,6 +179,21 @@ html[lang='zh-CN'] .home-center h1 span {
   letter-spacing: 0.05em;
   color: #62665e;
 }
+.home-foot-copy {
+  display: grid;
+  gap: 8px;
+}
+.manga-credit {
+  margin: 20px 0 0;
+  color: #62665e;
+  font-size: 12px;
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+.home-foot .manga-credit {
+  display: block;
+  font-size: 11px;
+}
 .home-foot p {
   display: flex;
   flex-wrap: wrap;
@@ -1270,7 +1285,7 @@ html[lang='zh-CN'] .home-center h1 span {
     background: linear-gradient(0deg, #fff 45%, #ffffff30 68%, #ffffff00 85%);
   }
   .home-center {
-    padding: 90px 20px 165px;
+    padding: 90px 20px 28px;
   }
   .home-center .eyebrow {
     max-width: 230px;
@@ -1288,6 +1303,8 @@ html[lang='zh-CN'] .home-center h1 span {
     margin-bottom: 28px;
   }
   .home-foot {
+    position: static;
+    margin-top: auto;
     padding: 18px 20px;
     flex-direction: column;
     gap: 0;

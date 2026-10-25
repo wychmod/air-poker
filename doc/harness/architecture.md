@@ -29,18 +29,18 @@ ui 只消费快照和只读函数，不创建第二份对局状态或自行下�
 
 createGame({ random = Math.random, recordId = 'local' } = {}) 持有私有状态，可注入随机源：
 
-- getState() 返回深拷贝快照，隐藏 CPU 未出数字、来源证明及摊牌前成手。
-- getRecord() 按需深拷贝完整事件、轮次、逐笔账目和派生统计；进行中隐藏未揭示尝试的 CPU 成手，不包含未来 CPU 数字。recordId 由浏览器生成，session 后缀区分重开。getState() 的 accounting 只保留当前五账户摘要，不每次复制完整历史。
+- getState() 返回深拷贝快照，隐藏对手未出数字、来源证明及摊牌前成手。
+- getRecord() 按需深拷贝完整事件、轮次、逐笔账目和派生统计；进行中隐藏未揭示尝试的对手成手，不包含未来对手数字。recordId 由浏览器生成，session 后缀区分重开。getState() 的 accounting 只保留当前五账户摘要，不每次复制完整历史。
 - dispatch(action) 接受当前阶段合法动作，成功返回 true；拒绝的动作返回 false，状态不变。数组形式的无效成手提交是合法游戏动作，会记录成手失败；错误请求类型则被拒绝。
 - reset() 开新局，sessionId、attemptId 和 turnId 跨重开递增；入口同时清理计时器和视图。
 
 正常流程：lower → upper → bet → showdown → lower；五轮完成或不能继续匹配底注时，showdown → endurance → summary。双方成手失败时，bet → upper 重做同数字与同底池，upper 确认后直接重新比较；若双方数学无解，则退回底池进入 endurance。任意活动阶段都可能因供气及缺氧宽限结束进入 summary。
 
-上层的 confirm-hand、submit-hand、fail-hand、upper-timeout 必须带当前 attemptId。下注、CPU 与下注超时必须带当前 turnId。动作编号阻止旧按钮和回调重复扣款。
+上层的 confirm-hand、submit-hand、fail-hand、upper-timeout 必须带当前 attemptId。下注、对手与下注超时必须带当前 turnId。动作编号阻止旧按钮和回调重复扣款。
 
 时间动作 elapse 带 sessionId 和递增、安全整数 elapsedMs。引擎依次推进到供气边界、60 秒构造截止或下注行动截止；一次长时间恢复与分步推进结果相同。五轮后的 fast-forward 只在 endurance、session 匹配时生效，复用同一供气公式到首次死亡。
 
-browser/match-clock.js 用单调时钟同步绝对时长；browser/turn-clock.js 展示引擎截止时间并调度玩家 30 秒 / CPU 600ms / 构造 60 秒。app 在交互前先同步时间；pageshow 先恢复呼吸再恢复行动。普通呼吸脉冲只更新文字，避免丢失加注输入；阶段、行动或整罐余额变化才重绘。语言与只读查看不重置对局、截止时间或呼吸。
+browser/match-clock.js 用单调时钟同步绝对时长；browser/turn-clock.js 展示引擎截止时间并调度玩家 30 秒 / 对手 600ms / 构造 60 秒。app 在交互前先同步时间；pageshow 先恢复呼吸再恢复行动。普通呼吸脉冲只更新文字，避免丢失加注输入；阶段、行动或整罐余额变化才重绘。语言与只读查看不重置对局、截止时间或呼吸。
 
 browser/visit-counter.js 归 browser 层，无运行模块依赖；只在公网 HTTPS 下按模块所在部署根目录加载一次 Hits 计数图片，不加载远程脚本，不读取或上传对局状态。计数 footer 在页面模板之外持久保留，由 ui/render.js 控制首页显隐和翻译；重复渲染、语言切换与后台恢复不重新计数。图片失败或 8 秒超时仅降级统计展示，非 bfcache 的 pagehide 清理尚未完成的监听与计时器；进入页面缓存时保留原图片请求与回调，返回后可继续完成，不重设 src。
 
@@ -49,7 +49,7 @@ browser/visit-counter.js 归 browser 层，无运行模块依赖；只在公网 
 - 每方总资源 25 罐，开局自动打开 1 罐，未开余额 24。每罐近似 300 秒，耗尽自动开下一罐；已开罐不可下注，累计计入 breathSpent，不按回合扣费。
 - 未开余额为零仍使用当前供气；无供气后固定 10 秒缺氧宽限。按实际存活确定 winner，同刻死亡平局。enduranceReason 记录 round-limit、no-betting-air 或 upper-deadlock；endReason 的 breath-exhausted 表示已完成生存判定。
 - 双方独立持有五张数字牌，不补牌；相同数值按不同位置计数。deal 用十组证明成手生成数字并平衡总和，来源证明不预留共享实体牌。
-- CPU 在玩家选择前，仅凭自己的未用数字与公共弃牌锁定最强推荐，同强随机；无解时仍使用自己的数字并记为失败。下注只读自身私牌与公开信息，不能按玩家隐藏成手反选。
+- 对手在玩家选择前，仅凭自己的未用数字与公共弃牌锁定最强推荐，同强随机；无解时仍使用自己的数字并记为失败。下注只读自身私牌与公开信息，不能按玩家隐藏成手反选。
 - 每个目标至多三个不同实体组合。候选完整五张、无重复、不含弃牌，支持 6–64；求解器枚举点数多重集和同花方案，首选牌型最强，花色方案不是全部策略枚举。
 - A 求和为 1，J/Q/K 为 11/12/13；比较通常 A 高，A2345 为五高，踢脚逐项比较。judgeHand 校验真实牌定义、重复、已用及点数和，拒绝伪造字段。
 - 未用数字始终可选，targetSolvable 仅表示能否成手。主动失败或构造超时保留实体牌；单方失败输实际底池，无灾厄。双方失败不重复底注、下注或 completedRounds；双无解退回投入转耐息是本版约定。

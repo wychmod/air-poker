@@ -281,7 +281,7 @@ export function createGame({ random = Math.random, recordId = 'local' } = {}) {
               : 'player';
     }
     log('lowerLog', { n: state.playerTarget }, 'LOWER');
-    log('cpuLock', {}, 'CPU');
+    log('cpuLock', {}, 'OPPONENT');
     state.phase = 'upper';
     recorder.chooseTargets(state, index, cpuPlay.index);
     recorder.startAttempt(state, cpuPlay.hand);
@@ -497,7 +497,7 @@ export function createGame({ random = Math.random, recordId = 'local' } = {}) {
     log(
       key,
       { n: action === 'raise' ? event.raised : event.paid, call: event.called },
-      cpu ? 'CPU' : 'BET',
+      cpu ? 'OPPONENT' : 'BET',
     );
     if (result.outcome !== 'continue') resolveRound(result.foldedBy);
     return true;

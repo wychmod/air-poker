@@ -178,7 +178,7 @@ test('betting explains the specific failed-hand reason without consuming its car
   }
 });
 
-test('betting never renders CPU card identities and previews call plus raise', () => {
+test('betting never renders opponent card identities and previews call plus raise', () => {
   const game = constructedGame();
   let state = game.getState();
   if (state.betting.turn === 'ai') {
@@ -370,7 +370,7 @@ test('tie refunds, folds and burns retain distinct ledger semantics', () => {
   assert.equal(folded, true);
 });
 
-test('retry preserves the pot and recommendations but starts with an empty editable draft, CPU turn cannot show a phantom raise', () => {
+test('retry preserves the pot and recommendations but starts with an empty editable draft, opponent turn cannot show a phantom raise', () => {
   const game = createGame({ random: seeded(1) });
   for (let round = 1; round <= 5; round++) {
     game.dispatch({
