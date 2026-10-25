@@ -14,6 +14,8 @@ export const FORMAT_TARGETS = [
   'index.html',
   'motion-demo.html',
   'README.md',
+  'README.en.md',
+  'README.ja.md',
   'AGENTS.md',
   'package.json',
   '.prettierrc.json',
