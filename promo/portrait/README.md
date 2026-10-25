@@ -1,10 +1,10 @@
 # 空气扑克：30 秒竖屏制作工具
 
-**当前交付已按最新要求改为完全无声版**：[中文 / 英文文件与验证](../releases/portrait-v3-silent/README.md) · [无声预览](silent.html)。下文包含历史有声制作工具。
+**当前交付：中英文两版均保留原来的背景音乐与音效，不含人声旁白。** 使用已验证的 Portrait V1 成片：[中文视频](../releases/portrait-v1/zh/air-poker-douyin-30s.mp4) · [英文视频](../releases/portrait-v1/en/air-poker-tiktok-30s.mp4) · [配乐版预览](music.html)。
 
 中文抖音版与英文 TikTok 版各 30 秒，1080×1920、9:16、30 fps。独立构图、独立本地化字幕与实机截图，带原创程序音乐和音效，无人声旁白。完整项目分析、双语分镜、节奏、口播稿与投稿文案见 [制作方案](../../doc/promo/portrait-production.md)，执行证据见 [验收记录](../../doc/promo/portrait-validation.md)。
 
-新增 [中文旁白 V2](VOICE.md)与[同位置试听对比](audio-compare.html)：九句 AI 男声口播、分轨音乐和自动压低背景；本页原音乐版命令继续保留。
+历史试版 [中文旁白 V2](VOICE.md)与[同位置试听对比](audio-compare.html)：九句 AI 男声口播、分轨音乐和自动压低背景；本页默认命令生成当前需要的无旁白配乐版。
 
 ## 直接运行
 

@@ -1,7 +1,7 @@
 {
   "version": "portrait-v3-silent",
   "releaseDate": "2026-10-26",
-  "defaultDelivery": true,
+  "defaultDelivery": false,
   "variants": [
     {
       "language": "zh",

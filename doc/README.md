@@ -2,7 +2,7 @@
 
 ## 当前工程入口
 
-[当前宣传片交付：V3 无声字幕版](../promo/releases/portrait-v3-silent/README.md)：按最新要求移除全部音频，保留中英两版的画面与字幕。
+[当前宣传片交付：中英文配乐字幕版](../promo/releases/README.md)：按最新澄清，两版均使用原来的背景音乐与音效，不含人声旁白；[成片预览](../promo/portrait/music.html)。
 
 [中文旁白 V2 与音频迭代](promo/audio-iteration-v2.md)：评审结果、九句口播、分轨混音、同位置试听比较及下一步优化优先级；[制作命令](../promo/portrait/VOICE.md)。
 

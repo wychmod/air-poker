@@ -1,0 +1,16 @@
+{
+  "selectedAt": "2026-10-26",
+  "audio": "original background music and effects",
+  "narration": false,
+  "preview": "../portrait/music.html",
+  "variants": [
+    {
+      "lang": "zh",
+      "file": "portrait-v1/zh/air-poker-douyin-30s.mp4"
+    },
+    {
+      "lang": "en",
+      "file": "portrait-v1/en/air-poker-tiktok-30s.mp4"
+    }
+  ]
+}
