@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>空气扑克 · 72 秒宣传片工作台</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <a href="/index.html">A / P</a>
+        <div>
+          <p>FILM STUDY / 01</p>
+          <h1>这局扑克，赌的是呼吸。</h1>
+        </div>
+        <span>72 SEC · 16:9 · 1080P</span>
+      </header>
+      <div class="stage">
+        <canvas
+          id="film"
+          width="1920"
+          height="1080"
+          role="img"
+          aria-label="空气扑克宣传片画面，文字稿可在下方展开"
+        ></canvas>
+      </div>
+      <div class="controls">
+        <button id="play" disabled>播放</button><button id="restart" disabled>从头</button
+        ><label class="seek"
+          >影片位置<input
+            id="seek"
+            aria-label="影片位置（秒）"
+            type="range"
+            min="0"
+            max="72"
+            step="0.01"
+            value="0" /></label
+        ><output id="time">00:00 / 01:12</output
+        ><label><input id="sound" type="checkbox" checked />声音</label
+        ><button id="fullscreen">全屏</button>
+      </div>
+      <p id="status" role="status">正在载入画面与素材…</p>
+      <nav id="scenes" aria-label="镜头定位"></nav>
+      <details>
+        <summary>字幕与逐镜文字稿</summary>
+        <ol id="transcript"></ol>
+      </details>
+      <footer>
+        原创程序音轨 · 真实界面截图 · HTML / JavaScript / FFmpeg<br />改编自迫稔雄《噬谎者》第 40–43
+        卷「空气扑克」篇 · 非商用爱好者项目
+      </footer>
+    </main>
+    <audio id="score" src="../output/promo/score.wav" preload="auto"></audio>
+    <script type="module" src="./preview.js"></script>
+  </body>
+</html>

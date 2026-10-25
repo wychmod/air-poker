@@ -15,7 +15,12 @@
     "check:smoke": "node scripts/harness/smoke.js",
     "format": "node scripts/format.js --write",
     "format:check": "node scripts/format.js --check",
-    "evaluate:strategy": "node scripts/evaluate-strategy.js"
+    "evaluate:strategy": "node scripts/evaluate-strategy.js",
+    "promo:prepare": "node scripts/promo/render.js --prepare-only",
+    "promo:preview": "node scripts/promo/server.js",
+    "promo:render": "node scripts/promo/render.js",
+    "promo:verify": "node scripts/promo/verify.js",
+    "promo:check-browser": "node scripts/promo/check-browser.js"
   },
   "devDependencies": {
     "acorn": "8.19.0",

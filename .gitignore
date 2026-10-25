@@ -22,3 +22,6 @@ output/browser/
 
 # Local visual verification fixtures
 output/ui-v2-qa/
+
+# Offline promotional film outputs
+output/promo/

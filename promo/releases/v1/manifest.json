@@ -1,0 +1,31 @@
+{
+  "version": "v1",
+  "title": "这局扑克，赌的是呼吸",
+  "releaseDate": "2026-10-25",
+  "durationSeconds": 72,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "frames": 2160,
+  "audio": "AAC 48 kHz stereo",
+  "narration": false,
+  "loudnessLUFS": -14.79,
+  "truePeakDBTP": -3.62,
+  "files": [
+    {
+      "file": "air-poker-bilibili-72s.mp4",
+      "bytes": 38915538,
+      "sha256": "be8804783acc1023406dbd86087eb08fda3e36b1840ee9b70efc9396c729ac4e"
+    },
+    {
+      "file": "air-poker-bilibili-72s.srt",
+      "bytes": 1469,
+      "sha256": "ae0b2d498130aae20f471d4e54a3bb9890cd9356077006856bd77c2854fa6767"
+    },
+    {
+      "file": "cover.png",
+      "bytes": 2642618,
+      "sha256": "e6295acf975295d1431e5348ec24db76b646708739a08924da610c4886ecb18f"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "file": "air-poker-bilibili-72s.mp4",
+  "fullDecode": true,
+  "frames": 2160,
+  "duration": 72,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "audio": "AAC 48 kHz stereo",
+  "loudness": {
+    "input_i": "-14.79",
+    "input_tp": "-3.62",
+    "input_lra": "2.90",
+    "input_thresh": "-25.56",
+    "output_i": "-13.87",
+    "output_tp": "-2.36",
+    "output_lra": "3.10",
+    "output_thresh": "-24.48",
+    "normalization_type": "dynamic",
+    "target_offset": "-0.13"
+  },
+  "checkedAt": "2026-10-25T14:02:17.717Z"
+}

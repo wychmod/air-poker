@@ -1,0 +1,181 @@
+:root {
+  color-scheme: light;
+  font-family: 'Microsoft YaHei', sans-serif;
+  color: #191919;
+  background: #e6e3d9;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  width: min(1400px, 96%);
+  margin: 24px auto;
+}
+header {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 10px 0 22px;
+}
+header a {
+  color: inherit;
+  text-decoration: none;
+  font:
+    48px Georgia,
+    serif;
+}
+header p {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  margin: 0 0 8px;
+}
+h1 {
+  font:
+    700 26px 'SimSun',
+    serif;
+  margin: 0;
+}
+header > span {
+  margin-left: auto;
+  font-size: 12px;
+}
+.stage {
+  background: #f2f0e9;
+  box-shadow: 0 15px 50px #0002;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stage:fullscreen {
+  background: #151515;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  flex-wrap: wrap;
+}
+button {
+  padding: 12px 18px;
+  border: 1px solid #181818;
+  background: #f5f3ec;
+  color: #181818;
+  cursor: pointer;
+  font: inherit;
+}
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #8d2429;
+  outline-offset: 4px;
+}
+button:disabled {
+  opacity: 0.4;
+}
+#play {
+  background: #191919;
+  color: #f2f0e9;
+  min-width: 90px;
+}
+.seek {
+  flex: 1;
+  min-width: 150px;
+  font-size: 12px;
+}
+.seek input {
+  display: block;
+  width: 100%;
+  accent-color: #8d2429;
+}
+output {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+.controls label {
+  white-space: nowrap;
+  font-size: 13px;
+}
+#scenes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 0 20px;
+}
+#scenes button {
+  font-size: 12px;
+  padding: 9px 12px;
+}
+#scenes button[aria-current='true'] {
+  color: #f2f0e9;
+  background: #8d2429;
+  border-color: #8d2429;
+}
+#status {
+  font-size: 13px;
+  color: #59564d;
+  min-height: 18px;
+}
+details {
+  border-top: 1px solid #b8b3a6;
+  padding: 18px 0;
+}
+summary {
+  cursor: pointer;
+}
+li {
+  line-height: 1.9;
+  font-size: 14px;
+}
+footer {
+  font-size: 12px;
+  line-height: 2;
+  color: #625d50;
+  margin-top: 18px;
+}
+@media (max-width: 650px) {
+  main {
+    margin-top: 12px;
+  }
+  header {
+    gap: 12px;
+  }
+  header > span {
+    display: none;
+  }
+  header a {
+    font-size: 32px;
+  }
+  h1 {
+    font-size: 19px;
+  }
+  .controls {
+    gap: 8px;
+  }
+  button {
+    padding: 10px 12px;
+  }
+  output {
+    font-size: 12px;
+  }
+  .seek {
+    order: 2;
+    flex-basis: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto;
+  }
+}

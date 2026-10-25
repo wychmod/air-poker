@@ -2,6 +2,8 @@
 
 ## 当前工程入口
 
+[宣传片制作方案](promo/production.md)与[验收记录](promo/validation.md)：72 秒 B 站宣传片脚本、HTML/JS 动画、FFmpeg 导出及交付证据。正式视频见[成片归档](../promo/releases/README.md)。独立制作工具与归档视频不进入游戏发布产物。
+
 [发牌与对手策略](rules/strategy/spec.md)及[实施结果](rules/strategy/results.md)：固定种子整局基准、有限前瞻、底池与灾厄下注模型及发牌保留决策。
 
 [八页动态漫画界面实施记录](harness/ui-v2-implementation.md)：已批准的 V2 界面、交互、实时动画和验证证据。
