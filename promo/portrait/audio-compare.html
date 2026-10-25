@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>空气扑克 · 旁白版试听对比</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./audio-compare.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <a class="brand" href="./index.html">A / P</a>
+        <div>
+          <p>AUDIO STUDY / 02</p>
+          <h1>同一场赌局，听见下一口气。</h1>
+          <p>30 SEC · 中文旁白对比</p>
+        </div>
+      </header>
+      <div class="workspace">
+        <div class="stage">
+          <video
+            id="comparison"
+            controls
+            playsinline
+            preload="metadata"
+            aria-label="空气扑克新旧音轨对比"
+          ></video>
+        </div>
+        <aside>
+          <p class="eyebrow">LISTEN TO THE DIFFERENCE</p>
+          <h2>现在，故事有人讲。</h2>
+          <p>九句中文旁白带你看懂空气、构牌与灾厄。音乐在人声出现时退后，在停顿中托起紧张感。</p>
+          <div class="compare-choices" role="group" aria-label="选择音轨版本">
+            <button data-version="v2" aria-pressed="true">
+              <b>V2 · 中文旁白</b><span>AI 男声 · 分层配乐 · 自动压低背景</span></button
+            ><button data-version="v1" aria-pressed="false">
+              <b>V1 · 音乐字幕</b><span>原版音轨 · 作为对照</span>
+            </button>
+          </div>
+          <label class="level-match"
+            ><input id="match-level" type="checkbox" checked />按成片实测响度匹配试听音量</label
+          >
+          <p id="compare-status" role="status">正在加载…</p>
+          <p class="hint">
+            切换版本保留播放位置。先播放，再切换音轨比较；画面完全相同。响度匹配用于减少“更响就更好”的判断偏差。
+          </p>
+          <details>
+            <summary>展开口播稿与镜头位置</summary>
+            <ol id="voice-transcript"></ol>
+          </details>
+          <p>
+            <a href="../releases/portrait-v2/zh/air-poker-douyin-voice-v2.mp4">打开旁白版 MP4</a> ·
+            <a href="../releases/portrait-v2/zh/voice-v2-preview.m4a">纯音频试听</a>
+          </p>
+        </aside>
+      </div>
+      <footer>
+        旁白：Microsoft Edge 云希神经语音（AI 合成） · 原创程序配乐与合成音效<br />漫画来源、游戏改编信息见片尾。未进行平台投稿。
+      </footer>
+    </main>
+    <script type="module" src="./audio-compare.js"></script>
+  </body>
+</html>

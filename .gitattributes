@@ -15,3 +15,6 @@
 *.otf binary
 *.eot binary
 *.mp4 binary
+
+*.m4a binary
+*.wav binary

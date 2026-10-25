@@ -24,7 +24,11 @@
     "promo:portrait:prepare": "node scripts/promo/render.js --format portrait --prepare-only",
     "promo:portrait:render": "node scripts/promo/render.js --format portrait",
     "promo:portrait:verify": "node scripts/promo/verify.js --format portrait",
-    "promo:portrait:check-browser": "node scripts/promo/check-portrait.js"
+    "promo:portrait:check-browser": "node scripts/promo/check-portrait.js",
+    "promo:voice:prepare": "node scripts/promo/narration.js",
+    "promo:voice:render": "node scripts/promo/voice-remix.js",
+    "promo:voice:verify": "node scripts/promo/verify.js --format portrait --name air-poker-douyin-voice-v2",
+    "promo:voice:check-browser": "node scripts/promo/check-voice.js"
   },
   "devDependencies": {
     "acorn": "8.19.0",

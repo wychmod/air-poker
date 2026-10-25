@@ -13,3 +13,9 @@
 玩法以 game/cards.js、rules.js、breathing.js、engine.js、ui/pages.js 和可执行回归为依据。宣传中的 24 点例子复用教学的合法实体牌组合，prepare.js 再次调用正式函数校验。真实截图来自本次浏览器操作，capture-manifest.json 记录采集方法。
 
 B 站风格判断为针对推理/策略兴趣受众的创作选择；没有读取用户画像、实时热点或流量数据，没有“平台观众最喜欢”或传播效果保证。分区与投稿参数应以实际投稿时页面为准；本次没有投稿。
+
+## 2026-10-26 旁白与混音补充
+
+- [edge-tts 7.3.1 发布说明与 README](https://pypi.org/project/edge-tts/7.3.1/)：从 PyPI JSON 的 description 核对 --voice、--rate、--pitch、--write-media；实际安装版本与 --help 一致。GitHub 原始 README 获取超时，未声称完成该请求。Context7 工具仍不可用。
+- 本机 FFmpeg -h filter=sidechaincompress 核对阈值、ratio、attack、release、makeup；实际混音与最终 AAC 检测已执行。
+- 语音源为 Microsoft Edge 在线库存云希音色；服务通过社区工具调用。仅发送九句公开游戏宣传文案，不使用声音克隆。

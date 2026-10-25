@@ -1,0 +1,486 @@
+{
+  "bpm": 120,
+  "duration": 30,
+  "events": [
+    {
+      "bus": "music",
+      "at": 0,
+      "duration": 5.9,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 0,
+      "duration": 5.9,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 0,
+      "duration": 5.9,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 0,
+      "duration": 5.9,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 5.5,
+      "duration": 4.4,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 5.5,
+      "duration": 4.4,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 5.5,
+      "duration": 4.4,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 5.5,
+      "duration": 4.4,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 9.5,
+      "duration": 6.3,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 9.5,
+      "duration": 6.3,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 9.5,
+      "duration": 6.3,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 9.5,
+      "duration": 6.3,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 17.3,
+      "duration": 5.1,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 17.3,
+      "duration": 5.1,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 17.3,
+      "duration": 5.1,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 17.3,
+      "duration": 5.1,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 22,
+      "duration": 3.9,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 22,
+      "duration": 3.9,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 22,
+      "duration": 3.9,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 22,
+      "duration": 3.9,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 25.5,
+      "duration": 4.5,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 25.5,
+      "duration": 4.5,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 25.5,
+      "duration": 4.5,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 25.5,
+      "duration": 4.5,
+      "label": "suspended string pad"
+    },
+    {
+      "bus": "music",
+      "at": 2.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 3.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 4.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 5.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 6.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 7.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 8.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 9.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 10.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 11.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 12.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 13.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 14.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 18,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 18.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 19.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 20.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 21.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 22,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 22.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 23.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 24.5,
+      "duration": 0.42,
+      "label": "muted low drum"
+    },
+    {
+      "bus": "music",
+      "at": 0.4,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 1.6,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 4.85,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 8.8,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 11.95,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 14.9,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 17.55,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 21.6,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 25.55,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 26.05,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 27,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "music",
+      "at": 28.4,
+      "duration": 1.6,
+      "label": "glass motif"
+    },
+    {
+      "bus": "fx",
+      "at": 0.02,
+      "duration": 1.2,
+      "label": "low impact"
+    },
+    {
+      "bus": "fx",
+      "at": 0.3,
+      "duration": 1.2,
+      "label": "low impact"
+    },
+    {
+      "bus": "fx",
+      "at": 0.45,
+      "duration": 1.15,
+      "label": "air valve"
+    },
+    {
+      "bus": "fx",
+      "at": 2.48,
+      "duration": 0.55,
+      "label": "air valve"
+    },
+    {
+      "bus": "fx",
+      "at": 5.68,
+      "duration": 0.16,
+      "label": "paper card"
+    },
+    {
+      "bus": "fx",
+      "at": 5.819999999999999,
+      "duration": 0.16,
+      "label": "paper card"
+    },
+    {
+      "bus": "fx",
+      "at": 5.96,
+      "duration": 0.16,
+      "label": "paper card"
+    },
+    {
+      "bus": "fx",
+      "at": 6.1,
+      "duration": 0.16,
+      "label": "paper card"
+    },
+    {
+      "bus": "fx",
+      "at": 6.24,
+      "duration": 0.16,
+      "label": "paper card"
+    },
+    {
+      "bus": "fx",
+      "at": 9.5,
+      "duration": 1.2,
+      "label": "low impact"
+    },
+    {
+      "bus": "fx",
+      "at": 9.25,
+      "duration": 0.28,
+      "label": "air valve"
+    },
+    {
+      "bus": "fx",
+      "at": 12.5,
+      "duration": 1.2,
+      "label": "low impact"
+    },
+    {
+      "bus": "fx",
+      "at": 12.52,
+      "duration": 0.9,
+      "label": "air valve"
+    },
+    {
+      "bus": "fx",
+      "at": 12.5,
+      "duration": 0.55,
+      "label": "air loss descent"
+    },
+    {
+      "bus": "fx",
+      "at": 15.65,
+      "duration": 1.25,
+      "label": "air valve"
+    },
+    {
+      "bus": "fx",
+      "at": 18,
+      "duration": 1.2,
+      "label": "low impact"
+    },
+    {
+      "bus": "fx",
+      "at": 17.75,
+      "duration": 0.28,
+      "label": "air valve"
+    },
+    {
+      "bus": "fx",
+      "at": 22,
+      "duration": 0.085,
+      "label": "UI tap"
+    },
+    {
+      "bus": "fx",
+      "at": 23.75,
+      "duration": 0.085,
+      "label": "UI tap"
+    },
+    {
+      "bus": "fx",
+      "at": 25.5,
+      "duration": 1.2,
+      "label": "low impact"
+    },
+    {
+      "bus": "fx",
+      "at": 28.9,
+      "duration": 0.85,
+      "label": "air valve"
+    },
+    {
+      "bus": "music",
+      "at": 0,
+      "duration": 30,
+      "label": "underwater texture"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "browser": "151.0.7922.34",
+  "checks": [
+    "V2 video and AAC load at 1080×1920 / 30 seconds, starts paused",
+    "Switch preserves frame position and matches measured loudness",
+    "Native browser decodes and plays V2 with sound enabled",
+    "Nine timed narration lines are available",
+    "390px comparison has no horizontal overflow",
+    "Standalone audio has correct MIME type"
+  ],
+  "errors": [],
+  "limitations": [
+    "Headless decoding does not assess voice acting or human listening quality",
+    "No physical phone speaker or platform transcode test"
+  ]
+}

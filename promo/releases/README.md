@@ -2,6 +2,12 @@
 
 本目录按用户要求纳入 Git 版本管理，保存可直接播放的正式交付文件。制作中间文件仍位于忽略目录 output/promo/，不进入游戏静态发布包。
 
+## Portrait V2 · 2026-10-26
+
+- [中文旁白升级版](portrait-v2/zh/air-poker-douyin-voice-v2.mp4) · [纯音频试听](portrait-v2/zh/voice-v2-preview.m4a)：30 秒，云希 AI 男声，独立音乐/音效和自动压低背景；视频画面与中文 V1 相同。
+- [实际口播字幕](portrait-v2/zh/air-poker-douyin-voice-v2.narration.srt) · [配音源 WAV](portrait-v2/zh/narration.wav) · [混音与电平报告](portrait-v2/zh/mix-report.json) · [文件清单](portrait-v2/manifest.json)。
+- [新旧试听页](../portrait/audio-compare.html) · [制作与离线重混说明](../portrait/VOICE.md) · [迭代评审记录](../../doc/promo/audio-iteration-v2.md)。英文版保留 V1。
+
 ## Portrait V1 · 2026-10-25
 
 - [中文抖音版](portrait-v1/zh/air-poker-douyin-30s.mp4)：30 秒、1080×1920、30 fps，约 16.8 MiB。

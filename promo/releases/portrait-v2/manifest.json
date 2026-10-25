@@ -1,0 +1,95 @@
+{
+  "version": "portrait-v2",
+  "releaseDate": "2026-10-26",
+  "createdAt": "2026-10-25T16:12:26.101Z",
+  "language": "zh",
+  "duration": 30,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "frames": 900,
+  "syntheticVoice": "zh-CN-YunxiNeural",
+  "music": "Original procedural score, 120 BPM",
+  "videoUnchanged": true,
+  "videoPacketHash": "SHA256=bc5101eb759bd82b9628f8b1c8ea94cf480d6488fd7b63d40f13178d7627e4b5",
+  "loudnessLUFS": -14.86,
+  "truePeakDBTP": -2.13,
+  "files": [
+    {
+      "file": "zh/air-poker-douyin-voice-v2.mp4",
+      "bytes": 17538535,
+      "sha256": "ffd3b2839962b0c5e268189d51de821f81008f3d9e06f698093fa17e6dd21775"
+    },
+    {
+      "file": "zh/air-poker-douyin-voice-v2.narration.srt",
+      "bytes": 635,
+      "sha256": "7d1fc850938aabcd3ef673e688353c4ef822369786f9502799ff2075c5f2a606"
+    },
+    {
+      "file": "zh/air-poker-douyin-voice-v2.render.json",
+      "bytes": 8414,
+      "sha256": "21072e3e761ceab931ea39637720588ee09a86f3114407aa8c4d0d2ad546b3d2"
+    },
+    {
+      "file": "zh/air-poker-douyin-voice-v2.srt",
+      "bytes": 657,
+      "sha256": "fa2b760e1a6d236b69e7f1d159377188634fa415dc332eacc51a8ef3157c51bf"
+    },
+    {
+      "file": "zh/air-poker-douyin-voice-v2.verified.json",
+      "bytes": 526,
+      "sha256": "813b71055726776fd58cd86b0868c07e90374109ac022bab8285ef717acfcd51"
+    },
+    {
+      "file": "zh/mix-report.json",
+      "bytes": 1682,
+      "sha256": "7863d909e14fbbab9dfc497c4bba16e15e12c6eaf45ea8db27960d8341188264"
+    },
+    {
+      "file": "zh/narration.json",
+      "bytes": 2755,
+      "sha256": "71afd3f310b1c9d87ce1a59ed8beab7f09c47e1d1b0e4d9141c3c98695bd1f73"
+    },
+    {
+      "file": "zh/narration.wav",
+      "bytes": 2880078,
+      "sha256": "3d2f29d710c23c6cb2335b0652a1cd0cc5b92c1a8846687fe1b78f1383867ec7"
+    },
+    {
+      "file": "zh/score-events.json",
+      "bytes": 8652,
+      "sha256": "df13b2198111106e721475a7e4c090336f735e46fdd8f6f468137a32f6fa7777"
+    },
+    {
+      "file": "zh/voice-v2-preview.m4a",
+      "bytes": 934413,
+      "sha256": "6754eed98c8f5ffc7f770e12eaa1da19e1274c01752f0f49a3ed26f66e540f1e"
+    }
+  ],
+  "sources": [
+    {
+      "file": "scripts/promo/voice-timeline.js",
+      "sha256": "53797f05444f23fb4dc36525755d331489b2f1d82a7b6230d95ad4582f846d02"
+    },
+    {
+      "file": "scripts/promo/narration.js",
+      "sha256": "7bda757648f9cb13c5b63b28287e6fa8013764c57e5eb99e37f097243c5fd9eb"
+    },
+    {
+      "file": "scripts/promo/audio-voice-score.js",
+      "sha256": "dc9f77ff20894ef50ca70ccc0be3d17149f521a4c43cc5001881c5e6c3a07568"
+    },
+    {
+      "file": "scripts/promo/voice-remix.js",
+      "sha256": "57a0a36aa037f194135ddd9cb86f1b17c2ceb571d7b426b3b86703a007c7bd4e"
+    },
+    {
+      "file": "scripts/promo/wave.js",
+      "sha256": "7f02b821b7b579c929c7af3bdcf1b8896ccf7d2d99e841b2ea1e965b7889bfd8"
+    },
+    {
+      "file": "promo/voice-requirements.txt",
+      "sha256": "30ee848e114728d56d3f13d743c9f6156c7876af2d1d0a1a5b4f487721f9e5c8"
+    }
+  ]
+}

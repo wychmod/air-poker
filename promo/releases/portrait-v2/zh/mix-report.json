@@ -1,0 +1,63 @@
+{
+  "voice": "zh-CN-YunxiNeural",
+  "synthetic": true,
+  "musicDuckDb": -11.056839373155615,
+  "clarity": [
+    {
+      "id": "hook",
+      "voiceRmsDb": -19.13639813621409,
+      "musicRmsDb": -37.316725773736216,
+      "voiceAboveMusicDb": 18.180327637522126
+    },
+    {
+      "id": "air",
+      "voiceRmsDb": -19.284540725746496,
+      "musicRmsDb": -34.32183951745791,
+      "voiceAboveMusicDb": 15.037298791711414
+    },
+    {
+      "id": "build",
+      "voiceRmsDb": -19.54898911969687,
+      "musicRmsDb": -34.736166356189344,
+      "voiceAboveMusicDb": 15.187177236492476
+    },
+    {
+      "id": "overlap",
+      "voiceRmsDb": -20.44871295447841,
+      "musicRmsDb": -35.4281400902368,
+      "voiceAboveMusicDb": 14.979427135758394
+    },
+    {
+      "id": "burn",
+      "voiceRmsDb": -19.572344661513554,
+      "musicRmsDb": -35.50236619708035,
+      "voiceAboveMusicDb": 15.930021535566798
+    },
+    {
+      "id": "twist",
+      "voiceRmsDb": -18.40091082326643,
+      "musicRmsDb": -46.064773420857286,
+      "voiceAboveMusicDb": 27.66386259759086
+    },
+    {
+      "id": "endurance",
+      "voiceRmsDb": -19.874788939202222,
+      "musicRmsDb": -33.492613018324576,
+      "voiceAboveMusicDb": 13.61782407912235
+    },
+    {
+      "id": "play",
+      "voiceRmsDb": -18.75565131427407,
+      "musicRmsDb": -33.75226580573355,
+      "voiceAboveMusicDb": 14.996614491459479
+    },
+    {
+      "id": "choice",
+      "voiceRmsDb": -20.085963590944075,
+      "musicRmsDb": -37.65514139611699,
+      "voiceAboveMusicDb": 17.569177805172917
+    }
+  ],
+  "videoPacketHash": "SHA256=bc5101eb759bd82b9628f8b1c8ea94cf480d6488fd7b63d40f13178d7627e4b5",
+  "videoUnchanged": true
+}

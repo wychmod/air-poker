@@ -1,0 +1,127 @@
+{
+  "voice": "zh-CN-YunxiNeural",
+  "rate": "+8%",
+  "pitch": "-2Hz",
+  "provider": "Microsoft Edge online neural speech via edge-tts 7.3.1",
+  "synthetic": true,
+  "duration": 30,
+  "cues": [
+    {
+      "id": "hook",
+      "start": 0.1,
+      "end": 2.42,
+      "text": "这局扑克，赌的是呼吸。",
+      "spokenEnd": 2.0727708333333332,
+      "sourceDuration": 2.832,
+      "trim": {
+        "start": 0.155,
+        "end": 2.13
+      },
+      "speed": 1
+    },
+    {
+      "id": "air",
+      "start": 2.68,
+      "end": 5.38,
+      "text": "每人二十五罐，下注也要留气。",
+      "spokenEnd": 5.332666666666666,
+      "sourceDuration": 3.504,
+      "trim": {
+        "start": 0.125,
+        "end": 2.78
+      },
+      "speed": 1
+    },
+    {
+      "id": "build",
+      "start": 5.72,
+      "end": 9.28,
+      "text": "五张不同的牌，凑点数，拼牌型。",
+      "spokenEnd": 8.680333333333333,
+      "sourceDuration": 3.816,
+      "trim": {
+        "start": 0.135,
+        "end": 3.1
+      },
+      "speed": 1
+    },
+    {
+      "id": "overlap",
+      "start": 9.74,
+      "end": 12.36,
+      "text": "双方有效，撞上同一张牌。",
+      "spokenEnd": 12.08675,
+      "sourceDuration": 3.216,
+      "trim": {
+        "start": 0.125,
+        "end": 2.48
+      },
+      "speed": 1
+    },
+    {
+      "id": "burn",
+      "start": 12.7,
+      "end": 15.27,
+      "text": "输家，还要额外烧掉空气。",
+      "spokenEnd": 14.678312499999999,
+      "sourceDuration": 2.88,
+      "trim": {
+        "start": 0.155,
+        "end": 2.14
+      },
+      "speed": 1
+    },
+    {
+      "id": "twist",
+      "start": 16.02,
+      "end": 17.86,
+      "text": "赢牌，未必赢局。",
+      "spokenEnd": 17.78033333333333,
+      "sourceDuration": 2.592,
+      "trim": {
+        "start": 0.125,
+        "end": 1.89
+      },
+      "speed": 1
+    },
+    {
+      "id": "endurance",
+      "start": 18.23,
+      "end": 21.72,
+      "text": "五轮之后，还要比谁撑得更久。",
+      "spokenEnd": 20.519479166666667,
+      "sourceDuration": 3.168,
+      "trim": {
+        "start": 0.145,
+        "end": 2.44
+      },
+      "speed": 1
+    },
+    {
+      "id": "play",
+      "start": 22.18,
+      "end": 25.28,
+      "text": "空气扑克，打开浏览器就能玩。",
+      "spokenEnd": 24.479458333333334,
+      "sourceDuration": 3.144,
+      "trim": {
+        "start": 0.125,
+        "end": 2.43
+      },
+      "speed": 1
+    },
+    {
+      "id": "choice",
+      "start": 26.02,
+      "end": 29.4,
+      "text": "你会加注，还是留气？",
+      "spokenEnd": 27.971791666666665,
+      "sourceDuration": 2.904,
+      "trim": {
+        "start": 0.225,
+        "end": 2.18
+      },
+      "speed": 1
+    }
+  ]
+}
