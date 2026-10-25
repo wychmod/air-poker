@@ -26,7 +26,7 @@ export function chooseCpuBet(
   random = Math.random,
 ) {
   if (!options.active) return null;
-  if (!hand) return { action: options.canCall ? 'fold' : 'check' };
+  if (!hand) return { action: options.canCall ? 'fold' : options.canCheck ? 'check' : 'fold' };
   const opponentBest = makeCandidates(opponentTarget, discard)[0];
   const ownRank = rankHand(hand);
   const comparison = opponentBest ? compareRanks(ownRank, opponentBest.rank) : 1;

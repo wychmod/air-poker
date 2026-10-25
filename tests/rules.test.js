@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { card } from '../game/cards.js';
-import { rankHand, compareHands, effectiveHand, settleBets } from '../game/rules.js';
+import { rankHand, compareHands, settleBets } from '../game/rules.js';
 
 const hand = (values, suits = [0, 1, 2, 3, 0]) =>
   values.map((value, index) => card(value, suits[index]));
@@ -41,14 +41,13 @@ test('standard hand categories are ordered correctly', () => {
   });
 });
 
-test('used cards are excluded and partial hands cannot form straights or flushes', () => {
+test('only five distinct physical cards receive a poker rank', () => {
   const cards = hand([1, 2, 3, 4, 5], [0, 0, 0, 0, 0]);
-  assert.equal(effectiveHand(cards, [cards[0]]).length, 4);
-  assert.equal(rankHand(effectiveHand(cards, [cards[0]])).key, 'highCard');
-  assert.equal(rankHand(effectiveHand(cards, cards)).key, 'noHand');
-  assert.ok(compareHands([], [card(2, 0)]) < 0);
-  assert.equal(rankHand(hand([2, 2, 2, 2])).key, 'fourKind');
-  assert.equal(rankHand(hand([2, 2, 3, 3])).key, 'twoPair');
+  assert.equal(rankHand(cards).key, 'straightFlush');
+  assert.equal(rankHand(cards.slice(0, 4)).key, 'noHand');
+  assert.equal(rankHand([...cards.slice(0, 4), cards[0]]).key, 'noHand');
+  assert.deepEqual(rankHand([]), { key: 'noHand', category: -1, tie: [], score: -100 });
+  assert.ok(compareHands(cards, cards.slice(0, 4)) > 0);
 });
 
 test('settlement conserves air except for the losing stake burned by calamity', () => {

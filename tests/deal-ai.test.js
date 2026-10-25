@@ -48,6 +48,59 @@ test('CPU chooses only its unused solvable positions, and reports no legal hand 
   );
 });
 
+test('a failed CPU hand always receives a legal fallback action', () => {
+  const stranded = {
+    phase: 'bet',
+    playerAir: 10,
+    aiAir: 0,
+    playerBet: 3,
+    aiBet: 1,
+    pot: 4,
+    betting: { turn: 'ai', turnId: 1, checks: 0, history: [] },
+  };
+  const strandedOptions = getBetOptions(stranded, 'ai');
+  assert.equal(strandedOptions.canCall, false);
+  assert.equal(strandedOptions.canCheck, false);
+  assert.deepEqual(
+    chooseCpuBet(
+      {
+        hand: null,
+        opponentTarget: 35,
+        discard: [],
+        options: strandedOptions,
+        history: [],
+      },
+      () => 0,
+    ),
+    { action: 'fold' },
+  );
+  assert.ok(applyBetAction(stranded, 'ai', 'fold'));
+
+  const unpressured = {
+    ...stranded,
+    playerBet: 1,
+    aiBet: 1,
+    pot: 2,
+    aiAir: 24,
+  };
+  const unpressuredOptions = getBetOptions(unpressured, 'ai');
+  assert.equal(unpressuredOptions.canCheck, true);
+  assert.deepEqual(
+    chooseCpuBet(
+      {
+        hand: null,
+        opponentTarget: 35,
+        discard: [],
+        options: unpressuredOptions,
+        history: [],
+      },
+      () => 0,
+    ),
+    { action: 'check' },
+  );
+  assert.ok(applyBetAction(unpressured, 'ai', 'check'));
+});
+
 test('CPU responds with legal check, call, raise, fold and all-in using only allowed information', () => {
   const strong = makeCandidates(6)[0].hand;
   const weak = [2, 3, 7, 10, 13].map((rank, index) => card(rank, index % 4));

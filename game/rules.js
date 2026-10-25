@@ -1,7 +1,4 @@
-export function effectiveHand(hand, discard = []) {
-  const used = new Set(discard.map((card) => card.id));
-  return hand.filter((card) => !used.has(card.id));
-}
+const noHand = () => ({ key: 'noHand', category: -1, tie: [], score: -100 });
 
 function compareArrays(a, b) {
   for (let index = 0; index < Math.max(a.length, b.length); index += 1) {
@@ -12,7 +9,11 @@ function compareArrays(a, b) {
 }
 
 export function rankHand(hand) {
-  if (!hand.length) return { key: 'noHand', category: -1, tie: [], score: -100 };
+  // A hand only has a poker rank when it is five distinct physical cards.
+  // Invalid or partial hands must be rejected before this comparison step,
+  // never shrunk and re-ranked after dropping a used card.
+  if (!Array.isArray(hand) || hand.length !== 5 || new Set(hand.map((card) => card?.id)).size !== 5)
+    return noHand();
   const counts = new Map();
   for (const card of hand) {
     // A is worth 1 for target sums, but 14 in poker comparisons.

@@ -295,6 +295,29 @@ test('complete multi-turn matches conserve AIR, support both folds and preserve 
   assert.ok(endings.has('round-limit'));
 });
 
+test('an overlapping tie refunds stakes without calamity and records the current discard', () => {
+  const game = createGame({ random: seeded(24) });
+  assert.equal(game.dispatch({ type: 'choose-target', index: 2 }), true);
+  assert.equal(
+    game.dispatch({ type: 'confirm-hand', attemptId: game.getState().upper.attemptId }),
+    true,
+  );
+  finishBet(game, 'passive');
+  const state = game.getState();
+  assert.equal(state.phase, 'showdown');
+  assert.equal(state.lastResult.winner, 'tie');
+  assert.equal(state.lastResult.overlap.length, 5);
+  assert.equal(state.lastResult.calamity, false);
+  assert.equal(state.lastResult.burned, 0);
+  assert.deepEqual(
+    new Set(state.lastResult.usedCardIds),
+    new Set(state.discard.map((card) => card.id)),
+  );
+  assert.equal(state.discard.length, 5);
+  assert.equal(state.deck, 47);
+  assert.equal(state.accounting.balanced, true);
+});
+
 test('equal first-round numbers use the declared random tie-break', () => {
   for (const [roll, expected] of [
     [0, 'player'],

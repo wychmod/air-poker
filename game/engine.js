@@ -393,7 +393,10 @@ export function createGame({ random = Math.random, recordId = 'local' } = {}) {
           : 'tie';
     const overlap =
       player && ai ? player.filter((card) => ai.some((other) => other.id === card.id)) : [];
-    const calamity = !folded && overlap.length > 0;
+    const calamity = !folded && winner !== 'tie' && overlap.length > 0;
+    const discarded = new Map(
+      [...state.discard, ...(player ?? []), ...(ai ?? [])].map((card) => [card.id, card]),
+    );
     const settled = settleBets({ ...state, winner, calamity });
     const received = {
       player: winner === 'tie' ? state.playerBet : winner === 'player' ? state.pot : 0,
@@ -422,13 +425,9 @@ export function createGame({ random = Math.random, recordId = 'local' } = {}) {
       aiRank: ai ? rankHand(ai) : null,
       burned: settled.burned,
       pot: state.pot,
-      usedCardIds: state.discard.map((card) => card.id),
+      usedCardIds: [...discarded.keys()],
     };
-    state.discard = [
-      ...new Map(
-        [...state.discard, ...(player ?? []), ...(ai ?? [])].map((card) => [card.id, card]),
-      ).values(),
-    ];
+    state.discard = [...discarded.values()];
     state.deck = 52 - state.discard.length;
     state.pot = 0;
     state.traces[state.round - 1] = { winner, calamity };
