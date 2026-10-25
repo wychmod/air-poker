@@ -3,6 +3,7 @@ import test from 'node:test';
 import { createGame } from '../game/engine.js';
 import { isCompletedRecord } from '../game/records.js';
 import { reviewEvents, reviewMarkup } from '../ui/review.js';
+import { recordMarkup, settlementBasisKey } from '../ui/record.js';
 
 function seeded(seed) {
   return () => {
@@ -95,6 +96,29 @@ test('selected transfer shows its actual amount and all five accounts at that ev
   );
   assert.match(html, /Your reserve \+ opponent reserve \+ pot \+ opened \+ burned = 50 \/ 50/);
   assert.match(html, new RegExp('EVENT ' + (index + 1) + ' / '));
+});
+
+test('fold basis names the side that actually folded in review and full details', () => {
+  const game = atBet();
+  settle(game);
+  const record = game.getRecord();
+  const settlement = record.rounds[0].settlement;
+  assert.equal(settlement.reason, 'fold');
+  assert.equal(settlement.foldedBy, 'player');
+  assert.equal(settlementBasisKey(settlement), 'basis_foldPlayer');
+  assert.equal(settlementBasisKey({ reason: 'fold', foldedBy: 'ai' }), 'basis_foldAi');
+  assert.equal(settlementBasisKey({ reason: 'rank' }), 'basis_rank');
+  for (const lang of ['zh', 'en']) {
+    const review = reviewMarkup(record, { lang }, selection());
+    const full = recordMarkup(record, lang);
+    const expected = lang === 'en' ? 'You folded' : '你弃牌';
+    assert.match(review, new RegExp(expected));
+    assert.match(full, new RegExp(expected));
+    assert.match(review, new RegExp(lang === 'en' ? 'Breathing cans' : '呼吸开罐'));
+    assert.match(full, new RegExp(lang === 'en' ? 'OPENED CANISTERS' : '已开呼吸罐'));
+    assert.doesNotMatch(review, /对方弃牌|Opponent folded/);
+    assert.doesNotMatch(full, /对方弃牌|Opponent folded/);
+  }
 });
 
 test('review event filters preserve order and distinguish global events from round events', () => {

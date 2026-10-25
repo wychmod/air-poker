@@ -9,6 +9,13 @@ const signed = (value) => (value > 0 ? `+${value}` : String(value));
 const time = (ms) =>
   `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}.${String(ms % 1000).padStart(3, '0')}`;
 
+export function settlementBasisKey(settlement) {
+  if (settlement?.reason !== 'fold') return `basis_${settlement?.reason}`;
+  if (settlement.foldedBy === 'player') return 'basis_foldPlayer';
+  if (settlement.foldedBy === 'ai') return 'basis_foldAi';
+  return 'basis_fold';
+}
+
 export function recordMarkup(record, lang) {
   const t = (key, values) => escape(translate(lang, key, values));
   const actor = (key) => t(key === 'player' ? 'you' : key === 'ai' ? 'cpu' : `account_${key}`);
@@ -59,11 +66,11 @@ export function recordMarkup(record, lang) {
         (
           round,
         ) => `<details><summary>R${round.number} · ${t(`roundStatus_${round.status}`)}${round.settlement ? ` · ${round.settlement.winner === 'tie' ? t('draw') : actor(round.settlement.winner)}` : ''}</summary>
-      <p>${t('recordBefore')} ${round.airBefore.player} / ${round.airBefore.ai}${round.airAfter ? ` → ${round.airAfter.player} / ${round.airAfter.ai}` : ''}<br>${t('recordNet')} ${t('you')} ${signed(round.totals.player.net)} / ${t('cpu')} ${signed(round.totals.ai.net)} AIR</p>
+      <p>${t('recordBefore')} ${round.airBefore.player} / ${round.airBefore.ai}${round.airAfter ? ` → ${round.airAfter.player} / ${round.airAfter.ai}` : ''}<br>${t('recordNet')} ${t('you')} ${signed(round.totals.player.net)} / ${t('cpu')} ${signed(round.totals.ai.net)} AIR · ${t('account_breathing')} ${round.totals.player.breathing} / ${round.totals.ai.breathing}</p>
       ${round.targets ? `<p>TARGET ${round.targets.player.value} / ${round.targets.ai.value} · ${t('recordFirst')} ${actor(round.firstBettor)}</p>` : ''}
       ${round.attempts.map((attempt) => `<p><strong>${t('recordAttempt')} ${attempt.number}</strong> · ${time(attempt.startedAtMs)}<br>${t('you')}: ${handLine(attempt.player)}<br>${t('cpu')}: ${handLine(attempt.ai)}</p>`).join('')}
       ${round.actions.length ? `<h4>${t('recordActions')}</h4><ol>${round.actions.map((action) => `<li><p>${time(action.elapsedMs)} · ${eventLine({ type: 'bet-action', details: action })}<br>${t('recordCalled')} ${escape(action.called)} · ${t('recordRaised')} ${escape(action.raised)} · ${t('account_pot')} ${escape(action.pot)} AIR</p></li>`).join('')}</ol>` : ''}
-      ${round.settlement ? `<p>${t('recordBasis')}: ${t(`basis_${round.settlement.reason}`)}<br>${t('you')} ${rankLine(round.settlement.playerRank)} / ${t('cpu')} ${rankLine(round.settlement.aiRank)}<br>${t('recordCommitted')} ${round.settlement.committed.player} / ${round.settlement.committed.ai} AIR · ${t('recordReceived')} ${round.settlement.received.player} / ${round.settlement.received.ai} AIR<br>${t('account_burned')} ${round.settlement.burned} AIR · ${t('recordOverlap')} ${round.settlement.overlap.map((card) => escape(card.rank + card.suit)).join(' ') || '0'}</p>` : ''}
+      ${round.settlement ? `<p>${t('recordBasis')}: ${t(settlementBasisKey(round.settlement))}<br>${t('you')} ${rankLine(round.settlement.playerRank)} / ${t('cpu')} ${rankLine(round.settlement.aiRank)}<br>${t('recordCommitted')} ${round.settlement.committed.player} / ${round.settlement.committed.ai} AIR · ${t('recordReceived')} ${round.settlement.received.player} / ${round.settlement.received.ai} AIR<br>${t('account_burned')} ${round.settlement.burned} AIR · ${t('recordOverlap')} ${round.settlement.overlap.map((card) => escape(card.rank + card.suit)).join(' ') || '0'}</p>` : ''}
       <p>${t('recordUsedBefore')} ${round.discardBefore.length} → ${round.discardAfter?.length ?? round.discardBefore.length}</p>
     </details>`,
       )
