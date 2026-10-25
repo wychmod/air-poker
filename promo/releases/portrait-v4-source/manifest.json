@@ -1,0 +1,109 @@
+{
+  "version": "portrait-v4-source",
+  "releaseDate": "2026-10-26",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "frames": 900,
+  "duration": 30,
+  "narration": false,
+  "loudnessLUFS": -14.21,
+  "truePeakDBTP": -3.38,
+  "openingCreditVisibleAt": [0, 0.5, 2.49],
+  "source": {
+    "file": "promo/portrait/film.js",
+    "sha256": "ab3e66514acce29fccdc22a474e24483cd6043bd07b1360c8478fce0f724fa54"
+  },
+  "variants": [
+    {
+      "lang": "zh",
+      "openingCredit": "游戏改编自迫稔雄《噬谎者》",
+      "creditSeconds": [0, 2.5],
+      "creditFrames": [0, 74],
+      "audioUnchangedFrom": "portrait-v1",
+      "audioPacketHash": "SHA256=6112b20c5744e2b553e755a63baeceac75bd56b3d21b9f7eeac388ccd5c6d77d",
+      "files": [
+        {
+          "file": "zh/air-poker-douyin-30s.mp4",
+          "bytes": 17526556,
+          "sha256": "9020fdb1e25e124eee9aacfd1df4282a4e2d441b7edf23b718cee1d45a34a645"
+        },
+        {
+          "file": "zh/air-poker-douyin-30s.render.json",
+          "bytes": 3304,
+          "sha256": "ddca2279803b211c8ac92597223198eb87e7011e53f5ffaabf1023f42e3f7cd6"
+        },
+        {
+          "file": "zh/air-poker-douyin-30s.srt",
+          "bytes": 657,
+          "sha256": "fa2b760e1a6d236b69e7f1d159377188634fa415dc332eacc51a8ef3157c51bf"
+        },
+        {
+          "file": "zh/air-poker-douyin-30s.verified.json",
+          "bytes": 522,
+          "sha256": "01c79923e9f20b95084a6fefeac3c24ef267e81adff6c81a1fbed5db70c547a6"
+        },
+        {
+          "file": "zh/cover.png",
+          "bytes": 1907775,
+          "sha256": "86cf5e2572868c1967d9483160c792277f0f5214e747750d90244da977728ebf"
+        },
+        {
+          "file": "zh/first-frame-phone.png",
+          "bytes": 133554,
+          "sha256": "3a3570ac06dc8ebcd20ab4e559a00524f452fcff2a60cbbb3981dd0d358f4bdf"
+        },
+        {
+          "file": "zh/storyboard-contact.png",
+          "bytes": 769378,
+          "sha256": "5edf41d0f8c4453429b46d19a3f8ce4cfc178d4d63a8a5d756966cdbf9757f23"
+        }
+      ]
+    },
+    {
+      "lang": "en",
+      "openingCredit": "Game based on USOGUI (噬谎者)",
+      "creditSeconds": [0, 2.5],
+      "creditFrames": [0, 74],
+      "audioUnchangedFrom": "portrait-v1",
+      "audioPacketHash": "SHA256=6112b20c5744e2b553e755a63baeceac75bd56b3d21b9f7eeac388ccd5c6d77d",
+      "files": [
+        {
+          "file": "en/air-poker-tiktok-30s.mp4",
+          "bytes": 17613248,
+          "sha256": "2a44367b545ca5a0d8df1eef18b5f7b2d8ed25049a951ed4982ac2bcae94a4c1"
+        },
+        {
+          "file": "en/air-poker-tiktok-30s.render.json",
+          "bytes": 3304,
+          "sha256": "ecb482a01d1212e15c2cc577c67567d2503a2ab3ab5acdcbf77ae753b1452580"
+        },
+        {
+          "file": "en/air-poker-tiktok-30s.srt",
+          "bytes": 608,
+          "sha256": "60fde02cf181aa68860de9445845e2cb6cce9c57d472c075606d0e639c9c6f25"
+        },
+        {
+          "file": "en/air-poker-tiktok-30s.verified.json",
+          "bytes": 522,
+          "sha256": "0f1944e55e596007dee8f6334dd82412c03514fa5c86d1e68d4d48cf79349b5f"
+        },
+        {
+          "file": "en/cover.png",
+          "bytes": 1888805,
+          "sha256": "2afa8b2919c135996260c8b8c3060b213134bd118e5a533950a0c725a9858d40"
+        },
+        {
+          "file": "en/first-frame-phone.png",
+          "bytes": 132442,
+          "sha256": "449127bde073c23ffa3df23fce59e24b3ee8fbbf638e9fb53aa5839d22bc4117"
+        },
+        {
+          "file": "en/storyboard-contact.png",
+          "bytes": 759245,
+          "sha256": "fcd12d4cf064b7b3ccdf96b74483748ccd534a6851b2ec2fea444235e5be8c32"
+        }
+      ]
+    }
+  ]
+}

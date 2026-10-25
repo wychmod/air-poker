@@ -245,12 +245,14 @@ function caption(t) {
 }
 function frame(t, scene) {
   line(82, 270, 872, 270, 2, '#b7b3a9');
-  text(String(SCENES.indexOf(scene) + 1).padStart(2, '0') + ' / 08', 872, 228, 28, {
-    align: 'right',
-    font: NUM,
-    color: GRAY,
-    max: 140,
-  });
+  if (scene.id !== 'hook') {
+    text(String(SCENES.indexOf(scene) + 1).padStart(2, '0') + ' / 08', 872, 228, 28, {
+      align: 'right',
+      font: NUM,
+      color: GRAY,
+      max: 140,
+    });
+  }
   line(82, 1585, 872, 1585, 2, '#c5c1b7');
   rect(82, 1583, (790 * t) / DURATION, 4, RED);
   text('AIR POKER   /   A GAME OF NERVE', 82, 1632, 24, {
@@ -266,7 +268,12 @@ const draw = {
     fade(730, 170);
     rect(0, 295, 1080, 7);
     line(0, 875, 1080, 875, 5);
-    label(copy('空气扑克  /  一场呼吸的赌局', 'AIR POKER  /  THE STAKES'));
+    // Fully visible from frame zero throughout the opening, including the exported cover.
+    center(copy('游戏改编自迫稔雄《噬谎者》', 'Game based on USOGUI (噬谎者)'), 228, en ? 38 : 46, {
+      font: SANS,
+      weight: 700,
+      max: 790,
+    });
     center(copy('筹码', 'YOUR CHIPS.'), 970, en ? 109 : 155, {
       font: en ? NUM : SERIF,
       weight: 900,

@@ -1,6 +1,6 @@
 # 空气扑克：30 秒竖屏制作工具
 
-**当前交付：中英文两版均保留原来的背景音乐与音效，不含人声旁白。** 使用已验证的 Portrait V1 成片：[中文视频](../releases/portrait-v1/zh/air-poker-douyin-30s.mp4) · [英文视频](../releases/portrait-v1/en/air-poker-tiktok-30s.mp4) · [配乐版预览](music.html)。
+**当前交付：中英文两版均保留原来的背景音乐与音效，不含人声旁白。** 开场第 0 帧已显示《噬谎者》来源，使用 Portrait V4 成片：[中文视频](../releases/portrait-v4-source/zh/air-poker-douyin-30s.mp4) · [英文视频](../releases/portrait-v4-source/en/air-poker-tiktok-30s.mp4) · [配乐版预览](music.html)。
 
 中文抖音版与英文 TikTok 版各 30 秒，1080×1920、9:16、30 fps。独立构图、独立本地化字幕与实机截图，带原创程序音乐和音效，无人声旁白。完整项目分析、双语分镜、节奏、口播稿与投稿文案见 [制作方案](../../doc/promo/portrait-production.md)，执行证据见 [验收记录](../../doc/promo/portrait-validation.md)。
 
@@ -67,7 +67,7 @@ npm run promo:portrait:verify -- --name douyin-voice
 
 ## 输出与代码职责
 
-中文默认 output/promo/portrait/zh/air-poker-douyin-30s.mp4，英文默认 output/promo/portrait/en/air-poker-tiktok-30s.mp4。该目录是忽略的制作缓存。同目录还生成 cover.png、SRT、8 镜 PNG 与 storyboard-contact.png、原始 score.wav、silent.mp4、实际 FFmpeg 命令清单 render.json、解码和响度报告 verified.json。最终交付另外复制至 [portrait-v1 归档](../releases/README.md)，不覆盖横屏 V1。
+中文默认 output/promo/portrait/zh/air-poker-douyin-30s.mp4，英文默认 output/promo/portrait/en/air-poker-tiktok-30s.mp4。该目录是忽略的制作缓存。同目录还生成 cover.png、SRT、8 镜 PNG 与 storyboard-contact.png、原始 score.wav、silent.mp4、实际 FFmpeg 命令清单 render.json、解码和响度报告 verified.json。最终交付另外复制至 [当前成片归档](../releases/README.md)，保留此前版本。
 
 | 文件                                              | 负责内容                                                                                 |
 | ------------------------------------------------- | ---------------------------------------------------------------------------------------- |

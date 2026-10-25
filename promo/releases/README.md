@@ -2,12 +2,12 @@
 
 本目录按用户要求纳入 Git 版本管理，保存可直接播放的正式交付文件。制作中间文件仍位于忽略目录 output/promo/，不进入游戏静态发布包。
 
-## 当前交付：中英文配乐字幕版 · 2026-10-26
+## 当前交付：Portrait V4 开场来源标注版 · 2026-10-26
 
-按用户最新澄清，两支视频均保留原来的背景音乐与音效，不含人声旁白。直接使用已验证的 Portrait V1 文件，无需重新编码。
+两支视频从第 0 帧起显示游戏改编自《噬谎者》，保留原来的背景音乐与音效，不含人声旁白。
 
-- [中文抖音版](portrait-v1/zh/air-poker-douyin-30s.mp4) · [英文 TikTok 版](portrait-v1/en/air-poker-tiktok-30s.mp4)
-- [配乐成片预览](../portrait/music.html) · [当前文件指向](current.json)
+- [中文抖音版](portrait-v4-source/zh/air-poker-douyin-30s.mp4) · [英文 TikTok 版](portrait-v4-source/en/air-poker-tiktok-30s.mp4)
+- [配乐成片预览](../portrait/music.html) · [首帧与验证说明](portrait-v4-source/README.md) · [当前文件指向](current.json)
 
 ## Portrait V3 无声试版 · 历史归档
 

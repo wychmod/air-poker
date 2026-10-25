@@ -1,6 +1,6 @@
 # Portrait V3：无声字幕版
 
-2026-10-26 的无声试版，现仅保留历史归档。用户已澄清为“保留背景音乐，不要人声”；[当前交付](../README.md)使用中英文 Portrait V1 配乐字幕版。
+2026-10-26 的无声试版，现仅保留历史归档。用户已澄清为“保留背景音乐，不要人声”；[当前交付](../README.md)使用无旁白的中英文配乐字幕版。
 
 - [中文抖音版](zh/air-poker-douyin-30s-silent.mp4)
 - [英文 TikTok 版](en/air-poker-tiktok-30s-silent.mp4)

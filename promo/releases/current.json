@@ -6,11 +6,17 @@
   "variants": [
     {
       "lang": "zh",
-      "file": "portrait-v1/zh/air-poker-douyin-30s.mp4"
+      "file": "portrait-v4-source/zh/air-poker-douyin-30s.mp4"
     },
     {
       "lang": "en",
-      "file": "portrait-v1/en/air-poker-tiktok-30s.mp4"
+      "file": "portrait-v4-source/en/air-poker-tiktok-30s.mp4"
     }
-  ]
+  ],
+  "openingCredit": {
+    "start": 0,
+    "end": 2.5,
+    "zh": "游戏改编自迫稔雄《噬谎者》",
+    "en": "Game based on USOGUI (噬谎者)"
+  }
 }

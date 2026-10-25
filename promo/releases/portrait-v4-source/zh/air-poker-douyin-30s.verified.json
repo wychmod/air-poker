@@ -1,0 +1,23 @@
+{
+  "file": "air-poker-douyin-30s.mp4",
+  "fullDecode": true,
+  "frames": 900,
+  "duration": 30,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "audio": "AAC 48 kHz stereo",
+  "loudness": {
+    "input_i": "-14.21",
+    "input_tp": "-3.38",
+    "input_lra": "10.70",
+    "input_thresh": "-24.81",
+    "output_i": "-14.31",
+    "output_tp": "-2.95",
+    "output_lra": "4.20",
+    "output_thresh": "-24.74",
+    "normalization_type": "dynamic",
+    "target_offset": "0.31"
+  },
+  "checkedAt": "2026-10-25T16:45:02.367Z"
+}

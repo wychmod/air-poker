@@ -2,7 +2,7 @@
 
 ## 当前工程入口
 
-[当前宣传片交付：中英文配乐字幕版](../promo/releases/README.md)：按最新澄清，两版均使用原来的背景音乐与音效，不含人声旁白；[成片预览](../promo/portrait/music.html)。
+[当前宣传片交付：中英文配乐字幕版](../promo/releases/README.md)：两版从第 0 帧起显示《噬谎者》来源，使用原来的背景音乐与音效，不含人声旁白；[成片预览](../promo/portrait/music.html)。
 
 [中文旁白 V2 与音频迭代](promo/audio-iteration-v2.md)：评审结果、九句口播、分轨混音、同位置试听比较及下一步优化优先级；[制作命令](../promo/portrait/VOICE.md)。
 
