@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGame } from '../game/engine.js';
+import { makeCandidates } from '../game/cards.js';
+
+// Rule fixtures specify the intended tie independently of opponent policy.
+const tieOpponent = {
+  choosePlay: (targets, used, discard) => ({
+    index: targets.indexOf(35),
+    target: 35,
+    ...makeCandidates(35, discard)[0],
+  }),
+  chooseBet: ({ options }) => ({ action: options.canCall ? 'call' : 'check' }),
+};
 
 function seeded(seed) {
   return () => {
@@ -296,7 +307,7 @@ test('complete multi-turn matches conserve AIR, support both folds and preserve 
 });
 
 test('an overlapping tie refunds stakes without calamity and records the current discard', () => {
-  const game = createGame({ random: seeded(24) });
+  const game = createGame({ random: seeded(24), opponent: tieOpponent });
   assert.equal(game.dispatch({ type: 'choose-target', index: 2 }), true);
   assert.equal(
     game.dispatch({ type: 'confirm-hand', attemptId: game.getState().upper.attemptId }),
@@ -325,7 +336,7 @@ test('equal first-round numbers use the declared random tie-break', () => {
   ]) {
     const source = seeded(24);
     let tieRoll = null;
-    const game = createGame({ random: () => tieRoll ?? source() });
+    const game = createGame({ random: () => tieRoll ?? source(), opponent: tieOpponent });
     tieRoll = roll;
     game.dispatch({ type: 'choose-target', index: 2 });
     const state = game.getState();

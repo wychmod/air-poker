@@ -48,7 +48,9 @@ export function judgeHand(hand, target, discard = []) {
 // Every feasible rank multiset has a representative; flushes need additional
 // suit representatives. The best poker rank is exact, but physical choices
 // are only a recommended subset, not all possible overlap-avoidance plays.
-export function makeCandidates(target, discard = []) {
+export function makeCandidates(target, discard = [], limit = 3) {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 24)
+    throw new RangeError('Candidate limit must be an integer from 1 to 24');
   if (!Number.isInteger(target) || target < 6 || target > 64)
     throw new RangeError('Target must be an integer from 6 to 64');
   const used = new Set(discard.map((next) => next.id));
@@ -66,7 +68,7 @@ export function makeCandidates(target, discard = []) {
     const candidate = { hand, rank: rankHand(hand) };
     const index = best.findIndex((other) => compareRanks(candidate.rank, other.rank) > 0);
     best.splice(index < 0 ? best.length : index, 0, candidate);
-    if (best.length > 3) best.pop();
+    if (best.length > limit) best.pop();
   }
   function represent(values) {
     for (let offset = 0; offset < 4; offset++) {

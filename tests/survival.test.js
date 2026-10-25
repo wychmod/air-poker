@@ -1,8 +1,15 @@
+import {
+  chooseCpuPlay as legacyPlay,
+  chooseCpuBet as legacyBet,
+} from '../scripts/strategy/legacy.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGame } from '../game/engine.js';
 import { createDeck, judgeHand, makeCandidates } from '../game/cards.js';
 import { CANISTER_MS, HYPOXIA_MS } from '../game/breathing.js';
+
+// Keep rare rule scenarios stable when the production opponent changes.
+const legacyOpponent = { choosePlay: legacyPlay, chooseBet: legacyBet };
 
 function seeded(seed) {
   return () => {
@@ -92,7 +99,7 @@ test('construct timeout and deliberate failure lock once, and old attempts canno
 });
 
 test('both failed hands rebuild the same round and pot, with no extra ante or discarded cards', () => {
-  const game = createGame({ random: seeded(1) });
+  const game = createGame({ opponent: legacyOpponent, random: seeded(1) });
   for (let round = 1; round <= 5; round++) {
     const before = game.getState();
     choose(game, before.targetPlayable.lastIndexOf(true));
@@ -130,7 +137,7 @@ test('both failed hands rebuild the same round and pot, with no extra ante or di
 });
 
 test('mathematically impossible numbers remain selectable and a double deadlock refunds into endurance', () => {
-  const game = createGame({ random: seeded(98) });
+  const game = createGame({ opponent: legacyOpponent, random: seeded(98) });
   for (let round = 1; round <= 5; round++) {
     const before = game.getState();
     const index = before.targetPlayable.indexOf(true);
@@ -290,7 +297,10 @@ test('a breathing refill returns unmatched excess without wagering opened AIR', 
 });
 
 test('endurance fast-forward and actual elapsed time produce identical survival results', () => {
-  const games = [createGame({ random: seeded(1) }), createGame({ random: seeded(1) })];
+  const games = [
+    createGame({ opponent: legacyOpponent, random: seeded(1) }),
+    createGame({ opponent: legacyOpponent, random: seeded(1) }),
+  ];
   for (const game of games) {
     for (let round = 1; round <= 5; round++) {
       choose(game, game.getState().targetPlayable.lastIndexOf(true));

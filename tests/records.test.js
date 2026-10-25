@@ -1,9 +1,16 @@
+import {
+  chooseCpuPlay as legacyPlay,
+  chooseCpuBet as legacyBet,
+} from '../scripts/strategy/legacy.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGame } from '../game/engine.js';
 import { airTotals, isCompletedRecord } from '../game/records.js';
 import { CANISTER_MS } from '../game/breathing.js';
 import { recordMarkup } from '../ui/record.js';
+
+// Keep rare rule scenarios stable when the production opponent changes.
+const legacyOpponent = { choosePlay: legacyPlay, chooseBet: legacyBet };
 
 function seeded(seed) {
   return () => {
@@ -71,7 +78,7 @@ function audit(game) {
 }
 
 test('full records preserve all rounds, real stakes and calamity, independently of the seven-item feed', () => {
-  const game = createGame({ random: seeded(1) });
+  const game = createGame({ opponent: legacyOpponent, random: seeded(1) });
   for (let round = 1; round <= 5; round++) {
     choose(game, true);
     lock(game);
@@ -132,7 +139,7 @@ test('records hide pending opponent hands, return independent snapshots, and ign
 
 test('retry and impossible rounds retain all attempts without repeating money or completed rounds', () => {
   for (const seed of [1, 98]) {
-    const game = createGame({ random: seeded(seed) });
+    const game = createGame({ opponent: legacyOpponent, random: seeded(seed) });
     for (let round = 1; round <= 5; round++) {
       choose(game, seed === 1);
       lock(game, seed === 1 && round === 5 ? 'fail-hand' : 'confirm-hand');
@@ -195,7 +202,7 @@ test('timeouts and unplayed rounds preserve actual completion counts and termina
 test('calamity and unequal folded stakes use actual payouts and separately tracked burns', () => {
   const reasons = new Set();
   for (let seed = 1; seed <= 8; seed++) {
-    const game = createGame({ random: seeded(seed) });
+    const game = createGame({ opponent: legacyOpponent, random: seeded(seed) });
     while (game.getState().phase === 'lower') {
       choose(game);
       lock(game);
@@ -267,7 +274,7 @@ test('stored card and event text is escaped and damaged settlement cards are rej
 });
 
 test('death during failed-hand retries refunds the unsettled pot once and keeps the round unfinished', () => {
-  const game = createGame({ random: seeded(1) });
+  const game = createGame({ opponent: legacyOpponent, random: seeded(1) });
   for (let round = 1; round <= 5; round++) {
     choose(game, true);
     lock(game, round === 5 ? 'fail-hand' : 'confirm-hand');

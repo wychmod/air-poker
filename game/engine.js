@@ -54,7 +54,14 @@ function initialState(targets) {
   };
 }
 
-export function createGame({ random = Math.random, recordId = 'local' } = {}) {
+export function createGame({
+  random = Math.random,
+  dealRandom = random,
+  opponent = { choosePlay: chooseCpuPlay, chooseBet: chooseCpuBet },
+  swapSides = false,
+  recordId = 'local',
+} = {}) {
+  const { choosePlay, chooseBet } = opponent;
   let state;
   let recorder;
   let sequence;
@@ -200,7 +207,9 @@ export function createGame({ random = Math.random, recordId = 'local' } = {}) {
     );
     state.targetSolvable = candidatesByTarget.map((candidates) => candidates.length > 0);
     state.targetPlayable = state.targets.map((_, index) => !state.usedTargets.includes(index));
-    cpuPlay = chooseCpuPlay(aiTargets, aiUsed, state.discard, random);
+    cpuPlay = structuredClone(
+      choosePlay([...aiTargets], [...aiUsed], structuredClone(state.discard), random),
+    );
     if (!cpuPlay || !state.targetPlayable.some(Boolean)) {
       enterEndurance('round-limit');
       return false;
@@ -209,7 +218,8 @@ export function createGame({ random = Math.random, recordId = 'local' } = {}) {
   }
 
   function reset() {
-    const deal = dealTargets(random);
+    const deal = dealTargets(dealRandom);
+    if (swapSides) [deal.player, deal.ai] = [deal.ai, deal.player];
     state = initialState(deal.player.map((group) => group.target));
     state.sessionId = ++sessionSerial;
     const { drowned, ...breathing } = startBreathing(STARTING_AIR, STARTING_AIR);
@@ -505,14 +515,14 @@ export function createGame({ random = Math.random, recordId = 'local' } = {}) {
 
   function actCpu(turnId) {
     if (!isBetTurn('ai', turnId)) return false;
-    const decision = chooseCpuBet(
-      {
+    const decision = chooseBet(
+      structuredClone({
         hand: cpuPlay.hand,
         opponentTarget: state.playerTarget,
         discard: state.discard,
         options: getBetOptions(state, 'ai'),
         history: state.betting.history,
-      },
+      }),
       random,
     );
     return resolveBet('ai', decision.action, decision.amount, turnId);

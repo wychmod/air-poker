@@ -15,7 +15,9 @@
 | browser（时钟模块）                      | 无运行模块依赖，负责平台调度                        |
 | cards                                    | data、rules                                         |
 | deal                                     | cards                                               |
-| ai                                       | cards、deal、rules                                  |
+| ai-planning                              | cards、deal                                         |
+| ai-betting                               | cards、deal、rules、ai-planning                     |
+| ai                                       | ai-planning、ai-betting                             |
 | engine                                   | rules、cards、deal、ai、betting、breathing、records |
 | i18n                                     | 无运行模块依赖                                      |
 | ui                                       | ui、data、rules、cards、engine、breathing、i18n     |
@@ -27,7 +29,7 @@ ui 只消费快照和只读函数，不创建第二份对局状态或自行下�
 
 ## 状态与动作
 
-createGame({ random = Math.random, recordId = 'local' } = {}) 持有私有状态，可注入随机源：
+createGame({ random = Math.random, dealRandom = random, opponent, swapSides = false, recordId = 'local' } = {}) 持有私有状态。默认策略来自 ai；整局评估可注入 choosePlay / chooseBet、独立发牌随机源与交换持牌。策略只接收白名单信息的副本，返回成手亦复制；这些入口不增加界面私有数据。默认发牌、规则和记录格式保持兼容：
 
 - getState() 返回深拷贝快照，隐藏对手未出数字、来源证明及摊牌前成手。
 - getRecord() 按需深拷贝完整事件、轮次、逐笔账目和派生统计；进行中隐藏未揭示尝试的对手成手，不包含未来对手数字。recordId 由浏览器生成，session 后缀区分重开。getState() 的 accounting 只保留当前五账户摘要，不每次复制完整历史。
@@ -49,8 +51,8 @@ browser/visit-counter.js 归 browser 层，无运行模块依赖；只在公网 
 - 每方总资源 25 罐，开局自动打开 1 罐，未开余额 24。每罐近似 300 秒，耗尽自动开下一罐；已开罐不可下注，累计计入 breathSpent，不按回合扣费。
 - 未开余额为零仍使用当前供气；无供气后固定 10 秒缺氧宽限。按实际存活确定 winner，同刻死亡平局。enduranceReason 记录 round-limit、no-betting-air 或 upper-deadlock；endReason 的 breath-exhausted 表示已完成生存判定。
 - 双方独立持有五张数字牌，不补牌；相同数值按不同位置计数。deal 用十组证明成手生成数字并平衡总和，来源证明不预留共享实体牌。
-- 对手在玩家选择前，仅凭自己的未用数字与公共弃牌锁定最强推荐，同强随机；无解时仍使用自己的数字并记为失败。下注只读自身私牌与公开信息，不能按玩家隐藏成手反选。
-- 每个目标至多三个不同实体组合。候选完整五张、无重复、不含弃牌，支持 6–64；求解器枚举点数多重集和同花方案，首选牌型最强，花色方案不是全部策略枚举。
+- 对手在玩家选择前，仅凭自己的未用数字与公共弃牌，综合当前牌力、移除成手后剩余数字的可解性与牌力锁定成手，评分相同随机；无解时仍使用自己的数字并记为失败。下注只读自身私牌与公开信息，基于至多十二个公开目标候选的加权模型、底池回款与重叠失败损失比较动作；不能按玩家隐藏成手反选。模型不是实际胜率，前瞻不保证对手弃牌后仍有解。
+- 界面每个目标至多三个不同实体组合。makeCandidates 的第三参数可指定 1–24 的受限预算，默认 3，正式策略查询 12；候选完整五张、无重复、不含弃牌，支持 6–64；求解器枚举点数多重集和同花方案，首选牌型最强，花色方案不是全部策略枚举。
 - A 求和为 1，J/Q/K 为 11/12/13；比较通常 A 高，A2345 为五高，踢脚逐项比较。judgeHand 校验真实牌定义、重复、已用及点数和，拒绝伪造字段。
 - 未用数字始终可选，targetSolvable 仅表示能否成手。主动失败或构造超时保留实体牌；单方失败输实际底池，无灾厄。双方失败不重复底注、下注或 completedRounds；双无解退回投入转耐息是本版约定。
 - 同轮可以实体重叠；只有有效成手并集进入公共弃牌。下层弃牌也消耗已锁定的有效成手，但不追加灾厄。
@@ -93,3 +95,7 @@ ui/render.js 组合 pages、battle、tutorial 模板并维护渲染焦点；batt
 browser/scene-motion.js 无运行模块依赖，从前后公开快照识别已接受动作，用真实 betting.history.paid 区分支付与呼吸开罐。表现副本不带可交互入口；动画结束不触发任何引擎动作。统一 Canvas 限制像素倍率、隐藏暂停绘制、尊重系统和用户偏好，恢复不补播过时事件。
 
 app.js 继续负责事件委托、对话框、实际时钟、教学状态、复盘播放与偏好存储。页面离开清理时钟，规则和记录保持只读且不中断对局；未完成局离开需确认，未创建新的游戏恢复能力。
+
+## 发牌与策略评估
+
+npm run evaluate:strategy 默认使用 100 个独立种子、每个交换持牌，对比仅选牌、仅下注、完整策略和冻结旧版；--mode baseline 跑旧版基准。模拟复用引擎直到实际耐息终局，每次动作核对账户，完成记录经 isCompletedRecord 验证。参数、指标、独立样本、耗时与发牌决策见 [策略实施记录](../rules/strategy/results.md)。

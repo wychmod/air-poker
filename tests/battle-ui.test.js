@@ -1,3 +1,7 @@
+import {
+  chooseCpuPlay as legacyPlay,
+  chooseCpuBet as legacyBet,
+} from '../scripts/strategy/legacy.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGame } from '../game/engine.js';
@@ -5,6 +9,9 @@ import { battleMarkup, cardMarkup } from '../ui/battle.js';
 import { CANISTER_MS } from '../game/breathing.js';
 import { createDeck } from '../game/cards.js';
 import { translate } from '../i18n.js';
+
+// Keep rare rule scenarios stable when the production opponent changes.
+const legacyOpponent = { choosePlay: legacyPlay, chooseBet: legacyBet };
 
 const view = { lang: 'zh', timer: 30, selectedTarget: null };
 function constructedGame() {
@@ -324,7 +331,7 @@ test('round ledger includes earlier unmatched refunds and breathing rather than 
 });
 
 test('tie refunds, folds and burns retain distinct ledger semantics', () => {
-  const tied = createGame({ random: seeded(24) });
+  const tied = createGame({ opponent: legacyOpponent, random: seeded(24) });
   tied.dispatch({ type: 'choose-target', index: 2 });
   lock(tied);
   finishBetting(tied);
@@ -336,7 +343,7 @@ test('tie refunds, folds and burns retain distinct ledger semantics', () => {
   let burned = false;
   let folded = false;
   for (let seed = 1; seed <= 8; seed++) {
-    const game = createGame({ random: seeded(seed) });
+    const game = createGame({ opponent: legacyOpponent, random: seeded(seed) });
     while (game.getState().phase === 'lower') {
       game.dispatch({ type: 'choose-target', index: game.getState().targetPlayable.indexOf(true) });
       lock(game);
@@ -371,7 +378,7 @@ test('tie refunds, folds and burns retain distinct ledger semantics', () => {
 });
 
 test('retry preserves the pot and recommendations but starts with an empty editable draft, opponent turn cannot show a phantom raise', () => {
-  const game = createGame({ random: seeded(1) });
+  const game = createGame({ opponent: legacyOpponent, random: seeded(1) });
   for (let round = 1; round <= 5; round++) {
     game.dispatch({
       type: 'choose-target',

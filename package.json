@@ -14,7 +14,8 @@
     "build": "node scripts/stage-site.js",
     "check:smoke": "node scripts/harness/smoke.js",
     "format": "node scripts/format.js --write",
-    "format:check": "node scripts/format.js --check"
+    "format:check": "node scripts/format.js --check",
+    "evaluate:strategy": "node scripts/evaluate-strategy.js"
   },
   "devDependencies": {
     "acorn": "8.19.0",

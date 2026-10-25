@@ -37,7 +37,9 @@
 | `game/betting.js`         | 下注合法性与纯状态转换             | 无运行模块依赖                  |
 | `browser/`（时钟模块）    | 行动与对局时长同步                 | 不持有权威对局状态，不进入 game |
 | `game/deal.js`            | 独立数字牌与来源证明               | 依赖实体牌，不预留证明成手      |
-| `game/ai.js`              | 对手目标、成手与下注决策           | 只读己方私有信息和公开信息      |
+| `game/ai.js`              | 对手策略统一入口                   | 转发有限前瞻与下注模块          |
+| `game/ai-planning.js`     | 当前牌力与剩余数字可解性评估       | 只读己方数字与公共弃牌          |
+| `game/ai-betting.js`      | 有限候选模型、底池与灾厄成本       | 只读己方成手及公开信息          |
 | `game/engine.js`          | 对局状态机、动作校验               | 依赖牌、规则、发牌与 AI         |
 | `i18n.js`                 | 中英文文案与翻译                   | 不依赖游戏或 DOM                |
 | `ui/`                     | 从状态快照渲染界面                 | 不持有权威对局状态，不直接结算  |
@@ -88,16 +90,17 @@ npm start
 npm run check
 ```
 
-| 命令                         | 用途                                               |
-| ---------------------------- | -------------------------------------------------- |
-| `npm test`                   | 游戏与 harness 回归测试                            |
-| `npm run check:syntax`       | 浏览器、工具和测试脚本语法检查                     |
-| `npm run check:architecture` | 模块层级、平台 API、导入完整性与循环依赖检查       |
-| `npm run format:check`       | 检查受管理源码与工程文档格式                       |
-| `npm run format`             | 格式化上述文件，不处理待评审页面方案               |
-| `npm run build`              | 按白名单生成静态发布目录 `dist/site/`              |
-| `npm run check:smoke`        | 检查已生成产物的本地资源与 HTTP 加载；先执行 build |
-| `npm run check`              | 按顺序执行以上自动验收，任一步失败即停止           |
+| 命令                         | 用途                                                |
+| ---------------------------- | --------------------------------------------------- |
+| `npm test`                   | 游戏与 harness 回归测试                             |
+| `npm run evaluate:strategy`  | 固定种子、换边的整局策略比较，输出至 output/harness |
+| `npm run check:syntax`       | 浏览器、工具和测试脚本语法检查                      |
+| `npm run check:architecture` | 模块层级、平台 API、导入完整性与循环依赖检查        |
+| `npm run format:check`       | 检查受管理源码与工程文档格式                        |
+| `npm run format`             | 格式化上述文件，不处理待评审页面方案                |
+| `npm run build`              | 按白名单生成静态发布目录 `dist/site/`               |
+| `npm run check:smoke`        | 检查已生成产物的本地资源与 HTTP 加载；先执行 build  |
+| `npm run check`              | 按顺序执行以上自动验收，任一步失败即停止            |
 
 完整校验结果写入 `output/harness/latest.json`，此文件与发布产物均不提交。HTTP 校验不执行页面脚本，也不证明真实浏览器交互通过。
 

@@ -114,10 +114,10 @@ test('opponent responds with legal check, call, raise, fold and all-in using onl
     betting: { turn: 'ai', turnId: 1, checks: 0, history: [] },
   };
   const cases = [
-    { state: base, hand: strong, target: 64, roll: 0.99, expected: 'check' },
+    { state: base, hand: strong, target: 6, roll: 0.99, expected: 'check' },
     { state: base, hand: strong, target: 64, roll: 0, expected: 'raise' },
     {
-      state: { ...base, playerAir: 23, playerBet: 2, pot: 3 },
+      state: { ...base, playerAir: 23, playerBet: 2, pot: 3, aiAir: 1 },
       hand: strong,
       target: 64,
       roll: 0.99,

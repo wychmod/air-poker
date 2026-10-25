@@ -2,6 +2,8 @@
 
 ## 当前工程入口
 
+[发牌与对手策略](rules/strategy/spec.md)及[实施结果](rules/strategy/results.md)：固定种子整局基准、有限前瞻、底池与灾厄下注模型及发牌保留决策。
+
 [八页动态漫画界面实施记录](harness/ui-v2-implementation.md)：已批准的 V2 界面、交互、实时动画和验证证据。
 
 [自由成手修复](harness/manual-hand.md)：逐张选牌、推荐编辑、已用牌失败提示与回归证据。

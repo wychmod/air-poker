@@ -35,7 +35,13 @@ export const LAYERS = [
   { name: 'records', path: 'game/records.js', allows: [] },
   { name: 'cards', path: 'game/cards.js', allows: ['data', 'rules'] },
   { name: 'deal', path: 'game/deal.js', allows: ['cards'] },
-  { name: 'ai', path: 'game/ai.js', allows: ['cards', 'deal', 'rules'] },
+  { name: 'ai-planning', path: 'game/ai-planning.js', allows: ['cards', 'deal'] },
+  {
+    name: 'ai-betting',
+    path: 'game/ai-betting.js',
+    allows: ['cards', 'deal', 'rules', 'ai-planning'],
+  },
+  { name: 'ai', path: 'game/ai.js', allows: ['ai-planning', 'ai-betting'] },
   {
     name: 'engine',
     path: 'game/engine.js',
