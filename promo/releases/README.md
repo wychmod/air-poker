@@ -2,6 +2,15 @@
 
 本目录按用户要求纳入 Git 版本管理，保存可直接播放的正式交付文件。制作中间文件仍位于忽略目录 output/promo/，不进入游戏静态发布包。
 
+## 当前交付：Portrait V3 无声版 · 2026-10-26
+
+按最新要求取消所有旁白、音乐与音效，保留画面和硬字幕。
+
+- [中文无声版](portrait-v3-silent/zh/air-poker-douyin-30s-silent.mp4) · [英文无声版](portrait-v3-silent/en/air-poker-tiktok-30s-silent.mp4)
+- [无声预览](../portrait/silent.html) · [验证与复现命令](portrait-v3-silent/README.md)
+
+以下有声版本为历史归档。
+
 ## Portrait V2 · 2026-10-26
 
 - [中文旁白升级版](portrait-v2/zh/air-poker-douyin-voice-v2.mp4) · [纯音频试听](portrait-v2/zh/voice-v2-preview.m4a)：30 秒，云希 AI 男声，独立音乐/音效和自动压低背景；视频画面与中文 V1 相同。

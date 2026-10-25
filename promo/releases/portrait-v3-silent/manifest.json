@@ -1,0 +1,77 @@
+{
+  "version": "portrait-v3-silent",
+  "releaseDate": "2026-10-26",
+  "defaultDelivery": true,
+  "variants": [
+    {
+      "language": "zh",
+      "file": "zh/air-poker-douyin-30s-silent.mp4",
+      "width": 1080,
+      "height": 1920,
+      "duration": 30,
+      "fps": 30,
+      "frames": 900,
+      "audioStreams": 0,
+      "fullDecode": true,
+      "videoUnchanged": true,
+      "videoPacketHash": "SHA256=bc5101eb759bd82b9628f8b1c8ea94cf480d6488fd7b63d40f13178d7627e4b5",
+      "bytes": 16588007,
+      "sha256": "5aa82ac657fb90e7194a8aaf8ea93b2d3ee58109b1c48f0fb3b21822951abdff",
+      "command": [
+        "D:/JianyingPro/11.6.0.14552/ffmpeg.exe",
+        "-hide_banner",
+        "-y",
+        "-i",
+        "D:/idea/air-poker/promo/releases/portrait-v2/zh/air-poker-douyin-voice-v2.mp4",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-an",
+        "-movflags",
+        "+faststart",
+        "D:/idea/air-poker/promo/releases/portrait-v3-silent/zh/air-poker-douyin-30s-silent.mp4"
+      ]
+    },
+    {
+      "language": "en",
+      "file": "en/air-poker-tiktok-30s-silent.mp4",
+      "width": 1080,
+      "height": 1920,
+      "duration": 30,
+      "fps": 30,
+      "frames": 900,
+      "audioStreams": 0,
+      "fullDecode": true,
+      "videoUnchanged": true,
+      "videoPacketHash": "SHA256=e0379ece93d289725926f28291ed09f61159a57740f54dee5292c1e0f91992c5",
+      "bytes": 16725506,
+      "sha256": "dd562e83d302029de20181fbe51022d030cb84303f85f256b76ac62e02055140",
+      "command": [
+        "D:/JianyingPro/11.6.0.14552/ffmpeg.exe",
+        "-hide_banner",
+        "-y",
+        "-i",
+        "D:/idea/air-poker/promo/releases/portrait-v1/en/air-poker-tiktok-30s.mp4",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-an",
+        "-movflags",
+        "+faststart",
+        "D:/idea/air-poker/promo/releases/portrait-v3-silent/en/air-poker-tiktok-30s-silent.mp4"
+      ]
+    }
+  ],
+  "previewCheck": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "duration": 30,
+    "seekSeconds": 12,
+    "muted": true,
+    "horizontalOverflow": false
+  }
+}

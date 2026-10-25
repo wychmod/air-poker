@@ -2,6 +2,8 @@
 
 ## 当前工程入口
 
+[当前宣传片交付：V3 无声字幕版](../promo/releases/portrait-v3-silent/README.md)：按最新要求移除全部音频，保留中英两版的画面与字幕。
+
 [中文旁白 V2 与音频迭代](promo/audio-iteration-v2.md)：评审结果、九句口播、分轨混音、同位置试听比较及下一步优化优先级；[制作命令](../promo/portrait/VOICE.md)。
 
 [抖音 / TikTok 竖屏制作方案](promo/portrait-production.md)与[验收记录](promo/portrait-validation.md)：30 秒中英双版、1080×1920、逐帧动画、手机实机截图和 FFmpeg 音画合成；[执行命令与代码入口](../promo/portrait/README.md)。
