@@ -1,0 +1,40 @@
+{
+  "browser": "151.0.7922.34",
+  "reports": [
+    {
+      "lang": "zh",
+      "checks": [
+        "Synchronized audio and picture start",
+        "Pause stops picture and audio",
+        "Scene selection and scrubbing seek exactly",
+        "Platform obstruction guide is opt-in and outside canvas",
+        "Critical text stays inside safe bounds at 120 sampled times",
+        "Reverse seek reproduces identical pixels",
+        "Restart and keyboard seek work",
+        "390px preview has no horizontal overflow",
+        "Reduced motion starts paused"
+      ],
+      "errors": []
+    },
+    {
+      "lang": "en",
+      "checks": [
+        "Synchronized audio and picture start",
+        "Pause stops picture and audio",
+        "Scene selection and scrubbing seek exactly",
+        "Platform obstruction guide is opt-in and outside canvas",
+        "Critical text stays inside safe bounds at 120 sampled times",
+        "Reverse seek reproduces identical pixels",
+        "Restart and keyboard seek work",
+        "390px preview has no horizontal overflow",
+        "Reduced motion starts paused"
+      ],
+      "errors": []
+    }
+  ],
+  "limitations": [
+    "Headless browser, not a physical phone",
+    "No Douyin/TikTok upload or transcode test",
+    "Full human listening not performed"
+  ]
+}

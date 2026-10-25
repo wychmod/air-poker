@@ -2,46 +2,22 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdir, readFile, writeFile, access } from 'node:fs/promises';
 import { resolve, basename } from 'node:path';
-import { argsObject, ffmpeg, command, OUT, ROOT, browserEngine } from './common.js';
+import { argsObject, ffmpeg, command, ROOT, browserEngine } from './common.js';
 import { startServer } from './server.js';
 import { prepare } from './prepare.js';
-import { makeAudio } from './audio.js';
-import { captureGame } from './capture.js';
-import { DURATION, FPS, SCENES, toSrt } from '../../promo/timeline.js';
+import { getComposition, frameSettings } from './compositions.js';
 const args = argsObject();
-const start = Number(args.start ?? 0),
-  end = Number(args.end ?? DURATION),
-  fps = Number(args.fps ?? FPS),
-  width = Number(args.width ?? 1920),
-  height = (width * 9) / 16;
-if (
-  !Number.isFinite(start) ||
-  !Number.isFinite(end) ||
-  start < 0 ||
-  end > DURATION ||
-  end <= start ||
-  !Number.isInteger(fps) ||
-  fps < 15 ||
-  fps > 60 ||
-  !Number.isInteger(width) ||
-  width < 320 ||
-  width > 3840 ||
-  width % 2 ||
-  !Number.isInteger(height) ||
-  height % 2
-)
-  throw new Error('Invalid range, fps or 16:9 dimensions');
-const frames = Math.round((end - start) * fps),
-  duration = frames / fps;
-if (Math.abs(duration - (end - start)) > 0.0001)
-  throw new Error('Range must contain a whole number of frames');
-const name = String(args.name || 'air-poker-bilibili-72s');
+const composition = getComposition(String(args.format || 'landscape'), String(args.lang || 'zh'));
+const { start, end, fps, width, height, frames, duration } = frameSettings(composition, args);
+const { out: OUT, toSrt } = composition;
+const { SCENES } = composition.timeline;
+const name = String(args.name || composition.name);
 if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('Name must be a plain filename');
 if (args.voice) await access(resolve(String(args.voice)));
 if (args.music) await access(resolve(String(args.music)));
 await mkdir(OUT, { recursive: true });
 await prepare();
-await makeAudio();
+await composition.makeAudio();
 const server = await startServer();
 let browser, encoder;
 const commands = [];
@@ -50,9 +26,8 @@ const exec = async (a) => {
   return command(ffmpeg, a);
 };
 try {
-  if (!args['skip-capture'] && !args['audio-only']) await captureGame(server.url);
-  for (const name of ['build', 'showdown', 'review'])
-    await access(resolve(OUT, 'captures', name + '.png'));
+  if (!args['skip-capture'] && !args['audio-only']) await composition.capture(server.url);
+  for (const name of composition.captures) await access(resolve(OUT, 'captures', name + '.png'));
   if (args['prepare-only']) {
     console.log('Prepared ' + OUT);
   } else {
@@ -60,7 +35,18 @@ try {
       ? JSON.parse(await readFile(resolve(OUT, name + '.render.json'), 'utf8'))
       : null;
     if (previous) {
-      for (const [key, value] of Object.entries({ start, end, fps, width, height, frames }))
+      previous.format ??= 'landscape';
+      previous.lang ??= 'zh';
+      for (const [key, value] of Object.entries({
+        start,
+        end,
+        fps,
+        width,
+        height,
+        frames,
+        format: composition.format,
+        lang: composition.lang,
+      }))
         if (previous[key] !== value) throw new Error('Existing video differs: ' + key);
       await access(resolve(OUT, name + '.silent.mp4'));
     }
@@ -144,11 +130,13 @@ try {
       ]);
       browser = await (await browserEngine()).launch({ headless: true });
       const page = await browser.newPage({
-        viewport: { width: 1920, height: 1080 },
+        viewport: { width: composition.width, height: composition.height },
         deviceScaleFactor: 1,
       });
       page.on('pageerror', (e) => errors.push(e.message));
-      await page.goto(server.url + '/promo/index.html?capture');
+      await page.goto(
+        server.url + composition.page + (composition.page.includes('?') ? '&' : '?') + 'capture',
+      );
       await page.evaluate(() => globalThis.promo.ready);
       const png = async (t, path, cover = false) => {
         const data = await page.evaluate(
@@ -160,30 +148,36 @@ try {
         );
         await writeFile(path, Buffer.from(data, 'base64'));
       };
-      await png(68, resolve(OUT, 'cover.png'), true);
+      await png(composition.duration - 2, resolve(OUT, 'cover.png'), true);
       await mkdir(resolve(OUT, 'storyboard'), { recursive: true });
       for (const [index, s] of SCENES.entries())
         await png(
           s.start + (s.end - s.start) * 0.67,
           resolve(OUT, 'storyboard', String(index + 1).padStart(2, '0') + '-' + s.id + '.png'),
         );
-      const contact = await page.evaluate(() => {
-        const out = document.createElement('canvas');
-        out.width = 1920;
-        out.height = 1440;
-        const ctx = out.getContext('2d');
-        globalThis.promo.scenes.forEach((s, i) => {
-          globalThis.promo.renderAt(s.start + (s.end - s.start) * 0.67);
-          ctx.drawImage(
-            document.querySelector('#film'),
-            (i % 3) * 640,
-            Math.floor(i / 3) * 360,
-            640,
-            360,
-          );
-        });
-        return out.toDataURL('image/png').split(',')[1];
-      });
+      const contact = await page.evaluate(
+        ({ width, height, format }) => {
+          const out = document.createElement('canvas');
+          const cols = format === 'portrait' ? 4 : 3;
+          const tileWidth = format === 'portrait' ? 270 : 640;
+          const tileHeight = (tileWidth * height) / width;
+          out.width = cols * tileWidth;
+          out.height = Math.ceil(globalThis.promo.scenes.length / cols) * tileHeight;
+          const ctx = out.getContext('2d');
+          globalThis.promo.scenes.forEach((s, i) => {
+            globalThis.promo.renderAt(s.start + (s.end - s.start) * 0.67);
+            ctx.drawImage(
+              document.querySelector('#film'),
+              (i % cols) * tileWidth,
+              Math.floor(i / cols) * tileHeight,
+              tileWidth,
+              tileHeight,
+            );
+          });
+          return out.toDataURL('image/png').split(',')[1];
+        },
+        { width: composition.width, height: composition.height, format: composition.format },
+      );
       await writeFile(resolve(OUT, 'storyboard-contact.png'), Buffer.from(contact, 'base64'));
       // Verify arbitrary seeking does not change the result at the same absolute time.
       const hashFrame = async (t) =>
@@ -191,9 +185,9 @@ try {
           globalThis.promo.renderAt(t);
           return document.querySelector('#film').toDataURL('image/jpeg', 0.8);
         }, t);
-      const a = await hashFrame(40);
+      const a = await hashFrame(composition.duration * 0.56);
       await hashFrame(3);
-      const b = await hashFrame(40);
+      const b = await hashFrame(composition.duration * 0.56);
       if (a !== b) throw new Error('Rendering is not deterministic');
       commands.push([ffmpeg, ...videoArgs]);
       encoder = spawn(ffmpeg, videoArgs, {
@@ -257,7 +251,11 @@ try {
         '-i',
         resolve(String(args.voice)),
         '-filter_complex',
-        '[0:a]apad,atrim=duration=72,volume=0.38[m];[1:a]apad,atrim=duration=72[v];[m][v]amix=inputs=2:duration=first:normalize=0[a]',
+        '[0:a]apad,atrim=duration=' +
+          composition.duration +
+          ',volume=0.38[m];[1:a]apad,atrim=duration=' +
+          composition.duration +
+          '[v];[m][v]amix=inputs=2:duration=first:normalize=0[a]',
         '-map',
         '[a]',
         '-ar',
@@ -273,7 +271,11 @@ try {
         '-i',
         resolve(String(args.music)),
         '-af',
-        'apad,atrim=duration=72,afade=t=out:st=70.8:d=1.2',
+        'apad,atrim=duration=' +
+          composition.duration +
+          ',afade=t=out:st=' +
+          (composition.duration - 1.2) +
+          ':d=1.2',
         '-ar',
         '48000',
         '-ac',
@@ -331,7 +333,9 @@ try {
       'copy',
       '-af',
       norm +
-        ',lowpass=f=10000,aresample=192000,alimiter=limit=0.60:level=false:attack=5:release=80:latency=true,aresample=48000',
+        ',lowpass=f=10000,aresample=192000,alimiter=limit=0.60:level=false:attack=5:release=80:latency=true,aresample=48000,volume=' +
+        composition.audioGainDb +
+        'dB',
       '-c:a',
       'aac',
       '-b:a',
@@ -352,6 +356,8 @@ try {
       JSON.stringify(
         {
           file: basename(output),
+          format: composition.format,
+          lang: composition.lang,
           start,
           end,
           duration,

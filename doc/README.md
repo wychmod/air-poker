@@ -2,6 +2,8 @@
 
 ## 当前工程入口
 
+[抖音 / TikTok 竖屏制作方案](promo/portrait-production.md)与[验收记录](promo/portrait-validation.md)：30 秒中英双版、1080×1920、逐帧动画、手机实机截图和 FFmpeg 音画合成；[执行命令与代码入口](../promo/portrait/README.md)。
+
 [宣传片制作方案](promo/production.md)与[验收记录](promo/validation.md)：72 秒 B 站宣传片脚本、HTML/JS 动画、FFmpeg 导出及交付证据。正式视频见[成片归档](../promo/releases/README.md)。独立制作工具与归档视频不进入游戏发布产物。
 
 [发牌与对手策略](rules/strategy/spec.md)及[实施结果](rules/strategy/results.md)：固定种子整局基准、有限前瞻、底池与灾厄下注模型及发牌保留决策。

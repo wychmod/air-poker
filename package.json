@@ -20,7 +20,11 @@
     "promo:preview": "node scripts/promo/server.js",
     "promo:render": "node scripts/promo/render.js",
     "promo:verify": "node scripts/promo/verify.js",
-    "promo:check-browser": "node scripts/promo/check-browser.js"
+    "promo:check-browser": "node scripts/promo/check-browser.js",
+    "promo:portrait:prepare": "node scripts/promo/render.js --format portrait --prepare-only",
+    "promo:portrait:render": "node scripts/promo/render.js --format portrait",
+    "promo:portrait:verify": "node scripts/promo/verify.js --format portrait",
+    "promo:portrait:check-browser": "node scripts/promo/check-portrait.js"
   },
   "devDependencies": {
     "acorn": "8.19.0",

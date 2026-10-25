@@ -19,7 +19,11 @@ export async function startServer(port = 0) {
     try {
       const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
       const relative =
-        pathname === '/' || pathname === '/promo/' ? 'promo/index.html' : pathname.slice(1);
+        pathname === '/' || pathname === '/promo/'
+          ? 'promo/index.html'
+          : pathname === '/promo/portrait/'
+            ? 'promo/portrait/index.html'
+            : pathname.slice(1);
       const file = resolve(ROOT, relative);
       const normalized = relativePath(ROOT, file).split(sep).join('/');
       const allowed =

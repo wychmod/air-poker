@@ -2,6 +2,16 @@
 
 本目录按用户要求纳入 Git 版本管理，保存可直接播放的正式交付文件。制作中间文件仍位于忽略目录 output/promo/，不进入游戏静态发布包。
 
+## Portrait V1 · 2026-10-25
+
+- [中文抖音版](portrait-v1/zh/air-poker-douyin-30s.mp4)：30 秒、1080×1920、30 fps，约 16.8 MiB。
+- [英文 TikTok 版](portrait-v1/en/air-poker-tiktok-30s.mp4)：独立英文文案与真实英文游戏截图，同规格，约 16.9 MiB。
+- 中文：[封面](portrait-v1/zh/cover.png) · [SRT](portrait-v1/zh/air-poker-douyin-30s.srt) · [分镜总览](portrait-v1/zh/storyboard-contact.png)。
+- 英文：[封面](portrait-v1/en/cover.png) · [SRT](portrait-v1/en/air-poker-tiktok-30s.srt) · [分镜总览](portrait-v1/en/storyboard-contact.png)。
+- [SHA-256 与源文件清单](portrait-v1/manifest.json) · [制作说明](../portrait/README.md) · [完整分镜方案](../../doc/promo/portrait-production.md) · [验收记录](../../doc/promo/portrait-validation.md)。
+
+双版均为原创程序音乐、音效与硬字幕版本，无人声旁白。各自目录保留实际 FFmpeg 参数、媒体检查及真实截图采集信息。竖屏后续版本使用 portrait-v2 等独立目录。
+
 ## V1 · 2026-10-25
 
 - [宣传视频](v1/air-poker-bilibili-72s.mp4)：《这局扑克，赌的是呼吸》，72 秒、1920×1080、30 fps，H.264 / AAC，约 37.1 MiB。

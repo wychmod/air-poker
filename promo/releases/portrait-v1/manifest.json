@@ -1,0 +1,167 @@
+{
+  "version": "portrait-v1",
+  "createdAt": "2026-10-25T15:25:25.609Z",
+  "title": "Your chips. Your breath.",
+  "narration": false,
+  "music": "Original procedural score, 140 BPM",
+  "safeArea": {
+    "left": 72,
+    "top": 180,
+    "right": 882,
+    "bottom": 1536
+  },
+  "variants": [
+    {
+      "lang": "zh",
+      "duration": 30,
+      "frames": 900,
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "loudnessLUFS": -14.21,
+      "truePeakDBTP": -3.38,
+      "files": [
+        {
+          "file": "zh/air-poker-douyin-30s.mp4",
+          "bytes": 17588821,
+          "sha256": "d2c16260a7bf7908a7d3845bb77f4497e53814f8734188a627f92e22a06b3247"
+        },
+        {
+          "file": "zh/air-poker-douyin-30s.srt",
+          "bytes": 657,
+          "sha256": "fa2b760e1a6d236b69e7f1d159377188634fa415dc332eacc51a8ef3157c51bf"
+        },
+        {
+          "file": "zh/cover.png",
+          "bytes": 1895674,
+          "sha256": "6613ae1e0811e8eac4b4bf18b4791c1d873eb64dab33b51d14238efe8a8fab0b"
+        },
+        {
+          "file": "zh/storyboard-contact.png",
+          "bytes": 767917,
+          "sha256": "494332f856b331a041107b74a29e39873dec1921c263687d9692637f6a7b88f7"
+        },
+        {
+          "file": "zh/air-poker-douyin-30s.verified.json",
+          "bytes": 522,
+          "sha256": "985fd21f50d3d1a7af996b20bfcc7ae607c35a71cb151b0ad8ace4110f3ca0ad"
+        },
+        {
+          "file": "zh/air-poker-douyin-30s.render.json",
+          "bytes": 3304,
+          "sha256": "ddca2279803b211c8ac92597223198eb87e7011e53f5ffaabf1023f42e3f7cd6"
+        },
+        {
+          "file": "zh/capture-manifest.json",
+          "bytes": 299,
+          "sha256": "bfb1d43b83d71557eccef0aa87aff97ad547aba8fba62695b5b275a160f9368c"
+        }
+      ]
+    },
+    {
+      "lang": "en",
+      "duration": 30,
+      "frames": 900,
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "loudnessLUFS": -14.21,
+      "truePeakDBTP": -3.38,
+      "files": [
+        {
+          "file": "en/air-poker-tiktok-30s.mp4",
+          "bytes": 17726320,
+          "sha256": "5bad41c58b78f48c51b25f1642eb93d8aa7f6e64498edddb991f2c7996da2a88"
+        },
+        {
+          "file": "en/air-poker-tiktok-30s.srt",
+          "bytes": 608,
+          "sha256": "60fde02cf181aa68860de9445845e2cb6cce9c57d472c075606d0e639c9c6f25"
+        },
+        {
+          "file": "en/cover.png",
+          "bytes": 1880103,
+          "sha256": "7de434bf1fb9e3b1dd1d79b75d1cd0246d6bfc8233a8397c3d1cfa76d844b081"
+        },
+        {
+          "file": "en/storyboard-contact.png",
+          "bytes": 755024,
+          "sha256": "8709e65253f205d455d28b80a6eca73bb4cd1c9094ba22d67468634cb185544b"
+        },
+        {
+          "file": "en/air-poker-tiktok-30s.verified.json",
+          "bytes": 522,
+          "sha256": "3bea23468194618f15d744fbebe305bf00b6742bd82d2b1b080838e819e67d09"
+        },
+        {
+          "file": "en/air-poker-tiktok-30s.render.json",
+          "bytes": 3304,
+          "sha256": "ecb482a01d1212e15c2cc577c67567d2503a2ab3ab5acdcbf77ae753b1452580"
+        },
+        {
+          "file": "en/capture-manifest.json",
+          "bytes": 299,
+          "sha256": "df07404d91025df1042067f9ac8d374640ddcb45a1567a51da0a6e900a34cf55"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "file": "promo/portrait/film.js",
+      "sha256": "b8408970188ea0c95daf3a50deee9777d06f0f5b4277f7deb80524cbbaa3c916"
+    },
+    {
+      "file": "promo/portrait/timeline.js",
+      "sha256": "d4a1007991a5a2b69a80385c258ff527f32b1b7da74ea70d018c7564eba874ac"
+    },
+    {
+      "file": "scripts/promo/audio-portrait.js",
+      "sha256": "870f3d926d3d6ec216d01a1c0e5aa69e91333cc53c50287661d21830250c1bd3"
+    },
+    {
+      "file": "scripts/promo/capture-portrait.js",
+      "sha256": "103a09ce22945e7173527f06c642e555b6929e6240da1b64c8b494da9ffd1784"
+    },
+    {
+      "file": "scripts/promo/render.js",
+      "sha256": "e0e49cf736bb763ae0becb4deabdf7ac51347ac90c5cd488669e4e92b97a34cc"
+    },
+    {
+      "file": "scripts/promo/compositions.js",
+      "sha256": "00cb7702176b03b71f7e7f2453e7b614d11fa5f959698fae51225c2386abb266"
+    },
+    {
+      "file": "scripts/promo/prepare.js",
+      "sha256": "5cbb0dbc44944e8d41f607ae31cb0ce87cb94f1316dde4de43bfcd5180f8b755"
+    },
+    {
+      "file": "assets/generated/air-poker-v1/usogui-page-assets/manga-introduction-background.png",
+      "sha256": "a8b0bc6cdca03910f3e4134accc97e66117a3c963db2b6fa66aef0e1e828296f"
+    },
+    {
+      "file": "assets/generated/air-poker-v2/defeat.png",
+      "sha256": "762923cbf39fcc4497c7b6adb4ddb151bf499cbf0c0d09bca19d295b5cc9237e"
+    },
+    {
+      "file": "output/promo/facts.json",
+      "sha256": "fad9d0565d768334cc44f2df3ec503b723b1b8d834c915db23ecc551467d170c"
+    },
+    {
+      "file": "output/promo/portrait/zh/captures/build.png",
+      "sha256": "4c86b8da376cfda09934b823944d6f022338ec36139a689173b594c1af515d19"
+    },
+    {
+      "file": "output/promo/portrait/zh/captures/showdown.png",
+      "sha256": "45240b35b6d03489846061e8cfa4cd7b1fa64b3032664438248cdbfb58393db2"
+    },
+    {
+      "file": "output/promo/portrait/en/captures/build.png",
+      "sha256": "7651494e2030fe0c44795092f8d040a80b827e5aa0e6275454cea20333888fc0"
+    },
+    {
+      "file": "output/promo/portrait/en/captures/showdown.png",
+      "sha256": "bd21542f4ad423188177431095957aaa3081ffee1d10f375c80726ea0ce23a48"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>空气扑克 · 竖屏宣传片</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <a href="/index.html" class="brand">A / P</a>
+        <div>
+          <p>VERTICAL FILM / 02</p>
+          <h1>把下一口气，放上牌桌。</h1>
+          <p>30 SEC · 9:16 · 1080 × 1920</p>
+        </div>
+        <nav class="languages" aria-label="Language">
+          <a href="?lang=zh" lang="zh">中文</a><a href="?lang=en" lang="en">English</a
+          ><a href="../index.html">16:9</a>
+        </nav>
+      </header>
+      <div class="workspace">
+        <div class="stage">
+          <canvas
+            id="film"
+            width="1080"
+            height="1920"
+            role="img"
+            aria-label="空气扑克竖屏宣传片，可展开文字稿"
+          ></canvas>
+          <div id="guides" hidden aria-hidden="true">
+            <div class="safe"><span>安全区 / SAFE AREA</span></div>
+            <div class="social">♡<br />◯<br />↗</div>
+            <div class="description">平台标题与描述遮挡示意 / PLATFORM UI MOCK</div>
+          </div>
+        </div>
+        <aside>
+          <p class="eyebrow">THE NEXT BREATH</p>
+          <h2 id="project-title">筹码，就是呼吸。</h2>
+          <p id="intro">白纸、黑墨与一抹暗红。把空气下注，把最后一口留给自己。</p>
+          <div class="controls">
+            <button id="play" disabled>播放</button><button id="restart" disabled>从头</button
+            ><button id="fullscreen">全屏</button>
+          </div>
+          <label class="seek"
+            >影片位置 / Position<input
+              id="seek"
+              aria-label="影片位置（秒）"
+              type="range"
+              min="0"
+              max="30"
+              step="0.01"
+              value="0" /></label
+          ><output id="time">00:00 / 00:30</output>
+          <div class="options">
+            <label><input id="sound" type="checkbox" checked />声音 / Sound</label
+            ><label><input id="safe-toggle" type="checkbox" />平台遮挡预览 / Safe area</label>
+          </div>
+          <p id="status" role="status">正在加载…</p>
+          <nav id="scenes" aria-label="镜头定位"></nav>
+          <details>
+            <summary>字幕文字稿 / Transcript</summary>
+            <ol id="transcript"></ol>
+          </details>
+        </aside>
+      </div>
+      <footer>
+        HTML / JAVASCRIPT + FFMPEG · 原创程序音轨 / ORIGINAL PROCEDURAL SCORE<br />改编自迫稔雄《噬谎者》第
+        40–43 卷「空气扑克」篇 · 非商用爱好者项目
+      </footer>
+    </main>
+    <audio id="score" preload="auto"></audio>
+    <script type="module" src="./preview.js"></script>
+  </body>
+</html>

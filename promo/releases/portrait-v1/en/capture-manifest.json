@@ -1,0 +1,12 @@
+{
+  "language": "en",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "deviceScaleFactor": 2,
+  "browser": "151.0.7922.34",
+  "captured": ["build", "showdown"],
+  "errors": [],
+  "method": "Actual production UI actions, seeded randomness 73, no injected game state. Still screenshots."
+}
