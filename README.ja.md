@@ -265,3 +265,9 @@ MITライセンスは、本プロジェクトの作者が書いたコードに�
 <p align="center">
   <a href="README.md">简体中文</a> · <a href="README.en.md">English</a> · <strong>日本語</strong>
 </p>
+
+## ブラウザー回帰とシェア
+
+`npm ci` の後、`npx playwright install chromium` で Chromium を準備し、`npm run check:browser` を実行します。実際のビルドをスマートフォン・デスクトップ、ルート・サブパスで検証し、CI と Pages の公開条件にしています。レポートは `output/e2e/` に保存されます。
+
+終了した対局と直近の記録から、中国語・英語の戦績画像をプレビューし、PNG 保存やユーザー操作による共有ができます。非対応環境でもリンクのコピーと画像保存が使えます。詳細は [実装と検証](doc/optimization/README.md) を参照してください。

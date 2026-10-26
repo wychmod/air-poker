@@ -2,6 +2,8 @@
 
 ## 当前工程入口
 
+[手机体验、浏览器回归与分享](optimization/README.md)：真实浏览器 CI、终局战报 PNG、双语分享摘要/封面、运行素材瘦身与实践教学；[实施验收](optimization/results.md)。
+
 [当前宣传片交付：中英文配乐字幕版](../promo/releases/README.md)：两版从第 0 帧起显示《噬谎者》来源，使用原来的背景音乐与音效，不含人声旁白；[成片预览](../promo/portrait/music.html)。
 
 [中文旁白 V2 与音频迭代](promo/audio-iteration-v2.md)：评审结果、九句口播、分轨混音、同位置试听比较及下一步优化优先级；[制作命令](../promo/portrait/VOICE.md)。

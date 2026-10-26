@@ -2,7 +2,7 @@
 
 ## 当前系统
 
-浏览器直接通过 HTTP 加载 ES modules，无编译步骤与后端。开发工具和测试使用 Node.js；Acorn 与 Prettier 仅为开发依赖，不进入站点。
+浏览器直接通过 HTTP 加载 ES modules，无编译步骤与后端。开发工具和测试使用 Node.js；Acorn、Prettier 与 Playwright Test 仅为开发依赖，不进入站点。
 
 依赖流：app → browser 时钟 / ui / engine；engine → cards / deal / ai / rules / betting / breathing / records；app → archive → records。实体牌与候选属于 cards，时间与资金的权威变化属于 engine 及纯函数，浏览器时钟只提交动作。
 
@@ -21,7 +21,8 @@
 | engine                                   | rules、cards、deal、ai、betting、breathing、records |
 | i18n                                     | 无运行模块依赖                                      |
 | ui                                       | ui、data、rules、cards、engine、breathing、i18n     |
-| app                                      | engine、browser、archive、ui、i18n                  |
+| share-ui（ui/share.js）                  | records；校验完成局并生成有限公开分享模型           |
+| app                                      | engine、browser、archive、ui、share-ui、i18n        |
 
 ui 只消费快照和只读函数，不创建第二份对局状态或自行下注结算。计时器、事件与语言存储属于入口层；game 不使用 DOM、网络、平台时钟或存储。新增模块要明确职责并更新矩阵与说明。
 
@@ -76,7 +77,7 @@ ui/record.js 只渲染快照与翻译，外来字符串转义。查看和导出�
 
 ## 发布与资源
 
-`npm run build` 只替换固定输出目录 `dist/site/`，从配置白名单复制入口、JS、CSS 和 `assets/generated/`。不复制开发依赖、测试、脚本、设计提案或参考素材。没有压缩、打包或代码转换。
+`npm run build` 只替换固定输出目录 `dist/site/`，从配置白名单复制入口、JS、实际使用的 CSS、`assets/runtime/` WebP 和 `assets/share/` 封面/图标，生成英文元信息入口 en.html。不复制开发依赖、测试、脚本、设计提案或参考素材。没有运行时代码打包或转换。WebP/分享封面离线生成并随源码管理，普通构建直接复制。
 
 浏览器导入与本地资源使用相对路径，以兼容根路径和项目子路径。新增运行目录时同步核对以下三处：
 
@@ -99,3 +100,11 @@ app.js 继续负责事件委托、对话框、实际时钟、教学状态、复�
 ## 发牌与策略评估
 
 npm run evaluate:strategy 默认使用 100 个独立种子、每个交换持牌，对比仅选牌、仅下注、完整策略和冻结旧版；--mode baseline 跑旧版基准。模拟复用引擎直到实际耐息终局，每次动作核对账户，完成记录经 isCompletedRecord 验证。参数、指标、独立样本、耗时与发牌决策见 [策略实施记录](../rules/strategy/results.md)。
+
+## 分享与首次初始化
+
+ui/share.js 属于明确的 share-ui 层，只依赖 records：拒绝未完成或损坏记录，从 ledger 重建趋势，输出不含牌面/目标/记录 ID 的有限模型与 SVG。browser/share.js 无运行模块依赖，只负责 PNG 转换、对象 URL 生命周期、下载和用户主动触发的分享/剪贴板效果；app 负责当前记录、语言和事件。取消、权限失败、不支持文件分享都保留下载或链接回退。
+
+首页、介绍和教学不创建引擎，空闲快照只有 phase=idle/sessionId=0；首次开始才 createGame，之后 reset 仍复用原实例保持动作编号递增。独立教学复用 hand-builder 和 battle 的纯编辑器模板，不 dispatch 正式动作。
+
+真实浏览器验收见 doc/optimization/README.md：e2e 仅在开发/CI 执行，打开 dist/site 的根/子路径，脚本和开发依赖不进入发布产物。

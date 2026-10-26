@@ -90,19 +90,20 @@ npm start
 npm run check
 ```
 
-| 命令                         | 用途                                                |
-| ---------------------------- | --------------------------------------------------- |
-| `npm test`                   | 游戏与 harness 回归测试                             |
-| `npm run evaluate:strategy`  | 固定种子、换边的整局策略比较，输出至 output/harness |
-| `npm run check:syntax`       | 浏览器、工具和测试脚本语法检查                      |
-| `npm run check:architecture` | 模块层级、平台 API、导入完整性与循环依赖检查        |
-| `npm run format:check`       | 检查受管理源码与工程文档格式                        |
-| `npm run format`             | 格式化上述文件，不处理待评审页面方案                |
-| `npm run build`              | 按白名单生成静态发布目录 `dist/site/`               |
-| `npm run check:smoke`        | 检查已生成产物的本地资源与 HTTP 加载；先执行 build  |
-| `npm run check`              | 按顺序执行以上自动验收，任一步失败即停止            |
+| 命令                         | 用途                                                                        |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `npm test`                   | 游戏与 harness 回归测试                                                     |
+| `npm run evaluate:strategy`  | 固定种子、换边的整局策略比较，输出至 output/harness                         |
+| `npm run check:syntax`       | 浏览器、工具和测试脚本语法检查                                              |
+| `npm run check:architecture` | 模块层级、平台 API、导入完整性与循环依赖检查                                |
+| `npm run format:check`       | 检查受管理源码与工程文档格式                                                |
+| `npm run format`             | 格式化上述文件，不处理待评审页面方案                                        |
+| `npm run build`              | 按白名单生成静态发布目录 `dist/site/`                                       |
+| `npm run check:browser`      | 构建后执行手机/桌面 Chromium 操作回归与分享验证；首次安装 Playwright 浏览器 |
+| `npm run check:smoke`        | 检查已生成产物的本地资源与 HTTP 加载；先执行 build                          |
+| `npm run check`              | 顺序执行语法、架构、单测、格式、构建、体积与 HTTP 检查                      |
 
-完整校验结果写入 `output/harness/latest.json`，此文件与发布产物均不提交。HTTP 校验不执行页面脚本，也不证明真实浏览器交互通过。
+完整校验结果写入 `output/harness/latest.json`，此文件与发布产物均不提交。浏览器操作回归通过独立的 `npm run check:browser` 执行，CI 与 Pages 同时运行这两个检查命令。HTTP 校验不执行页面脚本，也不证明真实浏览器交互通过。
 
 ## 修改与验收
 

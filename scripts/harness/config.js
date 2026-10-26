@@ -54,6 +54,7 @@ export const FORMAT_TARGETS = [
   '.github/workflows',
   'doc/README.md',
   'doc/maintainability',
+  'doc/optimization',
   'doc/harness',
   'doc/promo',
   'doc/rules',

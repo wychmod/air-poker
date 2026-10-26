@@ -265,3 +265,9 @@ This is an unofficial, noncommercial fan project with no affiliation with or aut
 <p align="center">
   <a href="README.md">简体中文</a> · <strong>English</strong> · <a href="README.ja.md">日本語</a>
 </p>
+
+## Browser regression and sharing
+
+After `npm ci`, install Chromium with `npx playwright install chromium`, then run `npm run check:browser`. This builds and tests the real site on mobile and desktop at both root and project paths; CI and Pages require this gate. Reports and failure traces are in `output/e2e/`.
+
+Completed matches and the last archive offer bilingual share-card previews, PNG downloads and user-initiated sharing, with copy-link/download fallbacks. Static English metadata is served at `en.html`. Optimized runtime images and explicit asset budgets keep the public build small. See [implementation and validation](doc/optimization/README.md).

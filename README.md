@@ -191,18 +191,21 @@ flowchart LR
 
 ## 开发与部署
 
-| 命令                   | 用途                                                                     |
-| ---------------------- | ------------------------------------------------------------------------ |
-| `npm test`             | 运行游戏规则、引擎、账目与工程检查器的回归测试。                         |
-| `npm run check`        | 顺序执行语法、架构、测试、格式、构建与 HTTP 资源检查，任一步失败即停止。 |
-| `npm run format:check` | 检查受管理源码与工程文档格式。                                           |
-| `npm run format`       | 格式化受管理文件；运行后请检查差异。                                     |
-| `npm run build`        | 按发布白名单生成静态站点 `dist/site/`。                                  |
-| `npm run check:smoke`  | 检查已构建产物的本地资源与 HTTP 加载，需先执行 build。                   |
+| 命令                    | 用途                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| `npm test`              | 运行游戏规则、引擎、账目与工程检查器的回归测试。                              |
+| `npm run check`         | 顺序执行语法、架构、测试、格式、构建与 HTTP 资源检查，任一步失败即停止。      |
+| `npm run format:check`  | 检查受管理源码与工程文档格式。                                                |
+| `npm run format`        | 格式化受管理文件；运行后请检查差异。                                          |
+| `npm run build`         | 按发布白名单生成静态站点 `dist/site/`。                                       |
+| `npm run check:browser` | 自动构建后运行手机/桌面 Chromium 真实操作回归，含分享下载；首次需安装浏览器。 |
+| `npm run check:smoke`   | 检查已构建产物的本地资源与 HTTP 加载，需先执行 build。                        |
 
-部署前运行 `npm run check`，将生成的 **`dist/site/`** 发布到静态托管服务。仓库提供 GitHub Pages 工作流，在发布前执行同一套检查；测试、开发依赖与工程文档不进入站点产物。
+部署前运行 `npm run check`，将生成的 **`dist/site/`** 发布到静态托管服务。仓库提供 GitHub Pages 工作流，在发布前执行上述检查及 `npm run check:browser`；测试、开发依赖与工程文档不进入站点产物。
 
-完整检查报告写入 `output/harness/latest.json`。HTTP 资源检查不执行页面脚本，交互改动仍需按[浏览器验收清单](doc/harness/acceptance.md)验证。
+完整检查报告写入 `output/harness/latest.json`；浏览器报告在 `output/e2e/report/`。首次运行浏览器回归前执行 `npx playwright install chromium`（Linux CI 加 `--with-deps`）。
+
+终局与最近完成局现在支持中英文战报预览、PNG 下载和用户主动分享；静态分享封面/摘要也提供中文和英文入口。详细命令、素材重建和降级行为见[浏览器回归与分享](doc/optimization/README.md)。HTTP 资源检查不执行页面脚本，交互改动仍需按[浏览器验收清单](doc/harness/acceptance.md)验证。
 
 ### 项目结构
 
