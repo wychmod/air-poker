@@ -524,10 +524,21 @@ function upper(state, view) {
             '从 52 张实体牌中自由选择 5 张，让点数和等于你的目标。',
             'Choose any 5 physical cards whose values add up to your target.',
           ),
-      view.timer,
+      undefined,
       lang,
     ) +
     handDraftMarkup(state, view, status, used) +
+    '<div class="hand-controls"><div class="hand-control-summary"><span>' +
+    copy(lang, '点数和 / 目标', 'SUM / TARGET') +
+    ' <strong>' +
+    status.sum +
+    ' / ' +
+    state.playerTarget +
+    '</strong></span><span class="battle-timer"><strong id="turnTimer">' +
+    (view.timer ?? '—') +
+    '</strong><span>' +
+    copy(lang, '秒', 'SEC') +
+    '</span></span></div>' +
     actionBar(
       state.upper.retry
         ? copy(
@@ -554,8 +565,9 @@ function upper(state, view) {
           : copy(lang, '锁定这手牌', 'Lock this hand')) +
         ' <span aria-hidden="true">→</span></button>',
     ) +
-    handPoolMarkup(state, view, cards, used) +
-    handRecommendations(state, view)
+    '</div>' +
+    handRecommendations(state, view) +
+    handPoolMarkup(state, view, cards, used)
   );
 }
 
@@ -1020,6 +1032,15 @@ function endurance(state, view) {
         copy(lang, '快进到生存结果', 'Fast-forward to survival result') +
         ' →</button>',
     )
+  );
+}
+
+export function practiceEditorMarkup(state, draft, lang) {
+  const view = { lang, handDraft: draft };
+  const used = new Set(state.discard.map((card) => card.id));
+  return (
+    handDraftMarkup(state, view, getDraftStatus(state, draft), used) +
+    handPoolMarkup(state, view, getDraftCards(state, draft), used)
   );
 }
 

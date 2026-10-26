@@ -51,6 +51,10 @@ test('tutorial requires actual lesson actions, preserves snapshots and never tou
   state = immutableAction(state, 'tutorial-target', { value: '24' });
   state = immutableAction(state, 'tutorial-select', { index: '1' });
   state = immutableAction(state, 'tutorial-lock');
+  assert.equal(state.complete, false, 'the player must actually edit the practice hand');
+  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '8-0', attempt: '1' });
+  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '8-0', attempt: '1' });
+  state = immutableAction(state, 'tutorial-lock');
   assert.equal(state.complete, true);
   state = immutableAction(state, 'tutorial-next');
   assert.equal(state.step, 1);

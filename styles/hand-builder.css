@@ -442,3 +442,136 @@ html[data-motion='off'] .hand-draft-card {
     transform: none !important;
   }
 }
+
+.hand-control-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #c7c8be;
+  font-size: 12px;
+}
+.hand-control-summary > span > strong {
+  margin-left: 10px;
+  font:
+    700 22px 'Courier New',
+    monospace;
+}
+.hand-control-summary .battle-timer {
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.hand-control-summary .battle-timer strong {
+  font-size: 25px;
+}
+.hand-control-summary .battle-timer span {
+  font-size: 10px;
+}
+@media (max-width: 720px) {
+  .battle[data-phase='upper'] {
+    padding-bottom: calc(156px + env(safe-area-inset-bottom, 0px));
+  }
+  .hand-controls {
+    position: fixed;
+    z-index: 20;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    padding: 0 14px env(safe-area-inset-bottom, 0px);
+    background: #f5f3eb;
+    border: 1px solid #6d7466;
+    border-bottom: 0;
+    box-shadow: 0 -6px 18px #20251f12;
+  }
+  .hand-controls .battle-actions {
+    padding: 9px 0 12px;
+    margin: 0;
+    border: 0;
+  }
+  .hand-controls .battle-actions > p {
+    font-size: 9px;
+    margin: 0 0 7px;
+  }
+  .hand-controls .battle-action-buttons {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  .hand-controls .battle-action-buttons .primary {
+    flex: 1;
+  }
+  .hand-controls .battle-action-buttons .button {
+    padding-inline: 10px;
+    min-height: 44px;
+  }
+  .hand-control-summary {
+    padding: 7px 0;
+  }
+  .hand-recommendations {
+    margin-top: 16px;
+    padding-top: 14px;
+  }
+  .hand-recommendations .battle-candidates {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding: 3px 3px 12px;
+    margin-bottom: 10px;
+  }
+  .hand-recommendations .battle-candidate {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+  .hand-pool {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .hand-library {
+    scroll-margin-bottom: 180px;
+  }
+  .hand-pool-card,
+  .hand-draft-card {
+    scroll-margin-block: 80px 180px;
+  }
+}
+
+.tutorial-practice-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  background: #f5f3eb;
+  border-top: 1px solid #6d7466;
+}
+.tutorial-practice-actions > span {
+  font-size: 12px;
+}
+.tutorial-workspace .hand-pool {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+@media (max-width: 720px) {
+  .tutorial-page:has(.tutorial-practice-actions) {
+    padding-bottom: 110px;
+  }
+  .tutorial-practice-actions {
+    position: fixed;
+    bottom: 0;
+    left: 12px;
+    right: 12px;
+    z-index: 20;
+    padding: 14px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+    border: 1px solid #6d7466;
+  }
+  .tutorial-practice-actions .button {
+    font-size: 12px;
+    padding-inline: 10px;
+  }
+  .tutorial-workspace .hand-pool {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}

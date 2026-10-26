@@ -1,5 +1,8 @@
 import { lessonCards } from './pages.js';
 import { translate } from '../i18n.js';
+import { createDeck } from '../game/cards.js';
+import { editHandDraft, getDraftStatus } from './hand-builder.js';
+import { practiceEditorMarkup } from './battle.js';
 
 const copy = (lang, zh, en) => (lang === 'en' ? en : zh);
 const hands = [
@@ -19,6 +22,22 @@ const hands = [
   ],
 ];
 
+const practiceDeck = createDeck();
+function practiceState(tutorial) {
+  return {
+    phase: 'upper',
+    sessionId: 0,
+    upper: { attemptId: 1 },
+    playerTarget: tutorial.target ?? 24,
+    discard: [practiceDeck.find((card) => card.id === '7-1')],
+    candidates: hands.map((hand) => ({
+      hand: hand.map(([rank, suit]) =>
+        practiceDeck.find((card) => card.rank === rank && card.suit === suit),
+      ),
+    })),
+  };
+}
+
 // A guided example has no game reference, clock, persistence or dispatch capability.
 export function createTutorial() {
   return {
@@ -32,6 +51,8 @@ export function createTutorial() {
     scenario: null,
     seen: [],
     breath: 0,
+    edited: false,
+    draft: { sessionId: 0, attemptId: 1, cardIds: [], suit: 'all', candidateIndex: null },
   };
 }
 
@@ -48,10 +69,25 @@ export function tutorialAction(current, action, data = {}) {
       state.error = state.target !== 24;
       state.selected = null;
     }
-    if (action === 'tutorial-select' && state.target === 24 && ['0', '1'].includes(data.index))
-      state.selected = Number(data.index);
-    if (action === 'tutorial-lock' && state.target === 24 && state.selected !== null)
-      state.complete = true;
+    if (state.target === 24) {
+      const actual = practiceState(state);
+      if (action === 'tutorial-select' && ['0', '1'].includes(data.index)) {
+        state.selected = Number(data.index);
+        state.draft = editHandDraft(actual, state.draft, 'select-candidate', {
+          ...data,
+          attempt: '1',
+        });
+        state.edited = false;
+      }
+      const edit = action.slice('tutorial-'.length);
+      if (['toggle-hand-card', 'filter-hand-suit', 'clear-hand'].includes(edit)) {
+        const next = editHandDraft(actual, state.draft, edit, data);
+        if (next !== state.draft && edit === 'toggle-hand-card') state.edited = true;
+        state.draft = next;
+      }
+      if (action === 'tutorial-lock' && state.edited && getDraftStatus(actual, state.draft).valid)
+        state.complete = true;
+    }
   }
   if (state.step === 1) {
     if (action === 'tutorial-increment' && [1, 2, 4].includes(Number(data.value)))
@@ -77,11 +113,96 @@ export function tutorialAction(current, action, data = {}) {
   return state;
 }
 
-function handExercise(state, c) {
-  return `<div class="tutorial-targets" aria-label="${c('选择练习目标', 'Choose the practice target')}">${[24, 30].map((value) => `<button class="lesson-number ${state.target === value ? 'is-selected' : ''}" data-action="tutorial-target" data-value="${value}" aria-pressed="${state.target === value}" ${state.complete ? 'disabled' : ''}><small>${c('目标', 'TARGET')}</small><b>${value}</b></button>`).join('')}</div>
-    <p class="lesson-hint">${state.error ? c('这两手牌的点数和都是 24，请改选数字 24。', 'Both example hands add up to 24. Choose the target 24.') : c('先选数字 24，再选示例成手。正式对局可逐张自由组牌；已用实体牌不能再用。', 'Choose 24, then an example hand. In a real match, choose cards individually; used physical cards cannot be reused.')}</p>
-    <div class="lesson-candidates">${hands.map((hand, index) => `<button class="lesson-candidate ${state.selected === index ? 'is-selected' : ''}" data-action="tutorial-select" data-index="${index}" aria-pressed="${state.selected === index}" ${state.target !== 24 || state.complete ? 'disabled' : ''}>${lessonCards(hand)}<span><b>${index === 0 ? c('三条', 'Three of a kind') : c('高牌', 'High card')}</b><small>Σ 24${state.selected === index ? ' · ' + c('已选整手', 'Selected hand') : ''}</small></span></button>`).join('')}</div>
-    ${state.complete ? `<div class="lesson-feedback">✓ ${c('整手已锁定。五张不同实体牌，点数和 24；牌型强弱与数字大小分开判断。', 'Hand locked: five different physical cards total 24. Poker rank and target value are separate.')}</div>` : `<button class="button primary" data-action="tutorial-lock" ${state.selected === null ? 'disabled' : ''}>${c('确认这手牌', 'Lock this hand')} →</button>`}`;
+function handExercise(state, c, _opponent, lang) {
+  const actual = practiceState(state);
+  const status = getDraftStatus(actual, state.draft);
+  const examples =
+    '<div class="lesson-candidates">' +
+    hands
+      .map(
+        (hand, index) =>
+          '<button class="lesson-candidate" data-action="tutorial-select" data-index="' +
+          index +
+          '" ' +
+          (state.target !== 24 || state.complete ? 'disabled' : '') +
+          '>' +
+          lessonCards(hand) +
+          '<span><b>' +
+          (index === 0
+            ? c('三条示例', 'Three-of-a-kind example')
+            : c('高牌示例', 'High-card example')) +
+          '</b><small>' +
+          c('填入后，试着换一张', 'Fill, then edit a card') +
+          '</small></span></button>',
+      )
+      .join('') +
+    '</div>';
+  const intro =
+    '<div class="tutorial-targets" aria-label="' +
+    c('选择练习目标', 'Choose the practice target') +
+    '">' +
+    [24, 30]
+      .map(
+        (value) =>
+          '<button class="lesson-number" data-action="tutorial-target" data-value="' +
+          value +
+          '" aria-pressed="' +
+          (state.target === value) +
+          '" ' +
+          (state.complete ? 'disabled' : '') +
+          '><small>' +
+          c('目标', 'TARGET') +
+          '</small><b>' +
+          value +
+          '</b></button>',
+      )
+      .join('') +
+    '</div><p class="lesson-hint">' +
+    (state.error
+      ? c(
+          '本课练习目标 24；选回 24 后，用五张未用牌完成。',
+          'This exercise uses 24. Choose 24 and build five unused cards.',
+        )
+      : c(
+          '选择 24，亲手添牌、移除或换牌。可先填入示例；7♥ 在练习中已用。',
+          'Choose 24, then add, remove or replace cards. You can fill an example first; 7♥ is already used in this exercise.',
+        )) +
+    '</p>';
+  if (state.complete)
+    return (
+      intro +
+      '<div class="lesson-feedback">✓ ' +
+      c(
+        '你已亲手编辑并锁定合法成手：五张未用实体牌，点数和 24。',
+        'You edited and locked a valid hand: five unused cards totaling 24.',
+      ) +
+      '</div>'
+    );
+  return (
+    intro +
+    examples +
+    (state.target === 24
+      ? '<p class="lesson-hint">' +
+        c(
+          '试着用 4♠、4♥、4♦、5♣、8♠ 组出 25，再把 8♠ 换成 7♠，观察提示如何变化。',
+          'Try 4♠, 4♥, 4♦, 5♣, 8♠ for 25. Replace 8♠ with 7♠ and watch the sum become 24.',
+        ) +
+        '</p>' +
+        practiceEditorMarkup(actual, state.draft, lang).replaceAll(
+          'data-action="',
+          'data-action="tutorial-',
+        ) +
+        '<div class="tutorial-practice-actions"><span>' +
+        c('点数和 / 目标', 'SUM / TARGET') +
+        ' <b>' +
+        status.sum +
+        ' / 24</b></span><button class="button primary" data-action="tutorial-lock" ' +
+        (!status.valid || !state.edited ? 'disabled' : '') +
+        '>' +
+        c('完成组牌练习', 'Lock practice hand') +
+        ' →</button></div>'
+      : '')
+  );
 }
 
 function betExercise(state, c) {
@@ -160,5 +281,5 @@ export function tutorialMarkup(state, view) {
   if (state.step === 4)
     return `<section class="tutorial-page tutorial-complete" data-scene="tutorial"><div class="tutorial-art" aria-hidden="true"></div><div class="tutorial-workspace"><p class="eyebrow">FOUR LESSONS. YOUR FIRST MATCH.</p><h1>${c('准备好，入场。', 'You are ready. Take your seat.')}</h1><p>${c('你已经练过：', 'You have practiced:')}</p><ul class="lesson-checklist">${titles.map((title) => `<li>✓ ${title}</li>`).join('')}</ul><div class="lesson-actions"><button class="button primary" data-action="enter-match">${c('开始正式对局', 'Start a real match')} →</button><button class="button secondary" data-action="tutorial-restart">${c('再练一次', 'Practice again')}</button></div></div></section>`;
   const exercises = [handExercise, betExercise, riskExercise, breathExercise];
-  return `<section class="tutorial-page" data-scene="tutorial"><div class="tutorial-art" aria-hidden="true"></div><div class="tutorial-workspace"><header class="tutorial-heading"><p class="eyebrow">PRACTICE ${String(state.step + 1).padStart(2, '0')} / 04</p><div class="lesson-progress" aria-label="${c('练习进度', 'Practice progress')}">${[0, 1, 2, 3].map((n) => `<span class="${n <= state.step ? 'is-active' : ''}"></span>`).join('')}</div><h1>${titles[state.step]}</h1><p>${c('独立练习 · 不计入正式对局', 'Isolated practice · never affects match records')}</p></header><div class="tutorial-exercise">${exercises[state.step](state, c, translate(view.lang, 'cpu'))}</div><footer class="tutorial-footer"><button class="button secondary" data-action="tutorial-reset">${c('重练这一项', 'Retry this lesson')}</button>${state.complete ? `<button class="button primary" data-action="tutorial-next">${state.step === 3 ? c('完成教学', 'Finish tutorial') : c('下一项练习', 'Next lesson')} →</button>` : `<span>${c('完成当前操作后继续', 'Complete the action to continue')}</span>`}</footer></div></section>`;
+  return `<section class="tutorial-page" data-scene="tutorial"><div class="tutorial-art" aria-hidden="true"></div><div class="tutorial-workspace"><header class="tutorial-heading"><p class="eyebrow">PRACTICE ${String(state.step + 1).padStart(2, '0')} / 04</p><div class="lesson-progress" aria-label="${c('练习进度', 'Practice progress')}">${[0, 1, 2, 3].map((n) => `<span class="${n <= state.step ? 'is-active' : ''}"></span>`).join('')}</div><h1>${titles[state.step]}</h1><p>${c('独立练习 · 不计入正式对局', 'Isolated practice · never affects match records')}</p></header><div class="tutorial-exercise">${exercises[state.step](state, c, translate(view.lang, 'cpu'), view.lang)}</div><footer class="tutorial-footer"><button class="button secondary" data-action="tutorial-reset">${c('重练这一项', 'Retry this lesson')}</button>${state.complete ? `<button class="button primary" data-action="tutorial-next">${state.step === 3 ? c('完成教学', 'Finish tutorial') : c('下一项练习', 'Next lesson')} →</button>` : `<span>${c('完成当前操作后继续', 'Complete the action to continue')}</span>`}</footer></div></section>`;
 }
