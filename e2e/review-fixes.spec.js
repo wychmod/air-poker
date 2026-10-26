@@ -4,6 +4,23 @@ import { isCompletedRecord } from '../game/records.js';
 
 const languageButton = (page, lang) => page.locator('#siteHeader [data-lang="' + lang + '"]');
 
+async function expectTutorialFitsViewport(page) {
+  // innerWidth may expand with overflowing content in a mobile layout viewport.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      ),
+    )
+    .toBeLessThanOrEqual(1);
+  if (page.viewportSize().width <= 720) {
+    const bounds = await page.locator('.tutorial-practice-actions').boundingBox();
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize().width + 1);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(page.viewportSize().height + 1);
+  }
+}
+
 test('语言偏好在中英文入口刷新后保持，入口只提供默认语言', async ({ page }) => {
   for (const [entry, initial] of [
     ['./en.html', 'en'],
@@ -79,11 +96,13 @@ test('教学示例选中反馈跟随草稿，手动编辑和清空会取消选�
   await page.locator('[data-action="tutorial-filter-hand-suit"][data-suit="0"]').click();
   await expect(examples.nth(1)).toHaveAttribute('aria-pressed', 'true');
   await languageButton(page, 'en').click();
+  await expectTutorialFitsViewport(page);
   await expect(examples.nth(1)).toHaveAttribute('aria-pressed', 'true');
   await page.locator('#hand-draft-8-0').click();
   await expect(page.locator('[data-action="tutorial-select"][aria-pressed="true"]')).toHaveCount(0);
   await expect(page.locator('.lesson-candidate.is-selected')).toHaveCount(0);
   await examples.first().click();
+  await expectTutorialFitsViewport(page);
   await page.locator('[data-action="tutorial-clear-hand"]').click();
   await expect(page.locator('[data-action="tutorial-select"][aria-pressed="true"]')).toHaveCount(0);
 });

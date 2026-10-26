@@ -123,9 +123,11 @@ test('手动填满五张后切语言及滚动牌库，手机操作栏始终可�
       await expect(page.locator('#turnTimer')).toBeInViewport();
       await expect(page.locator('[data-action="submit-hand"]')).toBeInViewport();
     }
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
-      true,
-    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
+      ),
+    ).toBe(true);
   }
   await page.locator('[data-action="submit-hand"]').click();
   await expect(page.locator('.battle')).toHaveAttribute('data-phase', 'bet');

@@ -871,6 +871,7 @@ html[lang='zh-CN'] .home-center h1 span {
   cursor: default;
 }
 .lesson-candidate > span:last-child {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   text-align: right;
@@ -878,7 +879,8 @@ html[lang='zh-CN'] .home-center h1 span {
 }
 .lesson-candidate > span:last-child b {
   font-size: 14px;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .lesson-candidate > span:last-child small {
   font-size: 11px;
