@@ -1,0 +1,95 @@
+.share-dialog {
+  width: min(920px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+}
+.share-dialog .dialog-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f5f3eb;
+  flex-wrap: wrap;
+}
+.share-dialog .dialog-toolbar > strong {
+  flex: 1 1 220px;
+}
+.share-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(220px, 1fr);
+  gap: 28px;
+  padding: 24px;
+  align-items: start;
+}
+.share-preview {
+  min-height: 160px;
+  background: #e7e7df;
+  border: 1px solid #c4c7ba;
+}
+.share-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.share-controls {
+  position: sticky;
+  top: 110px;
+}
+.share-controls > p:first-child {
+  margin-top: 0;
+  font-size: 18px;
+  line-height: 1.7;
+}
+#shareStatus {
+  min-height: 3.5em;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #666e60;
+}
+.share-controls .button-row {
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.share-controls label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+#shareLink {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #b9bdb0;
+  padding: 12px;
+  background: #fffef8;
+  font:
+    12px 'Courier New',
+    monospace;
+}
+#copyShareLink {
+  margin-top: 10px;
+}
+@media (max-width: 650px) {
+  .share-body {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+  }
+  .share-preview {
+    width: min(100%, 390px);
+    align-self: center;
+  }
+  .share-controls {
+    position: static;
+    width: 100%;
+  }
+  .share-dialog .dialog-toolbar > strong {
+    font-size: 15px;
+    flex-basis: 160px;
+  }
+  .share-dialog .dialog-toolbar {
+    gap: 8px;
+  }
+  .share-controls .button-row {
+    margin-bottom: 18px;
+  }
+}

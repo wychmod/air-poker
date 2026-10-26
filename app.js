@@ -4,6 +4,8 @@ import { createMatchClock } from './browser/match-clock.js';
 import { createRecordStore } from './browser/record-store.js';
 import { createSceneMotion } from './browser/scene-motion.js';
 import { createVisitCounter } from './browser/visit-counter.js';
+import { createShareExporter } from './browser/share.js';
+import { shareSummary, shareCopy, shareImageSvg } from './ui/share.js';
 import { isLanguage, translate } from './i18n.js';
 import { createRenderer } from './ui/render.js';
 import { cardMarkup, updateBetPreview } from './ui/battle.js';
@@ -32,7 +34,8 @@ const renderer = createRenderer(document);
 const visitCounter = createVisitCounter({ root: $('siteVisits') });
 const motion = createSceneMotion({ root: $('app'), canvas: $('sceneCanvas') });
 const view = {
-  lang: stored('air-poker-lang', 'zh') === 'en' ? 'en' : 'zh',
+  lang:
+    document.documentElement.lang === 'en' || stored('air-poker-lang', 'zh') === 'en' ? 'en' : 'zh',
   screen: 'home',
   timer: BET_SECONDS,
   selectedTarget: null,
@@ -146,6 +149,8 @@ function renderRecord() {
   $('previousRecord').disabled = !lastRecord;
   $('refreshRecord').disabled = recordSource !== 'current' || !matchStarted;
   $('exportRecord').disabled = !shownRecord;
+  $('shareRecord').textContent = c('分享战报', 'Share card');
+  $('shareRecord').disabled = !shareSummary(shownRecord);
   $('recordStorageStatus').textContent = t(
     recordSource === 'previous' || shownRecord?.status === 'completed'
       ? 'storage_' + storageStatus
@@ -194,6 +199,63 @@ function scheduleReview() {
     scheduleReview();
   }, 1100);
 }
+let sharingRecord = null;
+const shareExporter = createShareExporter({ document, notify: toast });
+function showShare(record) {
+  const model = shareSummary(record);
+  if (!model) {
+    toast(c('请在对局完成后生成战报。', 'Finish a match to create its share card.'));
+    return;
+  }
+  sharingRecord = record;
+  $('shareTitle').textContent = c('把这一局，留成一张战报。', 'Your match. On one card.');
+  $('shareDialog')
+    .querySelectorAll('[data-lang]')
+    .forEach((button) =>
+      button.setAttribute('aria-pressed', String(button.dataset.lang === view.lang)),
+    );
+  $('shareIntro').textContent = c(
+    '保存图片，或把游戏分享给下一位对手。',
+    'Save the image or invite someone to take the next seat.',
+  );
+  $('shareLinkLabel').textContent = c('试玩链接', 'Play link');
+  $('copyShareLink').textContent = c('复制链接', 'Copy link');
+  $('closeShare').ariaLabel = c('关闭战报', 'Close share card');
+  openDialog('shareDialog');
+  void shareExporter.prepare({
+    ...shareCopy(model, view.lang),
+    svg: shareImageSvg(model, view.lang),
+    messages: {
+      save: c('保存战报图片', 'Save PNG'),
+      share: c('系统分享', 'Share'),
+      loading: c('正在生成战报…', 'Creating your card…'),
+      ready: c('战报已就绪。图片和链接都可以分享。', 'Your card is ready to save or share.'),
+      failed: c(
+        '图片暂时无法生成。仍可复制试玩链接，关闭后可重试。',
+        'Could not create the image. Copy the play link or reopen to retry.',
+      ),
+      downloaded: c(
+        '已发起图片下载；手机也可长按预览保存。',
+        'Download started. On mobile, you can also hold the preview to save.',
+      ),
+      shared: c('已交给系统分享。', 'Sent to the system share sheet.'),
+      cancelled: c(
+        '已取消分享，战报仍可保存。',
+        'Share cancelled. Your card is still ready to save.',
+      ),
+      shareFailed: c(
+        '系统分享不可用，请保存图片或复制链接。',
+        'Sharing is unavailable. Save the PNG or copy the link.',
+      ),
+      copied: c('试玩链接已复制。', 'Play link copied.'),
+      manualCopy: c(
+        '请长按或使用 Ctrl/Cmd+C 复制已选中的链接。',
+        'Hold the selected link or press Ctrl/Cmd+C to copy it.',
+      ),
+    },
+  });
+}
+
 function exportRecord() {
   if (!shownRecord) return;
   const url = URL.createObjectURL(
@@ -347,6 +409,7 @@ function setLanguage(lang) {
   render();
   if ($('recordDialog').open) renderRecord();
   if ($('utilityDialog').open) renderUtility();
+  if ($('shareDialog').open && sharingRecord) showShare(sharingRecord);
 }
 // All authoritative actions go through dispatch; tutorial and playback change view state only.
 document.addEventListener('click', (event) => {
@@ -417,6 +480,24 @@ document.addEventListener('click', (event) => {
       break;
     case 'close-record':
       closeDialog('recordDialog');
+      break;
+    case 'share-result':
+      showShare(matchStarted ? game.getRecord() : lastRecord);
+      break;
+    case 'share-record':
+      showShare(shownRecord);
+      break;
+    case 'close-share':
+      closeDialog('shareDialog');
+      break;
+    case 'save-share':
+      shareExporter.download();
+      break;
+    case 'native-share':
+      void shareExporter.share();
+      break;
+    case 'copy-share':
+      void shareExporter.copy();
       break;
     case 'export-record':
       exportRecord();
@@ -564,6 +645,10 @@ document.addEventListener('change', (event) => {
 document.querySelectorAll('dialog').forEach((dialog) => {
   dialog.addEventListener('close', () => {
     if (dialog.id === 'recordDialog') stopReview();
+    if (dialog.id === 'shareDialog') {
+      shareExporter.clear();
+      sharingRecord = null;
+    }
     restoreDialogFocus(dialog.id);
   });
 });
@@ -578,7 +663,10 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 window.addEventListener('pagehide', (event) => {
-  if (!event.persisted) visitCounter.destroy();
+  if (!event.persisted) {
+    visitCounter.destroy();
+    shareExporter.clear();
+  }
   matchClock.flush();
   matchClock.suspend();
   turnClock.suspend();

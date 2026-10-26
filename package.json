@@ -28,9 +28,11 @@
     "promo:voice:prepare": "node scripts/promo/narration.js",
     "promo:voice:render": "node scripts/promo/voice-remix.js",
     "promo:voice:verify": "node scripts/promo/verify.js --format portrait --name air-poker-douyin-voice-v2",
-    "promo:voice:check-browser": "node scripts/promo/check-voice.js"
+    "promo:voice:check-browser": "node scripts/promo/check-voice.js",
+    "assets:share": "node scripts/generate-share-assets.js"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "acorn": "8.19.0",
     "prettier": "3.9.10"
   }

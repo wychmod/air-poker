@@ -3,9 +3,9 @@ import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, isAbsolute, relative, resolve } from 'node:path';
 import { collectResources } from './assets.js';
-import { MIME, SITE_ROOT } from './config.js';
+import { MIME, SITE_ROOT, SITE_FILES } from './config.js';
 
-const resources = await collectResources(SITE_ROOT);
+const resources = await collectResources(SITE_ROOT, [...SITE_FILES, 'en.html']);
 // Serve the actual artifact so accidental publication of private files is visible.
 const server = createServer(async (request, response) => {
   try {

@@ -1,4 +1,5 @@
-import { cp, mkdir, rm } from 'node:fs/promises';
+import { cp, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
+import { englishEntry } from './share-metadata.js';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { ROOT, SITE_DIRECTORIES, SITE_FILES, SITE_ROOT } from './harness/config.js';
 
@@ -12,4 +13,8 @@ for (const path of [...SITE_FILES, ...SITE_DIRECTORIES]) {
   await mkdir(resolve(destination, '..'), { recursive: true });
   await cp(resolve(ROOT, path), destination, { recursive: true, dereference: false });
 }
+await writeFile(
+  resolve(SITE_ROOT, 'en.html'),
+  englishEntry(await readFile(resolve(ROOT, 'index.html'), 'utf8')),
+);
 console.log('Static site staged: dist/site/');

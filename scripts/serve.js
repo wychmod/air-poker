@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { englishEntry } from './share-metadata.js';
 import { readFile } from 'node:fs/promises';
 import { dirname, extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,13 +23,17 @@ createServer(async (request, response) => {
     const relative = path === '/' ? 'index.html' : path.slice(1);
     const file = resolve(root, relative);
     const publicPath =
-      ['index.html', 'motion-demo.html', 'app.js', 'i18n.js', 'styles.css'].includes(relative) ||
-      /^(assets|game|browser|ui|styles)\//.test(relative);
+      ['index.html', 'en.html', 'motion-demo.html', 'app.js', 'i18n.js', 'styles.css'].includes(
+        relative,
+      ) || /^(assets|game|browser|ui|styles)\//.test(relative);
     if (!publicPath || !file.startsWith(root + sep)) {
       response.writeHead(404).end('Not found');
       return;
     }
-    const contents = await readFile(file);
+    const contents =
+      relative === 'en.html'
+        ? englishEntry(await readFile(resolve(root, 'index.html'), 'utf8'))
+        : await readFile(file);
     response.writeHead(200, {
       'Content-Type': mime[extname(file)] ?? 'application/octet-stream',
       'Cache-Control': 'no-cache',

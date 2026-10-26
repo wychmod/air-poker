@@ -15,11 +15,15 @@ export const SITE_FILES = [
   'styles/review.css',
   'styles/motion.css',
   'styles/motion-demo.css',
+  'styles/share.css',
   'assets/runtime/scene.webp',
   'assets/runtime/scene-mobile.webp',
   'assets/runtime/tutorial.webp',
   'assets/runtime/victory.webp',
   'assets/runtime/defeat.webp',
+  'assets/share/cover-zh.png',
+  'assets/share/cover-en.png',
+  'assets/share/favicon.svg',
 ];
 export const SITE_DIRECTORIES = ['game', 'browser', 'ui'];
 export const CODE_ROOTS = [
@@ -78,12 +82,17 @@ export const LAYERS = [
   { name: 'archive', path: 'browser/record-store.js', allows: ['records'] },
   { name: 'browser', prefix: 'browser/', allows: [] },
   { name: 'i18n', path: 'i18n.js', allows: [] },
+  { name: 'share-ui', path: 'ui/share.js', allows: ['records'] },
   {
     name: 'ui',
     prefix: 'ui/',
     allows: ['ui', 'data', 'rules', 'cards', 'engine', 'breathing', 'i18n'],
   },
-  { name: 'app', path: 'app.js', allows: ['engine', 'browser', 'archive', 'ui', 'i18n'] },
+  {
+    name: 'app',
+    path: 'app.js',
+    allows: ['engine', 'browser', 'archive', 'ui', 'share-ui', 'i18n'],
+  },
 ];
 
 export const NODE_GLOBALS = new Set([
