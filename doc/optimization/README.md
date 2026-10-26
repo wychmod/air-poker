@@ -43,6 +43,6 @@ npm run assets:share
 
 ## 实施与依据
 
-需求、设计、任务和逐项验收分别见 [spec](spec.md)、[plan](plan.md)、[task](task.md)、[checklist](checklist.md)。具体验证记录见 [results](results.md)。
+需求、设计、任务和逐项验收分别见 [spec](spec.md)、[plan](plan.md)、[task](task.md)、[checklist](checklist.md)。具体验证记录见 [results](results.md)。语言刷新、普通 HTTP 开局、教学选中态和分享无空白切换的后续修复见 [评审反馈修复](review-fixes.md)。
 
 本轮 Context7 不可用，使用 Playwright 官方 [CI](https://playwright.dev/docs/ci-intro)、[webServer](https://playwright.dev/docs/test-webserver)、[Clock](https://playwright.dev/docs/clock) 与 [MDN Web Share](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share) 文档，并以锁定版本运行实测。

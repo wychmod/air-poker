@@ -43,7 +43,6 @@ export function createTutorial() {
   return {
     step: 0,
     target: null,
-    selected: null,
     complete: false,
     error: false,
     increment: 2,
@@ -67,12 +66,10 @@ export function tutorialAction(current, action, data = {}) {
     if (action === 'tutorial-target') {
       state.target = Number(data.value);
       state.error = state.target !== 24;
-      state.selected = null;
     }
     if (state.target === 24) {
       const actual = practiceState(state);
       if (action === 'tutorial-select' && ['0', '1'].includes(data.index)) {
-        state.selected = Number(data.index);
         state.draft = editHandDraft(actual, state.draft, 'select-candidate', {
           ...data,
           attempt: '1',
@@ -121,8 +118,12 @@ function handExercise(state, c, _opponent, lang) {
     hands
       .map(
         (hand, index) =>
-          '<button class="lesson-candidate" data-action="tutorial-select" data-index="' +
+          '<button class="lesson-candidate' +
+          (state.target === 24 && state.draft.candidateIndex === index ? ' is-selected' : '') +
+          '" data-action="tutorial-select" data-index="' +
           index +
+          '" aria-pressed="' +
+          (state.target === 24 && state.draft.candidateIndex === index) +
           '" ' +
           (state.target !== 24 || state.complete ? 'disabled' : '') +
           '>' +

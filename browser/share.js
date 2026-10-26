@@ -26,12 +26,14 @@ export function createShareExporter({ document, notify }) {
   return {
     clear,
     async prepare(data) {
-      clear();
+      const id = ++generation;
+      // Keep the previous image visible, but never export it as the requested language.
+      ready = null;
       current = data;
-      const id = generation;
+      save.disabled = true;
+      native.disabled = true;
       const { svg, messages, title, url } = data;
       link.value = url;
-      preview.alt = title;
       save.textContent = messages.save;
       native.textContent = messages.share;
       native.hidden = typeof navigator.share !== 'function';
@@ -39,10 +41,12 @@ export function createShareExporter({ document, notify }) {
       const sourceUrl = URL.createObjectURL(
         new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }),
       );
+      let nextUrl = null;
       try {
         const image = new Image();
         image.src = sourceUrl;
         await image.decode();
+        if (id !== generation) return;
         const canvas = document.createElement('canvas');
         canvas.width = 1080;
         canvas.height = 1440;
@@ -56,16 +60,26 @@ export function createShareExporter({ document, notify }) {
           ),
         );
         if (id !== generation) return;
-        ready = { ...data, blob };
-        previewUrl = URL.createObjectURL(blob);
+        nextUrl = URL.createObjectURL(blob);
+        const nextImage = new Image();
+        nextImage.src = nextUrl;
+        await nextImage.decode();
+        if (id !== generation) return;
+        const previousUrl = previewUrl;
+        previewUrl = nextUrl;
+        nextUrl = null;
         preview.src = previewUrl;
+        preview.alt = title;
         preview.hidden = false;
+        ready = { ...data, blob };
         save.disabled = false;
         native.disabled = false;
+        if (previousUrl) URL.revokeObjectURL(previousUrl);
         say('ready');
       } catch {
-        if (id === generation) say('failed');
+        if (id === generation) say(previewUrl ? 'refreshFailed' : 'failed');
       } finally {
+        if (nextUrl) URL.revokeObjectURL(nextUrl);
         URL.revokeObjectURL(sourceUrl);
       }
     },

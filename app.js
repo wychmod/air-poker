@@ -33,9 +33,10 @@ const currentState = () => game?.getState() ?? { phase: 'idle', sessionId: 0 };
 const renderer = createRenderer(document);
 const visitCounter = createVisitCounter({ root: $('siteVisits') });
 const motion = createSceneMotion({ root: $('app'), canvas: $('sceneCanvas') });
+const defaultLanguage = document.documentElement.lang === 'en' ? 'en' : 'zh';
+const savedLanguage = stored('air-poker-lang', defaultLanguage);
 const view = {
-  lang:
-    document.documentElement.lang === 'en' || stored('air-poker-lang', 'zh') === 'en' ? 'en' : 'zh',
+  lang: isLanguage(savedLanguage) ? savedLanguage : defaultLanguage,
   screen: 'home',
   timer: BET_SECONDS,
   selectedTarget: null,
@@ -234,6 +235,10 @@ function showShare(record) {
         '图片暂时无法生成。仍可复制试玩链接，关闭后可重试。',
         'Could not create the image. Copy the play link or reopen to retry.',
       ),
+      refreshFailed: c(
+        '图片更新失败，仍显示切换前的语言。可复制试玩链接，或关闭后重试。',
+        'Could not update the image. The preview is still in the previous language. Copy the play link or reopen to retry.',
+      ),
       downloaded: c(
         '已发起图片下载；手机也可长按预览保存。',
         'Download started. On mobile, you can also hold the preview to save.',
@@ -343,7 +348,12 @@ function restart(withIntro) {
   closeAllDialogs();
   $('toast').classList.remove('show');
   if (game) game.reset();
-  else game = createGame({ recordId: crypto.randomUUID() });
+  else {
+    const recordId =
+      globalThis.crypto?.randomUUID?.() ??
+      'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+    game = createGame({ recordId });
+  }
   matchStarted = true;
   abandoned = false;
   view.timer = BET_SECONDS;
