@@ -26,7 +26,8 @@ function persist(key, value) {
   }
 }
 const $ = (id) => document.getElementById(id);
-const game = createGame({ recordId: crypto.randomUUID() });
+let game = null;
+const currentState = () => game?.getState() ?? { phase: 'idle', sessionId: 0 };
 const renderer = createRenderer(document);
 const visitCounter = createVisitCounter({ root: $('siteVisits') });
 const motion = createSceneMotion({ root: $('app'), canvas: $('sceneCanvas') });
@@ -62,12 +63,12 @@ let utility = 'settings';
 const returnActions = new Map();
 
 function activeMatch() {
-  return matchStarted && !abandoned && game.getState().phase !== 'summary';
+  return matchStarted && !abandoned && currentState().phase !== 'summary';
 }
 function liveClocks() {
   const text = activeMatch()
     ? c('对局继续', 'Match continues') +
-      (['upper', 'bet'].includes(game.getState().phase) && view.timer != null
+      (['upper', 'bet'].includes(currentState().phase) && view.timer != null
         ? ' · ' + view.timer + 's'
         : '')
     : '';
@@ -76,7 +77,7 @@ function liveClocks() {
   });
 }
 function render() {
-  const snapshot = game.getState();
+  const snapshot = currentState();
   view.handDraft = syncHandDraft(snapshot, view.handDraft);
   if (matchStarted && snapshot.phase === 'summary' && savedSession !== snapshot.sessionId) {
     lastRecord = game.getRecord();
@@ -223,9 +224,9 @@ const turnClock = createTurnClock({
 });
 const matchClock = createMatchClock({
   onPulse(action) {
-    const before = game.getState();
+    const before = currentState();
     if (!game.dispatch(action)) return;
-    const after = game.getState();
+    const after = currentState();
     if (
       after.phase !== before.phase ||
       after.playerAir !== before.playerAir ||
@@ -240,6 +241,7 @@ const matchClock = createMatchClock({
   },
 });
 function dispatch(action) {
+  if (!game) return false;
   matchClock.flush();
   if (!game.dispatch(action)) {
     if (!['bet-timeout', 'cpu-bet', 'upper-timeout'].includes(action.type))
@@ -248,8 +250,8 @@ function dispatch(action) {
       );
     return false;
   }
-  matchClock.sync(game.getState());
-  turnClock.sync(game.getState());
+  matchClock.sync(currentState());
+  turnClock.sync(currentState());
   render();
   return true;
 }
@@ -278,13 +280,14 @@ function restart(withIntro) {
   stopReview();
   closeAllDialogs();
   $('toast').classList.remove('show');
-  game.reset();
+  if (game) game.reset();
+  else game = createGame({ recordId: crypto.randomUUID() });
   matchStarted = true;
   abandoned = false;
   view.timer = BET_SECONDS;
   view.selectedTarget = null;
   setScreen(withIntro ? 'intro' : 'game');
-  matchClock.sync(game.getState());
+  matchClock.sync(currentState());
   if (withIntro) introHandle = setTimeout(() => setScreen('game'), 1350);
 }
 function navigate(action) {
@@ -332,7 +335,7 @@ function renderUtility() {
     $('utilityContent').innerHTML =
       `<div class="settings-list"><label><input id="motionSetting" type="checkbox" ${view.motionEnabled ? 'checked' : ''}/><span>${c('装饰与事件动效', 'Decorative and event motion')}<small>${c('系统减少动态效果优先。关闭动效不会暂停对局时间。', 'System reduced-motion takes priority. Disabling motion does not pause match time.')}</small></span></label><div class="button-row"><button class="button secondary" data-action="open-tutorial">${c('进入教学', 'Practice')}</button><button class="button secondary" data-action="open-playbook">${c('游戏介绍', 'How to play')}</button><button class="button secondary" data-action="go-home">${c('返回首页', 'Home')}</button>${activeMatch() ? '<button class="button secondary" data-action="reset-game">' + c('重新开局', 'New match') + '</button>' : ''}</div><a href="motion-demo.html">${c('打开独立动态漫画示例', 'Open the motion study')} ↗</a></div>`;
   } else {
-    const state = game.getState();
+    const state = currentState();
     $('utilityContent').innerHTML =
       `<p>${c('这些实体牌已使用，后续成手不可再次使用。同点数不同花色是不同实体。', 'These physical cards cannot be used again. Equal ranks of different suits are different cards.')}</p><div class="discard-grid">${state.discard.length ? state.discard.map((card) => cardMarkup(card)).join('') : '<p>' + c('尚无已用牌。', 'No cards used yet.') + '</p>'}</div>`;
   }
@@ -467,7 +470,7 @@ document.addEventListener('click', (event) => {
       break;
     }
     case 'choose-target': {
-      const state = game.getState(),
+      const state = currentState(),
         index = Number(data.index);
       if (state.phase === 'lower' && state.targetPlayable[index]) {
         view.selectedTarget = index;
@@ -485,7 +488,7 @@ document.addEventListener('click', (event) => {
     case 'toggle-hand-card':
     case 'filter-hand-suit':
     case 'clear-hand': {
-      const state = game.getState();
+      const state = currentState();
       const next = editHandDraft(state, view.handDraft, action, data);
       if (next === view.handDraft) {
         if (
@@ -507,7 +510,7 @@ document.addEventListener('click', (event) => {
       break;
     }
     case 'submit-hand': {
-      const state = game.getState();
+      const state = currentState();
       if (state.phase !== 'upper' || Number(data.attempt) !== state.upper.attemptId) break;
       const draft = getDraftStatus(state, view.handDraft);
       if (draft.complete)
@@ -523,12 +526,12 @@ document.addEventListener('click', (event) => {
       dispatch({ type: action });
       break;
     case 'fast-forward':
-      dispatch({ type: action, sessionId: game.getState().sessionId });
+      dispatch({ type: action, sessionId: currentState().sessionId });
       break;
     case 'max-raise':
       if ($('raiseAmount')) {
-        $('raiseAmount').value = game.getState().legalBets.maxRaise;
-        updateBetPreview(document, game.getState(), view.lang);
+        $('raiseAmount').value = currentState().legalBets.maxRaise;
+        updateBetPreview(document, currentState(), view.lang);
       }
       break;
     case 'bet': {
@@ -544,7 +547,7 @@ document.addEventListener('click', (event) => {
   }
 });
 document.addEventListener('input', (event) => {
-  if (event.target.id === 'raiseAmount') updateBetPreview(document, game.getState(), view.lang);
+  if (event.target.id === 'raiseAmount') updateBetPreview(document, currentState(), view.lang);
 });
 document.addEventListener('change', (event) => {
   if (event.target.id === 'reviewSeek') {
@@ -570,7 +573,7 @@ document.addEventListener('visibilitychange', () => {
     stopReview();
   } else {
     matchClock.flush();
-    if (activeMatch()) turnClock.sync(game.getState());
+    if (activeMatch()) turnClock.sync(currentState());
     if ($('recordDialog').open) renderRecord();
   }
 });
@@ -588,8 +591,8 @@ window.addEventListener('pagehide', (event) => {
 window.addEventListener('pageshow', (event) => {
   if (!event.persisted) return;
   if (activeMatch()) {
-    matchClock.sync(game.getState());
-    turnClock.sync(game.getState());
+    matchClock.sync(currentState());
+    turnClock.sync(currentState());
   }
   if (view.screen === 'intro') view.screen = 'game';
   motion.resume();

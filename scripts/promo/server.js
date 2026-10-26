@@ -12,6 +12,7 @@ const types = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
   '.wav': 'audio/wav',
   '.mp4': 'video/mp4',
   '.m4a': 'audio/mp4',
@@ -29,7 +30,7 @@ export async function startServer(port = 0) {
       const file = resolve(ROOT, relative);
       const normalized = relativePath(ROOT, file).split(sep).join('/');
       const allowed =
-        /^(promo\/(?!node_modules\/)|output\/promo\/|assets\/generated\/|game\/|ui\/|browser\/|styles\/)/.test(
+        /^(promo\/(?!node_modules\/)|output\/promo\/|assets\/(?:generated|runtime|share)\/|game\/|ui\/|browser\/|styles\/)/.test(
           normalized,
         ) || ['index.html', 'app.js', 'i18n.js', 'styles.css'].includes(normalized);
       if (!allowed || !file.startsWith(ROOT.endsWith(sep) ? ROOT : ROOT + sep)) {

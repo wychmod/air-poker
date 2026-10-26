@@ -2,8 +2,26 @@ import { fileURLToPath } from 'node:url';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const SITE_ROOT = fileURLToPath(new URL('../../dist/site/', import.meta.url));
-export const SITE_FILES = ['index.html', 'motion-demo.html', 'styles.css', 'app.js', 'i18n.js'];
-export const SITE_DIRECTORIES = ['game', 'browser', 'ui', 'styles', 'assets/generated'];
+export const SITE_FILES = [
+  'index.html',
+  'motion-demo.html',
+  'styles.css',
+  'app.js',
+  'i18n.js',
+  'styles/shell.css',
+  'styles/narrative.css',
+  'styles/battle.css',
+  'styles/hand-builder.css',
+  'styles/review.css',
+  'styles/motion.css',
+  'styles/motion-demo.css',
+  'assets/runtime/scene.webp',
+  'assets/runtime/scene-mobile.webp',
+  'assets/runtime/tutorial.webp',
+  'assets/runtime/victory.webp',
+  'assets/runtime/defeat.webp',
+];
+export const SITE_DIRECTORIES = ['game', 'browser', 'ui'];
 export const CODE_ROOTS = [
   'app.js',
   'i18n.js',

@@ -41,14 +41,18 @@ export function referencesIn(file, source) {
         typeof node.value === 'string' &&
         /^(?:\.\.?\/|assets\/).+\.(?:png|jpe?g|svg|webp|avif|woff2?)(?:[?#].*)?$/i.test(node.value)
       )
-        references.push(node.value);
+        references.push(
+          node.value.startsWith('assets/')
+            ? posix.relative(posix.dirname(file), node.value)
+            : node.value,
+        );
     });
   }
   return [...new Set(references)];
 }
 
-export async function collectResources(siteRoot) {
-  const queue = ['index.html'];
+export async function collectResources(siteRoot, entries = ['index.html']) {
+  const queue = [...entries];
   const resources = new Map();
   for (const file of queue) {
     if (resources.has(file)) continue;

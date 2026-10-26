@@ -20,8 +20,7 @@
   z-index: -1;
 }
 .home-scene-art {
-  background: url('../assets/generated/air-poker-v1/usogui-page-assets/manga-introduction-background.png')
-    center center / cover no-repeat;
+  background: url('../assets/runtime/scene.webp') center center / cover no-repeat;
   mask-image: var(--home-image-mask, none);
 }
 .home-scene {
@@ -256,8 +255,7 @@ html[lang='zh-CN'] .home-center h1 span {
   color: var(--ink);
 }
 .paper-figures {
-  background: url('../assets/generated/air-poker-v1/usogui-page-assets/manga-introduction-background.png')
-    center / cover no-repeat;
+  background: url('../assets/runtime/scene.webp') center / cover no-repeat;
   opacity: 0.12;
   mask-image: linear-gradient(#000 0, transparent 90%);
 }
@@ -564,8 +562,7 @@ html[lang='zh-CN'] .home-center h1 span {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: url('../assets/generated/air-poker-v1/usogui-page-assets/manga-introduction-background.png')
-    center / cover;
+  background: url('../assets/runtime/scene.webp') center / cover;
   mix-blend-mode: multiply;
   opacity: 0.6;
   mask-image: linear-gradient(170deg, transparent 13%, #000 13%, #000 87%, transparent 87%);
@@ -762,7 +759,7 @@ html[lang='zh-CN'] .home-center h1 span {
   position: absolute;
   z-index: -1;
   inset: 0 0 0 48%;
-  background: url('../assets/generated/air-poker-v2/tutorial.png') 69% center / auto 100% no-repeat;
+  background: url('../assets/runtime/tutorial.webp') 69% center / auto 100% no-repeat;
   mask-image: linear-gradient(90deg, transparent 0%, #000 25%);
 }
 .tutorial-workspace {
@@ -1688,5 +1685,11 @@ html[lang='zh-CN'] .home-center h1 span {
       #000 calc(35% + 36.58vw - 70px),
       transparent calc(35% + 36.58vw)
     );
+  }
+}
+
+@media (max-width: 720px) {
+  .home-scene-art {
+    background-image: url('../assets/runtime/scene-mobile.webp');
   }
 }

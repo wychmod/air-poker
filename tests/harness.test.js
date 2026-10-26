@@ -182,3 +182,17 @@ test('full runner returns failure, stops immediately and records the failed step
   );
   assert.equal(report.steps[0].exitCode, 1);
 });
+
+test('DOM asset paths in UI modules resolve against the entry and extra entrypoints are checked', async () => {
+  assert.deepEqual(referencesIn('ui/pages.js', "const art = 'assets/runtime/victory.webp';"), [
+    '../assets/runtime/victory.webp',
+  ]);
+  assert.equal(
+    resolveReference('ui/pages.js', '../assets/runtime/victory.webp'),
+    'assets/runtime/victory.webp',
+  );
+  await assert.rejects(
+    collectResources(ROOT, ['this-entry-does-not-exist.html']),
+    /Missing staged resource/,
+  );
+});

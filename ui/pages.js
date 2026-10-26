@@ -1,7 +1,10 @@
 import { translate } from '../i18n.js';
 
 const copy = (lang, zh, en) => (lang === 'en' ? en : zh);
-const asset = 'assets/generated/air-poker-v2/';
+const resultAssets = {
+  victory: 'assets/runtime/victory.webp',
+  defeat: 'assets/runtime/defeat.webp',
+};
 
 export function lessonCards(cards, extra = '') {
   return `<span class="lesson-hand ${extra}">${cards.map(([rank, suit], index) => `<span class="lesson-card ${['♥', '♦'].includes(suit) ? 'is-red' : ''}" style="--card-index:${index}"><span>${rank}<small>${suit}</small></span><b aria-hidden="true">${suit}</b></span>`).join('')}</span>`;
@@ -150,7 +153,7 @@ export function resultMarkup(state, view) {
   const elapsed = Math.floor((state.respiration?.elapsedMs ?? 0) / 1000);
   const duration = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
   return `<section class="result-page result-${kind}" data-scene="${kind}" aria-labelledby="resultTitle">
-    ${kind === 'draw' ? '<div class="paper-figures" aria-hidden="true"></div><div class="draw-waterline" data-motion-line aria-hidden="true"></div>' : `<div class="result-art" aria-hidden="true">${kind === 'victory' ? '<svg class="victory-arc" viewBox="0 0 500 500"><path data-motion-ink d="M80 420 Q-20 180 280 50 Q450 5 440 210"/></svg>' : ''}<img src="${asset}${kind}.png" alt="" data-motion-reveal /></div>`}
+    ${kind === 'draw' ? '<div class="paper-figures" aria-hidden="true"></div><div class="draw-waterline" data-motion-line aria-hidden="true"></div>' : `<div class="result-art" aria-hidden="true">${kind === 'victory' ? '<svg class="victory-arc" viewBox="0 0 500 500"><path data-motion-ink d="M80 420 Q-20 180 280 50 Q450 5 440 210"/></svg>' : ''}<img src="${resultAssets[kind]}" alt="" data-motion-reveal /></div>`}
     <div class="result-copy"><p class="eyebrow">${kind === 'victory' ? 'THE LAST BREATH IS YOURS' : kind === 'defeat' ? 'THE ABYSS REMEMBERS' : 'A PERFECT EQUILIBRIUM'}</p><h1 id="resultTitle">${title}</h1><p class="result-tagline">${tagline}</p><p class="result-reason">${reason}</p>
       <dl class="result-facts"><div><dt>${c('完成轮次', 'Rounds completed')}</dt><dd>${state.completedRounds} / ${state.maxRounds}</dd></div><div><dt>${c('对局时长', 'Match duration')}</dt><dd>${duration}</dd></div><div><dt>${c('实际烧毁', 'Actually burned')}</dt><dd>${state.accounting?.burned ?? 0} AIR</dd></div></dl>
       <div class="result-actions"><button class="button primary" data-action="enter-match">${kind === 'draw' ? c('再较量一局', 'Play again') : c('再来一局', 'Play again')} →</button><button class="button secondary" data-action="open-record">${c('查看复盘', 'Review match')}</button></div><button class="result-home" data-action="go-home">← ${c('返回首页', 'Back to home')}</button>
