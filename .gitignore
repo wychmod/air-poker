@@ -25,3 +25,6 @@ output/ui-v2-qa/
 
 # Offline promotional film outputs
 output/promo/
+
+# Real browser regression artifacts
+output/e2e/

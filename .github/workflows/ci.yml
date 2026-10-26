@@ -28,6 +28,21 @@ jobs:
       - name: Run harness
         run: npm run check
 
+      - name: Install browser for real UI regressions
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser regressions on the built site
+        run: npm run check:browser
+
+      - name: Save browser report and failure traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-report
+          path: output/e2e/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Save harness report
         if: always()
         uses: actions/upload-artifact@v4

@@ -9,6 +9,7 @@ const steps = [
   ['tests', ['--test']],
   ['format', ['node_modules/prettier/bin/prettier.cjs', '--check', ...FORMAT_TARGETS]],
   ['build', ['scripts/stage-site.js']],
+  ['asset-budget', ['scripts/harness/asset-budget.js']],
   ['http-smoke', ['scripts/harness/smoke.js']],
 ];
 const report = {

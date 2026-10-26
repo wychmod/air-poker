@@ -35,6 +35,7 @@ export const CODE_ROOTS = [
   'scripts',
   'tests',
   'promo',
+  'e2e',
 ];
 export const BROWSER_ROOTS = ['app.js', 'i18n.js', 'game', 'browser', 'ui'];
 

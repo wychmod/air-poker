@@ -29,6 +29,8 @@
     "promo:voice:render": "node scripts/promo/voice-remix.js",
     "promo:voice:verify": "node scripts/promo/verify.js --format portrait --name air-poker-douyin-voice-v2",
     "promo:voice:check-browser": "node scripts/promo/check-voice.js",
+    "precheck:browser": "npm run build",
+    "check:browser": "playwright test --config=e2e/playwright.config.js",
     "assets:share": "node scripts/generate-share-assets.js"
   },
   "devDependencies": {
