@@ -625,3 +625,163 @@ html[data-motion='off'] .app-shell::before {
     display: none !important;
   }
 }
+
+/* Chapter cards announce the turn of the page without taking input. */
+.motion-chapter {
+  position: fixed;
+  z-index: 90;
+  left: 5vw;
+  top: 30vh;
+  max-width: 72vw;
+  pointer-events: none;
+  user-select: none;
+  color: #171917;
+  mix-blend-mode: multiply;
+  will-change: transform, opacity;
+}
+.motion-chapter em {
+  display: block;
+  margin-bottom: 10px;
+  font:
+    700 9px/1 ui-monospace,
+    'Courier New',
+    monospace;
+  font-style: normal;
+  letter-spacing: 0.26em;
+  color: #9c3737;
+}
+.motion-chapter strong {
+  display: block;
+  font:
+    600 clamp(42px, 6.6vw, 84px)/0.94 var(--serif),
+    Georgia,
+    serif;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 22px rgba(243, 242, 238, 0.9);
+}
+.motion-chapter small {
+  display: block;
+  margin-top: 9px;
+  font:
+    700 9px/1.5 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.18em;
+  color: #555a53;
+}
+.motion-chapter::before {
+  content: '';
+  display: block;
+  width: 58px;
+  height: 2px;
+  margin-bottom: 12px;
+  background: #171917;
+}
+
+/* A single shutter flash and an ink seal close the ending. */
+.motion-finale-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.motion-finale-victory .motion-finale-flash {
+  background:
+    radial-gradient(
+      58% 58% at 70% 44%,
+      rgba(255, 255, 255, 0.86),
+      rgba(243, 242, 238, 0.34) 46%,
+      transparent 74%
+    ),
+    linear-gradient(90deg, transparent 12%, rgba(255, 255, 255, 0.5) 50%, transparent 88%);
+  mix-blend-mode: screen;
+}
+.motion-finale-defeat .motion-finale-flash {
+  background:
+    linear-gradient(
+      104deg,
+      transparent 22%,
+      rgba(156, 55, 55, 0.42) 48%,
+      rgba(23, 25, 23, 0.2) 58%,
+      transparent 78%
+    ),
+    radial-gradient(60% 60% at 50% 46%, rgba(243, 242, 238, 0.26), transparent 68%);
+}
+.motion-finale-seal {
+  position: absolute;
+  z-index: 6;
+  right: clamp(22px, 6vw, 92px);
+  bottom: clamp(76px, 13vh, 148px);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  width: clamp(86px, 11vw, 126px);
+  aspect-ratio: 1;
+  border: 3px double rgba(243, 242, 238, 0.82);
+  border-radius: 50%;
+  color: rgba(243, 242, 238, 0.9);
+  text-align: center;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.motion-finale-seal::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.55;
+}
+.motion-finale-seal b {
+  font:
+    700 10px/1.2 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.16em;
+}
+.motion-finale-seal i {
+  font:
+    600 15px/1 var(--serif),
+    Georgia,
+    serif;
+  font-style: normal;
+  letter-spacing: 0.2em;
+}
+.motion-finale-victory .motion-finale-seal {
+  border-color: rgba(23, 25, 23, 0.78);
+  color: rgba(23, 25, 23, 0.86);
+}
+
+@media (max-width: 560px) {
+  .motion-chapter {
+    left: 7vw;
+    top: 22vh;
+    max-width: 86vw;
+  }
+  .motion-chapter strong {
+    font-size: clamp(38px, 12vw, 56px);
+  }
+  .motion-finale-seal {
+    right: 16px;
+    bottom: 78px;
+    width: 82px;
+    gap: 4px;
+  }
+  .motion-finale-seal i {
+    font-size: 13px;
+  }
+}
+
+/* A still ending needs no skip control. */
+[data-motion='off'] .result-skip {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion-chapter,
+  .motion-finale-flash,
+  .motion-finale-seal,
+  .result-skip {
+    display: none !important;
+  }
+}
