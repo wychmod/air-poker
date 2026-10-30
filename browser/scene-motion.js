@@ -14,7 +14,7 @@ const EASING = Object.freeze({
 // The ending is a narrative sequence, not a routine interaction. Keep its full timeline in one
 // place so pacing can be tuned without hunting through the effect branches.
 const ENDING = Object.freeze({
-  total: 2900,
+  total: 3500,
   stage: 680,
   ink: 1050,
   inkDelay: 160,
@@ -34,8 +34,12 @@ const ENDING = Object.freeze({
   cut: 1050,
   cutDelay: 180,
   cutGap: 190,
-  mark: 2100,
-  markDelay: 650,
+  mark: 2400,
+  markDelay: 760,
+  flash: 560,
+  flashDelay: 2360,
+  seal: 900,
+  sealDelay: 2520,
   copy: Object.freeze({
     eyebrow: Object.freeze({ delay: 180, duration: 360 }),
     title: Object.freeze({ delay: 300, duration: 720 }),
@@ -132,6 +136,7 @@ export function createSceneMotion({ root, canvas }) {
   let suspended = false;
   let disposed = false;
   let skipNext = false;
+  let endingSkipped = false;
   let frame = null;
   let width = 1;
   let height = 1;
@@ -327,17 +332,55 @@ export function createSceneMotion({ root, canvas }) {
   }
   function playReveal(delay = 0) {
     focusVignette();
-    const cards = query('[data-hand="ai"]')?.querySelectorAll('[data-card-id]') ?? [];
-    cards.forEach((card, index) =>
-      animate(
-        card,
-        [
-          { transform: 'perspective(500px) rotateY(85deg)', opacity: 0.15 },
-          { transform: 'perspective(500px) rotateY(0deg)', opacity: 1 },
-        ],
-        { duration: 300, delay: delay + index * 35 },
-      ),
+    const vs = query('.battle-showdown-vs');
+    animate(
+      vs,
+      [
+        { transform: 'scale(.38) rotate(-18deg)', opacity: 0 },
+        { transform: 'scale(1.09) rotate(0deg)', opacity: 1, offset: 0.64 },
+        { transform: 'scale(1) rotate(0deg)', opacity: 1 },
+      ],
+      { duration: 430, delay: delay + 140, easing: EASING.cinematic, fill: 'backwards' },
     );
+    ring(vs, 20, '156,55,55');
+    const flip = (hand, direction, base) => {
+      const cards = hand?.querySelectorAll('[data-card-id]') ?? [];
+      cards.forEach((card, index) =>
+        animate(
+          card,
+          [
+            {
+              transform:
+                'perspective(600px) translateX(' +
+                direction * 24 +
+                'px) rotateY(' +
+                direction * 68 +
+                'deg)',
+              opacity: 0.18,
+            },
+            { transform: 'perspective(600px) translateX(0) rotateY(0deg)', opacity: 1 },
+          ],
+          {
+            duration: 340,
+            delay: delay + base + index * 45,
+            easing: EASING.frame,
+            fill: 'backwards',
+          },
+        ),
+      );
+    };
+    const ai = query('[data-hand="ai"]');
+    const player = query('[data-hand="player"]');
+    flip(ai, 1, 0);
+    flip(player, -1, 110);
+    for (const hand of [ai, player]) {
+      if (!hand?.classList.contains('is-winner')) continue;
+      animate(hand, [{ transform: 'scale(.985)' }, { transform: 'scale(1)' }], {
+        duration: 460,
+        delay: delay + 340,
+        easing: EASING.cinematic,
+      });
+    }
   }
   function playOverlap(delay = 0) {
     if (!query('[data-calamity]')) return;
@@ -462,6 +505,46 @@ export function createSceneMotion({ root, canvas }) {
       band,
     );
   }
+  function playChapter(eyebrow, title, caption) {
+    if (!running() || typeof document.createElement !== 'function' || !document.body) return;
+    const node = document.createElement('div');
+    node.className = 'motion-chapter';
+    node.setAttribute('aria-hidden', 'true');
+    const index = document.createElement('em');
+    index.textContent = eyebrow;
+    const heading = document.createElement('strong');
+    heading.textContent = title;
+    const note = document.createElement('small');
+    note.textContent = caption;
+    node.append(index, heading, note);
+    document.body.append(node);
+    copies.add(node);
+    removeAfter(
+      animate(
+        node,
+        [
+          { opacity: 0, transform: 'translate3d(-28px,0,0)' },
+          { opacity: 1, transform: 'translate3d(0,0,0)', offset: 0.18 },
+          { opacity: 1, transform: 'translate3d(0,0,0)', offset: 0.64 },
+          { opacity: 0, transform: 'translate3d(16px,0,0)' },
+        ],
+        { duration: 1250, easing: EASING.cinematic, fill: 'backwards' },
+      ),
+      node,
+    );
+  }
+  function roundChapter(round, maxRounds, lang) {
+    const zh = lang !== 'en';
+    if (round >= maxRounds)
+      return zh
+        ? ['最后一轮', 'FINAL ROUND · 一口氧气']
+        : ['Final round', 'FINAL ROUND · ONE LAST BREATH'];
+    if (round >= 3)
+      return zh
+        ? ['压力上升', 'PRESSURE · 水面收紧']
+        : ['Pressure', 'PRESSURE · THE WATER TIGHTENS'];
+    return zh ? ['水下开局', 'OPENING · 潜入牌桌'] : ['Opening', 'OPENING · BENEATH THE SURFACE'];
+  }
   function playEnding(kind) {
     if (
       !['victory', 'defeat'].includes(kind) ||
@@ -486,8 +569,8 @@ export function createSceneMotion({ root, canvas }) {
         bar,
         [
           { transform: hidden },
-          { transform: 'translateY(0)', offset: 0.14 },
-          { transform: 'translateY(0)', offset: 0.82 },
+          { transform: 'translateY(0)', offset: 0.12 },
+          { transform: 'translateY(0)', offset: 0.87 },
           { transform: hidden },
         ],
         { duration: ENDING.total, easing: EASING.frame },
@@ -648,21 +731,50 @@ export function createSceneMotion({ root, canvas }) {
       );
     }
 
+    const flash = document.createElement('span');
+    flash.className = 'motion-finale-flash';
+    layer.append(flash);
+    animate(
+      flash,
+      [{ opacity: 0 }, { opacity: kind === 'victory' ? 0.8 : 0.68, offset: 0.18 }, { opacity: 0 }],
+      { duration: ENDING.flash, delay: ENDING.flashDelay, easing: 'ease-out' },
+    );
+
+    const seal = document.createElement('span');
+    seal.className = 'motion-finale-seal';
+    const sealLatin = document.createElement('b');
+    sealLatin.textContent = kind === 'victory' ? 'VICTORY' : 'DEFEAT';
+    const sealCn = document.createElement('i');
+    sealCn.textContent = kind === 'victory' ? '胜利' : '失利';
+    seal.append(sealLatin, sealCn);
+    layer.append(seal);
+    animate(
+      seal,
+      [
+        { opacity: 0, transform: 'scale(1.35) rotate(-16deg)' },
+        { opacity: 0.92, transform: 'scale(1) rotate(-8deg)', offset: 0.26 },
+        { opacity: 0.92, transform: 'scale(1) rotate(-8deg)', offset: 0.62 },
+        { opacity: 0, transform: 'scale(.96) rotate(-8deg)' },
+      ],
+      {
+        duration: ENDING.seal,
+        delay: ENDING.sealDelay,
+        easing: EASING.cinematic,
+        fill: 'backwards',
+      },
+    );
+
     removeAfter(
       animate(
         layer,
-        [
-          { opacity: 0 },
-          { opacity: 1, offset: 0.08 },
-          { opacity: 1, offset: 0.76 },
-          { opacity: 0 },
-        ],
+        [{ opacity: 0 }, { opacity: 1, offset: 0.06 }, { opacity: 1, offset: 0.9 }, { opacity: 0 }],
         { duration: ENDING.total, easing: 'linear' },
       ),
       layer,
     );
   }
   function enterEndingScene(kind) {
+    if (endingSkipped) return;
     const page = query('[data-scene]') ?? query('main');
     animate(
       page,
@@ -819,6 +931,14 @@ export function createSceneMotion({ root, canvas }) {
     );
   }
 
+  function skipEnding() {
+    if (!endingKindForScene(scene)) return;
+    endingSkipped = true;
+    cancelEffects();
+    const button = query('.result-skip');
+    if (button) button.hidden = true;
+  }
+
   function capture() {
     if (disposed) return;
     const targets = new Map();
@@ -851,13 +971,18 @@ export function createSceneMotion({ root, canvas }) {
         ? 'result-' + snapshot.winner
         : view.screen;
     const changedScene = scene !== nextScene || previous?.sessionId !== snapshot.sessionId;
+    if (changedScene) endingSkipped = false;
     scene = nextScene;
     root.dataset.motionScene = scene;
     if (canvas) canvas.dataset.tone = 'light';
     if (running() && !skipNext) {
       if (changedScene || !previous) {
         enterScene(Boolean(previous));
-        if (scene === 'game' && snapshot.phase === 'lower') playDeal();
+        if (scene === 'game' && snapshot.phase === 'lower') {
+          playDeal();
+          const [title, note] = roundChapter(snapshot.round, snapshot.maxRounds, view.lang);
+          playChapter('ROUND ' + String(snapshot.round).padStart(2, '0'), title, note);
+        }
       } else if (view.screen === 'game' && previousView?.screen === 'game') {
         if (
           snapshot.phase === 'lower' &&
@@ -905,12 +1030,23 @@ export function createSceneMotion({ root, canvas }) {
           if (event.type === 'target') playTarget(event);
           if (event.type === 'lock') playLock(event);
           if (event.type === 'payment') playPayments(event, locked ? 100 : 0);
-          if (event.type === 'reveal') playReveal();
+          if (event.type === 'reveal') {
+            playReveal();
+            playChapter(
+              '04 / REVEAL',
+              view.lang === 'en' ? 'SHOWDOWN' : '摊牌',
+              view.lang === 'en' ? 'ALL CARDS OPEN' : '底牌全部公开',
+            );
+          }
           if (event.type === 'burn') {
             playOverlap(300);
             playBurn(430);
           }
-          if (event.type === 'deal') playDeal();
+          if (event.type === 'deal') {
+            playDeal();
+            const [title, note] = roundChapter(snapshot.round, snapshot.maxRounds, view.lang);
+            playChapter('ROUND ' + String(snapshot.round).padStart(2, '0'), title, note);
+          }
           if (event.type === 'select') {
             const card = query('[data-candidate-index="' + event.index + '"]');
             animate(card, [{ transform: 'translateY(0)' }, { transform: 'translateY(-3px)' }], {
@@ -1042,6 +1178,7 @@ export function createSceneMotion({ root, canvas }) {
   return {
     capture,
     update,
+    skipEnding,
     setEnabled(value) {
       enabled = Boolean(value);
       syncPlayback();

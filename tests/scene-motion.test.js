@@ -179,6 +179,9 @@ test('scene lifecycle honors reduced motion, one frame loop, visibility and dest
   motion.update(state, { screen: 'game', lang: 'en' });
   assert.equal(entrances, 1, 'resume does not replay a skipped scene');
   assert.equal(frames.size, 1);
+  assert.equal(typeof motion.skipEnding, 'function');
+  motion.skipEnding();
+  assert.equal(frames.size, 1, 'skipping outside an ending is a no-op');
   motion.destroy();
   assert.equal(frames.size, 0);
   assert.equal(root.dataset.motion, 'off');
