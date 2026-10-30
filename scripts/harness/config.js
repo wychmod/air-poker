@@ -67,6 +67,7 @@ export const LAYERS = [
   { name: 'betting', path: 'game/betting.js', allows: [] },
   { name: 'breathing', path: 'game/breathing.js', allows: [] },
   { name: 'records', path: 'game/records.js', allows: [] },
+  { name: 'contracts', path: 'game/contracts.js', allows: [] },
   { name: 'cards', path: 'game/cards.js', allows: ['data', 'rules'] },
   { name: 'deal', path: 'game/deal.js', allows: ['cards'] },
   { name: 'ai-planning', path: 'game/ai-planning.js', allows: ['cards', 'deal'] },
@@ -76,6 +77,7 @@ export const LAYERS = [
     allows: ['cards', 'deal', 'rules', 'ai-planning'],
   },
   { name: 'ai', path: 'game/ai.js', allows: ['ai-planning', 'ai-betting'] },
+  { name: 'opponents', path: 'game/opponents.js', allows: ['ai', 'deal'] },
   {
     name: 'engine',
     path: 'game/engine.js',
@@ -88,12 +90,22 @@ export const LAYERS = [
   {
     name: 'ui',
     prefix: 'ui/',
-    allows: ['ui', 'data', 'rules', 'cards', 'engine', 'breathing', 'i18n'],
+    allows: [
+      'ui',
+      'share-ui',
+      'data',
+      'rules',
+      'cards',
+      'engine',
+      'breathing',
+      'i18n',
+      'contracts',
+    ],
   },
   {
     name: 'app',
     path: 'app.js',
-    allows: ['engine', 'browser', 'archive', 'ui', 'share-ui', 'i18n'],
+    allows: ['engine', 'browser', 'archive', 'ui', 'share-ui', 'i18n', 'opponents', 'contracts'],
   },
 ];
 

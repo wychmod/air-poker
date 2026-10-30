@@ -48,11 +48,12 @@ export function airTotals(record, round = undefined) {
 }
 
 // Facts only: the engine remains the sole owner of game decisions and balances.
-export function createRecorder({ matchId, initialAir, rules }) {
+export function createRecorder({ matchId, initialAir, rules, mode = null }) {
   const record = {
     schemaVersion: RECORD_VERSION,
     rulesVersion: RULES_VERSION,
     matchId,
+    mode: mode ? clone(mode) : null,
     initialAir: { player: initialAir, ai: initialAir },
     rules: clone(rules),
     status: 'active',
