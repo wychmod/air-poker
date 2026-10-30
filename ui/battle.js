@@ -3,6 +3,7 @@ import { rankHand } from '../game/rules.js';
 import { createDeck } from '../game/cards.js';
 import { getDraftCards, getDraftStatus } from './hand-builder.js';
 import { CANISTER_MS, HYPOXIA_MS } from '../game/breathing.js';
+import { contractCopy, opponentCopy } from './modes.js';
 
 const esc = (value) =>
   String(value ?? '').replace(
@@ -10,6 +11,7 @@ const esc = (value) =>
     (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char],
   );
 const copy = (lang, zh, en) => (lang === 'zh' ? zh : en);
+const opponentOf = (view) => opponentCopy(view.setup?.opponent, view.lang);
 const signed = (value) => (value > 0 ? '+' + value : String(value));
 const clock = (ms) => {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
@@ -70,7 +72,9 @@ function supplyRatio(state, actor) {
   );
 }
 
-function resources(state, lang) {
+function resources(state, view) {
+  const lang = view.lang;
+  const opponent = opponentOf(view);
   const actor = (id, name) =>
     '<div class="battle-resource"><span class="battle-resource-name">' +
     name +
@@ -89,7 +93,7 @@ function resources(state, lang) {
     '</span></div>';
   return (
     '<div class="battle-resources">' +
-    actor('ai', translate(lang, 'cpu')) +
+    actor('ai', opponent.name) +
     '<div class="battle-pot"><span>' +
     copy(lang, '第 ', 'ROUND ') +
     String(state.round).padStart(2, '0') +
@@ -103,6 +107,31 @@ function resources(state, lang) {
     actor('player', copy(lang, '你', 'YOU')) +
     '</div>'
   );
+}
+
+function intensityOf(state) {
+  if (state.round >= state.maxRounds || state.pot >= 10) return 'final';
+  if (state.round >= 3 || state.pot >= 6) return 'pressure';
+  return 'calm';
+}
+
+function directorMarkup(state, view) {
+  const lang = view.lang;
+  const persona = opponentOf(view);
+  const final = state.round >= state.maxRounds;
+  const chapter = final
+    ? copy(lang, 'FINAL / 最后一口气', 'FINAL / ONE LAST BREATH')
+    : state.round >= 3
+      ? copy(lang, 'PRESSURE / 压力上升', 'PRESSURE / THE WATER TIGHTENS')
+      : copy(lang, 'OPENING / 水下开局', 'OPENING / BENEATH THE SURFACE');
+  return `<div class="battle-director" aria-hidden="true" data-chapter="${chapter}"><span class="battle-director-corner is-tl"></span><span class="battle-director-corner is-tr"></span><span class="battle-director-corner is-bl"></span><span class="battle-director-corner is-br"></span><span class="battle-director-mark"><b>${persona.latin}</b><i>${chapter}</i></span></div>`;
+}
+
+function modeStrip(state, view) {
+  const lang = view.lang;
+  const persona = opponentOf(view);
+  const contract = contractCopy(view.setup?.contract, lang);
+  return `<div class="battle-mode-strip"><span class="battle-persona-tag"><b>${persona.latin}</b>${persona.name} · ${persona.read}</span><span class="battle-contract-tag"><b>${contract.latin}</b>${contract.name}</span></div>`;
 }
 
 function heading(kicker, title, detail, timer, lang) {
@@ -125,10 +154,11 @@ function heading(kicker, title, detail, timer, lang) {
   );
 }
 
-function targetSlots(state, lang) {
+function targetSlots(state, view) {
+  const lang = view.lang;
   return (
     '<div class="battle-targets"><span>' +
-    translate(lang, 'cpu') +
+    opponentOf(view).name +
     ' <b data-target-slot="ai">' +
     (state.aiTarget ?? '—') +
     '</b><small>' +
@@ -153,7 +183,7 @@ function actionBar(note, buttons) {
 
 function lower(state, view) {
   const lang = view.lang;
-  const opponent = translate(lang, 'cpu');
+  const opponent = opponentOf(view).name;
   const selected =
     Number.isInteger(view.selectedTarget) && state.targetPlayable[view.selectedTarget]
       ? view.selectedTarget
@@ -511,7 +541,7 @@ function upper(state, view) {
   const status = getDraftStatus(state, view.handDraft);
   const used = new Set(state.discard.map((card) => card.id));
   return (
-    targetSlots(state, lang) +
+    targetSlots(state, view) +
     heading(
       '02 / ' + copy(lang, '完整成手', 'CONSTRUCT'),
       copy(lang, '自己组出这一手。', 'Build your five-card hand.'),
@@ -594,7 +624,7 @@ function betButton(state, move, label, enabled, primary = false) {
 
 function bet(state, view) {
   const lang = view.lang;
-  const opponent = translate(lang, 'cpu');
+  const opponent = opponentOf(view).name;
   const options = state.legalBets;
   const playerTurn = state.betting.turn === 'player';
   const increment = options.canRaise
@@ -759,7 +789,7 @@ function decisiveValue(result) {
 
 function showdown(state, view) {
   const lang = view.lang;
-  const opponent = translate(lang, 'cpu');
+  const opponent = opponentOf(view).name;
   const result = state.lastResult;
   const tie = result.winner === 'tie';
   const calamity =
@@ -906,6 +936,7 @@ function showdown(state, view) {
     heading('04 / ' + copy(lang, '摊牌', 'REVEAL'), title, reason, undefined, lang) +
     '<div class="battle-showdown">' +
     hand('ai') +
+    '<span class="battle-showdown-vs" aria-hidden="true">VS</span>' +
     hand('player') +
     '</div>' +
     (comparison ? '<p class="battle-comparison">' + comparison + '</p>' : '') +
@@ -971,7 +1002,7 @@ function showdown(state, view) {
 
 function endurance(state, view) {
   const lang = view.lang;
-  const opponent = translate(lang, 'cpu');
+  const opponent = opponentOf(view).name;
   const reasons = {
     'round-limit': [
       '五轮已结束，等待实际生存结果。',
@@ -1051,8 +1082,12 @@ export function battleMarkup(state, view) {
   return (
     '<section class="battle" data-phase="' +
     esc(state.phase) +
+    '" data-intensity="' +
+    intensityOf(state) +
     '">' +
-    resources(state, view.lang) +
+    directorMarkup(state, view) +
+    resources(state, view) +
+    modeStrip(state, view) +
     '<div class="battle-table">' +
     (content ? content(state, view) : '') +
     '</div><div class="battle-bottom-note"><span>' +
