@@ -1472,10 +1472,15 @@ html[lang='zh-CN'] .home-center h1 span {
   .result-actions > .button {
     flex: 1;
   }
+  .result-actions > .button.primary {
+    white-space: nowrap;
+  }
   .result-home {
     order: 7;
     margin: 0;
     align-self: flex-start;
+    min-height: 44px;
+    padding: 8px 0;
   }
   .result-defeat .result-copy h1 {
     font-size: 45px;
@@ -1597,6 +1602,20 @@ html[lang='zh-CN'] .home-center h1 span {
   }
   .tutorial-complete .tutorial-workspace {
     padding-block: 35px;
+  }
+}
+@media (max-width: 480px) {
+  .result-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .result-actions > .button {
+    width: 100%;
+    min-width: 0;
+  }
+  .result-actions > .button.primary {
+    grid-column: 1 / -1;
   }
 }
 @media (max-width: 350px) {
