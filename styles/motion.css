@@ -1,4 +1,22 @@
 /* Decorative overlays never own input, state, or layout. */
+:root {
+  --motion-ink-rgb: 23, 25, 23;
+  --motion-paper-rgb: 243, 242, 238;
+  --motion-risk-rgb: 156, 55, 55;
+  --motion-risk-deep-rgb: 124, 34, 34;
+  --motion-risk-muted-rgb: 126, 42, 42;
+  --motion-abyss-rgb: 12, 14, 12;
+  --motion-white-rgb: 255, 255, 255;
+  --motion-bar-shade-rgb: 8, 11, 9;
+  --motion-bar-start: #080b09;
+  --motion-bar-mid: #11150f;
+  --motion-bar-end: #090b09;
+  --motion-finale-bar-size: clamp(34px, 7vh, 68px);
+  --motion-finale-bar-size-mobile: clamp(24px, 4.5vh, 42px);
+  --motion-finale-mark-offset: -10px;
+  --motion-finale-mark-offset-mobile: -7px;
+}
+
 .scene-canvas,
 #sceneCanvas {
   position: fixed;
@@ -119,4 +137,491 @@
   fill: none;
   stroke: #9c3737;
   stroke-width: 1.5;
+}
+
+/* ============================================================
+   Cinematic layer
+   Decorative only: no layout ownership, no pointer capture,
+   no game state. Everything here is disabled by the motion
+   switch and by prefers-reduced-motion.
+   ============================================================ */
+
+/* Ink curtain used between screens. */
+.motion-slab {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  pointer-events: none;
+  transform: translateX(0);
+  background:
+    radial-gradient(140% 90% at 18% 0%, rgba(243, 242, 238, 0.07), transparent 58%),
+    linear-gradient(180deg, #0b0d0b 0%, #191d18 52%, #0c0f0c 100%);
+  will-change: transform;
+}
+.motion-slab::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 2px;
+  background: #9c3737;
+  box-shadow: 0 0 24px rgba(156, 55, 55, 0.55);
+}
+
+/* Slow vignette that focuses the reveal. */
+.motion-focus {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(60% 64% at 50% 44%, transparent 44%, rgba(10, 13, 10, 0.2) 100%);
+}
+
+/* Light band that crosses the home title once. */
+.motion-title-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 24%;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.38) 42%,
+    rgba(255, 255, 255, 0.62) 50%,
+    rgba(255, 255, 255, 0.32) 58%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+}
+[data-motion='on'] .home-center h1 {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Cursor spotlight on the choice cards. */
+[data-motion='on'] .battle-number,
+[data-motion='on'] .battle-candidate {
+  background-image: radial-gradient(
+    150px 150px at var(--gx, 50%) var(--gy, 0%),
+    rgba(23, 25, 23, 0.075),
+    transparent 72%
+  );
+}
+[data-motion='on'] .battle-number:not(.is-selected):not(.is-used):hover,
+[data-motion='on'] .battle-number:not(.is-selected):not(.is-used):focus-visible {
+  transform: translateY(-6px);
+  box-shadow:
+    3px 8px 0 #dcdcd2,
+    0 16px 26px rgba(23, 25, 23, 0.09);
+}
+[data-motion='on'] .battle-candidate:hover,
+[data-motion='on'] .battle-candidate:focus-visible {
+  transform: translateY(-3px);
+}
+[data-motion='on'] .battle-candidate.is-selected:hover {
+  transform: translateY(-5px);
+}
+
+/* Header underline draws instead of appearing. */
+[data-motion='on'] .nav-link {
+  position: relative;
+}
+[data-motion='on'] .nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+[data-motion='on'] .nav-link:hover::after,
+[data-motion='on'] .nav-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Primary buttons: ink sweep instead of a flat hover. */
+[data-motion='on'] .button.primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+[data-motion='on'] .button.primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    transparent 34%,
+    rgba(243, 242, 238, 0.16) 48%,
+    rgba(243, 242, 238, 0.26) 52%,
+    transparent 66%
+  );
+  transform: translateX(-118%);
+  transition: transform 560ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+[data-motion='on'] .button.primary:hover::after,
+[data-motion='on'] .button.primary:focus-visible::after {
+  transform: translateX(118%);
+}
+
+/* Dialogs unfold like a sheet of paper. */
+[data-motion='on'] dialog[open] {
+  animation: paper-unfold 280ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+[data-motion='on'] dialog[open]::backdrop {
+  animation: ink-fade 240ms ease-out both;
+}
+
+/* Live values arrive on a short roll. */
+[data-motion='on'] [data-air-value],
+[data-motion='on'] [data-pot-value] {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Faint ink weather behind the table. */
+body[data-scene='game'] .app-shell::before,
+body[data-scene='victory'] .app-shell::before,
+body[data-scene='defeat'] .app-shell::before,
+body[data-scene='draw'] .app-shell::before {
+  content: '';
+  position: fixed;
+  inset: -12%;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(46% 38% at 10% 16%, rgba(23, 25, 23, 0.05), transparent 72%),
+    radial-gradient(40% 34% at 92% 84%, rgba(23, 25, 23, 0.045), transparent 72%),
+    radial-gradient(30% 26% at 74% 12%, rgba(156, 55, 55, 0.03), transparent 74%),
+    radial-gradient(rgba(23, 25, 23, 0.045) 1px, transparent 1.3px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    7px 7px;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  animation: ink-drift 28s ease-in-out infinite alternate;
+}
+html[data-motion='off'] .app-shell::before {
+  animation: none;
+  opacity: 0.6;
+}
+
+/* A short, non-blocking epilogue for a completed match. */
+.motion-finale {
+  position: fixed;
+  inset: 0;
+  z-index: 92;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.motion-finale-veil {
+  position: absolute;
+  inset: 0;
+}
+.motion-finale-victory .motion-finale-veil {
+  background:
+    radial-gradient(48% 62% at 74% 46%, transparent 18%, rgba(var(--motion-ink-rgb), 0.2) 100%),
+    linear-gradient(
+      105deg,
+      transparent 24%,
+      rgba(var(--motion-ink-rgb), 0.055) 50%,
+      transparent 64%
+    );
+}
+.motion-finale-defeat .motion-finale-veil {
+  background:
+    radial-gradient(
+      72% 68% at 50% 44%,
+      transparent 16%,
+      rgba(var(--motion-risk-deep-rgb), 0.2) 60%,
+      rgba(var(--motion-abyss-rgb), 0.58) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(var(--motion-ink-rgb), 0.2),
+      transparent 32%,
+      transparent 64%,
+      rgba(var(--motion-ink-rgb), 0.22)
+    );
+}
+.motion-finale-veil::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.24;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(var(--motion-paper-rgb), 0.04) 0 1px,
+    transparent 1px 5px
+  );
+  mix-blend-mode: soft-light;
+}
+.motion-finale-bar {
+  position: absolute;
+  left: 0;
+  z-index: 4;
+  width: 100%;
+  height: var(--motion-finale-bar-size);
+  background: linear-gradient(
+    180deg,
+    var(--motion-bar-start) 0%,
+    var(--motion-bar-mid) 86%,
+    var(--motion-bar-end) 100%
+  );
+  will-change: transform;
+}
+.motion-finale-bar::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--motion-paper-rgb), 0.22) 18%,
+    rgba(var(--motion-paper-rgb), 0.08) 62%,
+    transparent
+  );
+}
+.motion-finale-bar-top {
+  top: 0;
+  box-shadow:
+    0 1px 0 rgba(var(--motion-paper-rgb), 0.08),
+    0 16px 44px rgba(var(--motion-bar-shade-rgb), 0.2);
+}
+.motion-finale-bar-top::after {
+  bottom: 0;
+}
+.motion-finale-bar-bottom {
+  bottom: 0;
+  background: linear-gradient(
+    0deg,
+    var(--motion-bar-start) 0%,
+    var(--motion-bar-mid) 86%,
+    var(--motion-bar-end) 100%
+  );
+  box-shadow:
+    0 -1px 0 rgba(var(--motion-paper-rgb), 0.08),
+    0 -16px 44px rgba(var(--motion-bar-shade-rgb), 0.2);
+}
+.motion-finale-bar-bottom::after {
+  top: 0;
+}
+.motion-finale-defeat .motion-finale-bar::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--motion-risk-rgb), 0.72) 24%,
+    rgba(var(--motion-paper-rgb), 0.1) 72%,
+    transparent
+  );
+}
+.motion-finale-bloom {
+  position: absolute;
+  left: 74%;
+  top: 47%;
+  width: min(82vmin, 900px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(var(--motion-white-rgb), 0.3),
+    rgba(var(--motion-paper-rgb), 0.12) 34%,
+    transparent 66%
+  );
+  mix-blend-mode: screen;
+  filter: blur(7px);
+}
+.motion-finale-pulse,
+.motion-finale-ring {
+  position: absolute;
+  left: 74%;
+  top: 47%;
+  border-radius: 50%;
+  translate: -50% -50%;
+}
+.motion-finale-pulse {
+  width: min(38vmin, 380px);
+  height: min(38vmin, 380px);
+  border: 1px solid rgba(var(--motion-ink-rgb), 0.26);
+  box-shadow: 0 0 64px rgba(var(--motion-ink-rgb), 0.09);
+}
+.motion-finale-ring {
+  width: min(48vmin, 510px);
+  height: min(48vmin, 510px);
+  border: 1px solid rgba(var(--motion-ink-rgb), 0.42);
+  box-shadow: 0 0 0 8px rgba(var(--motion-paper-rgb), 0.06);
+}
+.motion-finale-defeat .motion-finale-pulse {
+  left: 50%;
+  border-color: rgba(var(--motion-risk-rgb), 0.36);
+  box-shadow: 0 0 72px rgba(var(--motion-risk-rgb), 0.12);
+}
+.motion-finale-defeat .motion-finale-ring {
+  left: 50%;
+  border-color: rgba(var(--motion-risk-rgb), 0.5);
+  box-shadow: 0 0 0 8px rgba(var(--motion-risk-rgb), 0.035);
+}
+.motion-finale-beam {
+  position: absolute;
+  left: 12%;
+  top: 24%;
+  width: 76%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(var(--motion-ink-rgb), 0.5), transparent);
+  box-shadow: 0 0 20px rgba(var(--motion-ink-rgb), 0.1);
+  transform-origin: center;
+}
+.motion-finale-cut {
+  position: absolute;
+  left: 5%;
+  width: 90%;
+  height: 2px;
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--motion-risk-rgb), 0.8) 18%,
+    rgba(var(--motion-ink-rgb), 0.62) 68%,
+    transparent
+  );
+  box-shadow: 0 0 18px rgba(var(--motion-risk-rgb), 0.28);
+}
+.motion-finale-mote {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background: rgba(var(--motion-ink-rgb), 0.5);
+  will-change: transform, opacity;
+}
+.motion-finale-defeat .motion-finale-mote {
+  background: rgba(var(--motion-risk-muted-rgb), 0.65);
+}
+
+[data-motion='on'] .result-copy h1 {
+  position: relative;
+}
+.motion-finale-title-mark {
+  position: absolute;
+  left: 0;
+  bottom: var(--motion-finale-mark-offset);
+  display: block;
+  width: 100%;
+  height: 1px;
+  transform-origin: center;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--motion-ink-rgb), 0.68) 18%,
+    rgba(var(--motion-ink-rgb), 0.5) 82%,
+    transparent
+  );
+  box-shadow: 0 0 14px rgba(var(--motion-ink-rgb), 0.12);
+}
+.motion-finale-title-mark::after {
+  content: '';
+  position: absolute;
+  right: 16%;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 10px rgba(var(--motion-paper-rgb), 0.4);
+}
+.motion-finale-title-mark.defeat {
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--motion-risk-rgb), 0.86) 24%,
+    rgba(var(--motion-ink-rgb), 0.64) 68%,
+    transparent
+  );
+  box-shadow: 0 0 18px rgba(var(--motion-risk-rgb), 0.24);
+}
+.motion-finale-title-mark.defeat::after {
+  right: auto;
+  left: 24%;
+  top: -1px;
+  width: 21%;
+  height: 1px;
+  border-radius: 0;
+  background: rgba(var(--motion-paper-rgb), 0.2);
+  box-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .motion-finale-bar {
+    height: var(--motion-finale-bar-size-mobile);
+  }
+  .motion-finale-pulse,
+  .motion-finale-ring {
+    left: 50%;
+    top: 55%;
+  }
+  .motion-finale-beam {
+    left: 2%;
+    top: 30%;
+    width: 96%;
+  }
+  .motion-finale-cut {
+    left: 0;
+    width: 100%;
+  }
+  .motion-finale-bloom {
+    left: 50%;
+    top: 55%;
+    width: 106vmin;
+  }
+  .motion-finale-title-mark {
+    bottom: var(--motion-finale-mark-offset-mobile);
+  }
+}
+
+@keyframes paper-unfold {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes ink-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ink-drift {
+  from {
+    transform: translate3d(-1.2%, -0.8%, 0) scale(1.02);
+  }
+  to {
+    transform: translate3d(1.4%, 1%, 0) scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-slab,
+  .motion-focus,
+  .motion-title-sweep,
+  .motion-finale {
+    display: none !important;
+  }
 }

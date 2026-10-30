@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGame } from '../game/engine.js';
-import { classifyMotion, createSceneMotion } from '../browser/scene-motion.js';
+import { classifyMotion, createSceneMotion, endingKindForScene } from '../browser/scene-motion.js';
 
 const seeded = (initial) => {
   let seed = initial;
@@ -27,6 +27,14 @@ test('motion classification preserves target position and never exposes a hidden
   assert.deepEqual(classifyMotion(after, structuredClone(after)), []);
   game.reset();
   assert.deepEqual(classifyMotion(after, game.getState()), []);
+});
+
+test('cinematic endings follow committed winners only', () => {
+  assert.equal(endingKindForScene('result-player'), 'victory');
+  assert.equal(endingKindForScene('result-ai'), 'defeat');
+  assert.equal(endingKindForScene('result-tie'), null);
+  assert.equal(endingKindForScene('game'), null);
+  assert.equal(endingKindForScene('home'), null);
 });
 
 test('accepted hand lock animates exact ante while breathing is not a payment', () => {
