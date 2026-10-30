@@ -1,4 +1,13 @@
 import { translate } from '../i18n.js';
+import {
+  CONTRACT_KEYS,
+  OPPONENT_KEYS,
+  contractCopy,
+  contractResultCopy,
+  contractResultFor,
+  opponentCopy,
+} from './modes.js';
+import { comicRecapMarkup } from './recap.js';
 
 const copy = (lang, zh, en) => (lang === 'en' ? en : zh);
 const resultAssets = {
@@ -10,12 +19,33 @@ export function lessonCards(cards, extra = '') {
   return `<span class="lesson-hand ${extra}">${cards.map(([rank, suit], index) => `<span class="lesson-card ${['♥', '♦'].includes(suit) ? 'is-red' : ''}" style="--card-index:${index}"><span>${rank}<small>${suit}</small></span><b aria-hidden="true">${suit}</b></span>`).join('')}</span>`;
 }
 
+function matchSetupMarkup(view) {
+  const c = (zh, en) => copy(view.lang, zh, en);
+  const setup = view.setup ?? {};
+  return `<div class="home-setup" aria-label="${c('对局设定', 'Match setup')}">
+    <div class="home-setup-head"><span>${c('对局设定', 'MATCH SETUP')}</span><small>${c('选择对手与契约', 'CHOOSE OPPONENT / CONTRACT')}</small></div>
+    <div class="home-opponents" role="group" aria-label="${c('选择对手', 'Choose opponent')}">${OPPONENT_KEYS.map(
+      (id) => {
+        const opponent = opponentCopy(id, view.lang);
+        return `<button type="button" class="home-opponent${setup.opponent === id ? ' is-active' : ''}" data-action="choose-opponent" data-opponent="${id}" aria-pressed="${setup.opponent === id}"><span class="home-opponent-index">${opponent.index}</span><strong>${opponent.name}</strong><small>${opponent.trait}</small></button>`;
+      },
+    ).join('')}</div>
+    <div class="home-contracts" role="group" aria-label="${c('选择契约', 'Choose contract')}">${CONTRACT_KEYS.map(
+      (id) => {
+        const contract = contractCopy(id, view.lang);
+        return `<button type="button" class="home-contract${setup.contract === id ? ' is-active' : ''}" data-action="choose-contract" data-contract="${id}" aria-pressed="${setup.contract === id}" title="${contract.detail}"><span>${contract.latin}</span><small>${contract.name}</small></button>`;
+      },
+    ).join('')}</div>
+  </div>`;
+}
+
 export function homeMarkup(_state, view) {
   const c = (zh, en) => copy(view.lang, zh, en);
   return `<section class="manga-home" data-scene="home" aria-labelledby="homeTitle">
     <div class="home-scene" aria-hidden="true"><div class="home-scene-art"></div><div class="home-scene-art home-figure-layer home-figure-left" data-parallax="0.5"></div><div class="home-scene-art home-figure-layer home-figure-right" data-parallax="0.26"></div><div class="home-light" data-parallax="0.14"></div><svg class="home-table-line" data-motion-line data-parallax="0.2" viewBox="0 0 1000 250" preserveAspectRatio="none"><ellipse class="home-water-ring" cx="500" cy="120" rx="487" ry="108"/><ellipse class="home-table-rim" cx="500" cy="120" rx="450" ry="84"/><path d="M50 120v14c0 47 201 84 450 84s450-37 450-84v-14M78 146c58 35 220 60 422 60s364-25 422-60"/><ellipse cx="500" cy="120" rx="423" ry="70"/></svg></div>
     <div class="home-center"><p class="eyebrow">A GAME OF AIR. A TEST OF NERVE.</p>
       <h1 id="homeTitle" aria-label="${c('空气扑克', 'Air Poker')}">${c('空气<span>扑克</span>', 'Air<span>Poker</span>')}</h1><p class="home-tagline">${c('你下注的，是下一口空气。', 'Your next breath is on the table.')}</p>
+      ${matchSetupMarkup(view)}
       <button class="button primary home-enter" data-action="enter-match">${c('开始对局', 'Enter the match')} <span aria-hidden="true">→</span></button>
       <div class="home-secondary"><button data-action="open-playbook">${c('了解玩法', 'How to play')}</button><span aria-hidden="true">／</span><button data-action="open-tutorial">${c('先练一次', 'Try the tutorial')}</button></div>
     </div>
@@ -116,12 +146,19 @@ export function rulesMarkup(lang) {
 
 export function introMarkup(view) {
   const c = (zh, en) => copy(view.lang, zh, en);
-  return `<section class="match-intro" data-scene="intro"><div class="intro-slash" aria-hidden="true"></div><p class="eyebrow">FIVE TARGETS. ONE LAST BREATH.</p><div class="intro-matchup"><span>${c('你', 'YOU')}</span><em>VS</em><span>${translate(view.lang, 'cpu')}</span></div><p>${c('双方各 25 罐。呼吸已经开始。', '25 cans each. Breathing has begun.')}</p><button class="button secondary" data-action="skip-intro">${c('跳过表现', 'Skip intro')} →</button></section>`;
+  const opponent = opponentCopy(view.setup?.opponent, view.lang);
+  const contract = contractCopy(view.setup?.contract, view.lang);
+  return `<section class="match-intro" data-scene="intro"><div class="intro-slash" aria-hidden="true"></div><p class="eyebrow">FIVE TARGETS. ONE LAST BREATH.</p><div class="intro-matchup"><span>${c('你', 'YOU')}</span><em>VS</em><span>${opponent.name}</span></div><p class="intro-mode"><span>${opponent.latin}</span><i>${contract.latin}</i></p><p>${contract.id === 'none' ? c('双方各 25 罐。呼吸已经开始。', '25 cans each. Breathing has begun.') : contract.detail}</p><button class="button secondary" data-action="skip-intro">${c('跳过表现', 'Skip intro')} →</button></section>`;
 }
 
 export function resultMarkup(state, view) {
   if (state.phase !== 'summary' || !['player', 'ai', 'tie'].includes(state.winner)) return '';
   const c = (zh, en) => copy(view.lang, zh, en);
+  const record = view.matchRecord;
+  const mode = record?.mode ?? view.setup ?? {};
+  const opponent = opponentCopy(mode.opponent, view.lang);
+  const contract = contractCopy(mode.contract, view.lang);
+  const contractResult = contractResultCopy(contractResultFor(record), view.lang);
   const kind = state.winner === 'player' ? 'victory' : state.winner === 'ai' ? 'defeat' : 'draw';
   const title =
     kind === 'victory'
@@ -152,11 +189,12 @@ export function resultMarkup(state, view) {
           );
   const elapsed = Math.floor((state.respiration?.elapsedMs ?? 0) / 1000);
   const duration = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
-  return `<section class="result-page result-${kind}" data-scene="${kind}" aria-labelledby="resultTitle">
+  return `<section class="result-page result-${kind}" data-scene="${kind}" aria-labelledby="resultTitle"><button class="result-skip" data-action="skip-ending">${c('跳过收尾', 'Skip ending')} <span aria-hidden="true">×</span></button>
     ${kind === 'draw' ? '<div class="paper-figures" aria-hidden="true"></div><div class="draw-waterline" data-motion-line aria-hidden="true"></div>' : `<div class="result-art" aria-hidden="true" data-parallax="0.26">${kind === 'victory' ? '<svg class="victory-arc" viewBox="0 0 500 500"><path data-motion-ink d="M80 420 Q-20 180 280 50 Q450 5 440 210"/></svg>' : ''}<img src="${resultAssets[kind]}" alt="" data-motion-reveal /></div>`}
     <div class="result-copy" data-parallax="0.08"><p class="eyebrow">${kind === 'victory' ? 'THE LAST BREATH IS YOURS' : kind === 'defeat' ? 'THE ABYSS REMEMBERS' : 'A PERFECT EQUILIBRIUM'}</p><h1 id="resultTitle">${title}</h1><p class="result-tagline">${tagline}</p><p class="result-reason">${reason}</p>
-      <dl class="result-facts"><div><dt>${c('完成轮次', 'Rounds completed')}</dt><dd>${state.completedRounds} / ${state.maxRounds}</dd></div><div><dt>${c('对局时长', 'Match duration')}</dt><dd>${duration}</dd></div><div><dt>${c('实际烧毁', 'Actually burned')}</dt><dd>${state.accounting?.burned ?? 0} AIR</dd></div></dl>
+      <dl class="result-facts"><div><dt>${c('完成轮次', 'Rounds completed')}</dt><dd>${state.completedRounds} / ${state.maxRounds}</dd></div><div><dt>${c('对局时长', 'Match duration')}</dt><dd>${duration}</dd></div><div><dt>${c('实际烧毁', 'Actually burned')}</dt><dd>${state.accounting?.burned ?? 0} AIR</dd></div><div><dt>${c('对手', 'Opponent')}</dt><dd>${opponent.name}</dd></div><div><dt>${c('契约', 'Contract')}</dt><dd>${contract.name}</dd></div></dl>
+      ${contractResult ? `<div class="result-contract${contractResult.complete ? ' is-complete' : ' is-missed'}" data-contract-result="${contractResult.id}"><span class="result-contract-stamp">${contractResult.status}</span><div><strong>${contractResult.name} · ${contractResult.latin}</strong><p>${contractResult.detail}</p><small>${contractResult.note}</small></div></div>` : ''}
       <div class="result-actions"><button class="button primary" data-action="enter-match">${kind === 'draw' ? c('再较量一局', 'Play again') : c('再来一局', 'Play again')} →</button><button class="button secondary" data-action="open-record">${c('查看复盘', 'Review match')}</button><button class="button secondary" data-action="share-result">${c('分享战报', 'Share card')}</button></div><button class="result-home" data-action="go-home">← ${c('返回首页', 'Back to home')}</button>
     </div>
-  </section>`;
+  </section>${comicRecapMarkup(record, view.lang)}`;
 }

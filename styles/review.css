@@ -369,3 +369,27 @@ html[data-motion='off'] .review-event,
 html[data-motion='off'] .transfer-token {
   animation: none;
 }
+
+.review-mode,
+.record-mode {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  margin: 8px 0 0;
+  padding: 5px 10px;
+  border: 1px solid #d2d3c9;
+  background: #f3f2ee;
+  color: #555a53;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.review-mode b,
+.record-mode strong {
+  font:
+    700 9px/1 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.14em;
+  color: #9c3737;
+}

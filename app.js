@@ -1,4 +1,6 @@
 import { BET_SECONDS, UPPER_SECONDS, createGame } from './game/engine.js';
+import { DEFAULT_CONTRACT, isContractId } from './game/contracts.js';
+import { DEFAULT_OPPONENT, createOpponent, isOpponentId } from './game/opponents.js';
 import { createTurnClock } from './browser/turn-clock.js';
 import { createMatchClock } from './browser/match-clock.js';
 import { createRecordStore } from './browser/record-store.js';
@@ -6,6 +8,7 @@ import { createSceneMotion } from './browser/scene-motion.js';
 import { createVisitCounter } from './browser/visit-counter.js';
 import { createShareExporter } from './browser/share.js';
 import { shareSummary, shareCopy, shareImageSvg } from './ui/share.js';
+import { contractCopy, contractResultCopy, contractResultFor, opponentCopy } from './ui/modes.js';
 import { isLanguage, translate } from './i18n.js';
 import { createRenderer } from './ui/render.js';
 import { cardMarkup, updateBetPreview } from './ui/battle.js';
@@ -35,6 +38,8 @@ const visitCounter = createVisitCounter({ root: $('siteVisits') });
 const motion = createSceneMotion({ root: $('app'), canvas: $('sceneCanvas') });
 const defaultLanguage = document.documentElement.lang === 'en' ? 'en' : 'zh';
 const savedLanguage = stored('air-poker-lang', defaultLanguage);
+const savedOpponent = stored('air-poker-opponent', DEFAULT_OPPONENT);
+const savedContract = stored('air-poker-contract', DEFAULT_CONTRACT);
 const view = {
   lang: isLanguage(savedLanguage) ? savedLanguage : defaultLanguage,
   screen: 'home',
@@ -44,6 +49,10 @@ const view = {
   tutorial: createTutorial(),
   motionEnabled: stored('air-poker-motion', 'on') !== 'off',
   hasLastRecord: false,
+  setup: {
+    opponent: isOpponentId(savedOpponent) ? savedOpponent : DEFAULT_OPPONENT,
+    contract: isContractId(savedContract) ? savedContract : DEFAULT_CONTRACT,
+  },
 };
 motion.setEnabled(view.motionEnabled);
 const c = (zh, en) => (view.lang === 'en' ? en : zh);
@@ -89,6 +98,7 @@ function render() {
     savedSession = snapshot.sessionId;
   }
   view.hasLastRecord = Boolean(lastRecord);
+  view.matchRecord = snapshot.phase === 'summary' ? game.getRecord() : null;
   view.roundRecord =
     snapshot.phase === 'showdown'
       ? game.getRecord().rounds.find((round) => round.number === snapshot.round)
@@ -209,6 +219,13 @@ function showShare(record) {
     toast(c('请在对局完成后生成战报。', 'Finish a match to create its share card.'));
     return;
   }
+  const mode = record.mode
+    ? {
+        opponent: opponentCopy(record.mode.opponent, view.lang),
+        contract: contractCopy(record.mode.contract, view.lang),
+        contractResult: contractResultCopy(contractResultFor(record), view.lang),
+      }
+    : null;
   sharingRecord = record;
   $('shareTitle').textContent = c('把这一局，留成一张战报。', 'Your match. On one card.');
   $('shareDialog')
@@ -226,7 +243,7 @@ function showShare(record) {
   openDialog('shareDialog');
   void shareExporter.prepare({
     ...shareCopy(model, view.lang),
-    svg: shareImageSvg(model, view.lang),
+    svg: shareImageSvg(model, view.lang, mode),
     messages: {
       save: c('保存战报图片', 'Save PNG'),
       share: c('系统分享', 'Share'),
@@ -356,15 +373,17 @@ function restart(withIntro) {
   stopReview();
   closeAllDialogs();
   $('toast').classList.remove('show');
-  if (game) game.reset();
-  else {
-    const recordId =
-      globalThis.crypto?.randomUUID?.() ??
-      'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
-    game = createGame({ recordId });
-  }
+  const recordId =
+    globalThis.crypto?.randomUUID?.() ??
+    'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  game = createGame({
+    recordId,
+    opponent: createOpponent(view.setup.opponent),
+    mode: { opponent: view.setup.opponent, contract: view.setup.contract },
+  });
   matchStarted = true;
   abandoned = false;
+  view.matchRecord = null;
   view.timer = BET_SECONDS;
   view.selectedTarget = null;
   setScreen(withIntro ? 'intro' : 'game');
@@ -471,6 +490,21 @@ document.addEventListener('click', (event) => {
     case 'skip-intro':
       clearTimeout(introHandle);
       setScreen('game');
+      break;
+    case 'choose-opponent':
+      if (!isOpponentId(data.opponent)) break;
+      view.setup.opponent = data.opponent;
+      persist('air-poker-opponent', data.opponent);
+      render();
+      break;
+    case 'choose-contract':
+      if (!isContractId(data.contract)) break;
+      view.setup.contract = data.contract;
+      persist('air-poker-contract', data.contract);
+      render();
+      break;
+    case 'skip-ending':
+      motion.skipEnding();
       break;
     case 'open-rules':
       openDialog('rulesDialog');

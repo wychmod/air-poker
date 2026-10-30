@@ -1209,3 +1209,206 @@ html[data-motion='off'] .battle *::after {
   color: #565e50;
   margin: -6px 0 22px;
 }
+
+/* ============================================================
+   Director frame, mode strip and comic split
+   ============================================================ */
+.battle {
+  position: relative;
+}
+.battle-director {
+  position: absolute;
+  inset: -13px -19px;
+  z-index: 3;
+  pointer-events: none;
+}
+.battle-director-corner {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border: 0 solid #17191766;
+}
+.battle-director-corner.is-tl {
+  top: 0;
+  left: 0;
+  border-width: 1px 0 0 1px;
+}
+.battle-director-corner.is-tr {
+  top: 0;
+  right: 0;
+  border-width: 1px 1px 0 0;
+}
+.battle-director-corner.is-bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 1px 1px;
+}
+.battle-director-corner.is-br {
+  right: 0;
+  bottom: 0;
+  border-width: 0 1px 1px 0;
+}
+.battle-director-mark {
+  position: absolute;
+  top: -7px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 3px 10px 4px;
+  background: #f3f2ee;
+  color: #5f635b;
+  font:
+    700 8px/1 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.battle-director-mark b {
+  color: #171917;
+  letter-spacing: 0.22em;
+}
+.battle-director-mark b::after {
+  content: '';
+  display: inline-block;
+  width: 1px;
+  height: 9px;
+  margin-left: 9px;
+  vertical-align: -1px;
+  background: #c9cac0;
+}
+.battle-director-mark i {
+  font-style: normal;
+}
+.battle[data-intensity='pressure'] .battle-director-corner {
+  border-color: #17191799;
+}
+.battle[data-intensity='final'] .battle-director-corner {
+  width: 19px;
+  height: 19px;
+  border-color: #9c3737;
+}
+.battle[data-intensity='final'] .battle-resources {
+  border-top-color: #9c3737;
+}
+.battle[data-intensity='final'] .battle-director-mark i {
+  color: #9c3737;
+}
+.battle-mode-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 16px 10px;
+  border-bottom: 1px solid #d6d7ce;
+  background: #eeede7;
+  font-size: 11px;
+}
+.battle-mode-strip > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 9px 4px;
+  border: 1px solid #cfd0c6;
+  background: #f8f7f2;
+  color: #4d514a;
+}
+.battle-mode-strip b {
+  font:
+    700 8px/1 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.14em;
+  color: #5f635b;
+}
+.battle-mode-strip .battle-contract-tag {
+  border-color: #d8c5c1;
+  background: #f5eae7;
+  color: #7c3a37;
+}
+.battle-mode-strip .battle-contract-tag b {
+  color: #9c3737;
+}
+
+/* The reveal reads as two facing comic panels with a single VS seal. */
+.battle-showdown {
+  position: relative;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  border: 2px solid #171917;
+  background: #171917;
+}
+.battle-showdown .battle-reveal-hand {
+  position: relative;
+  padding: 20px 18px 22px;
+  border: 0;
+  background: #f8f7f2;
+}
+.battle-showdown .battle-reveal-hand.is-winner {
+  background: #fffdf6;
+  box-shadow: inset 0 4px 0 #171917;
+}
+.battle-showdown .battle-reveal-hand.is-winner::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(225deg, #171917 50%, transparent 51%);
+}
+.battle-showdown-vs {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid #171917;
+  border-radius: 50%;
+  background: #f3f2ee;
+  color: #171917;
+  font:
+    700 11px/1 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.06em;
+  box-shadow: 0 4px 0 #dcdcd2;
+}
+
+@media (max-width: 900px) {
+  .battle-showdown {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .battle-director {
+    inset: -10px -10px;
+  }
+}
+@media (max-width: 560px) {
+  .battle-mode-strip {
+    justify-content: flex-start;
+    font-size: 10px;
+    padding-inline: 12px;
+  }
+  .battle-mode-strip > span {
+    max-width: 100%;
+  }
+  .battle-director-mark {
+    left: 12px;
+    letter-spacing: 0.12em;
+  }
+  .battle-director-mark b {
+    letter-spacing: 0.12em;
+  }
+  .battle-showdown-vs {
+    width: 38px;
+    height: 38px;
+    font-size: 10px;
+  }
+}

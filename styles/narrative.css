@@ -1714,3 +1714,474 @@ html[lang='zh-CN'] .home-center h1 span {
     background-image: url('../assets/runtime/scene-mobile.webp');
   }
 }
+
+/* ============================================================
+   Match setup, contract seal and comic recap
+   ============================================================ */
+.home-setup {
+  width: min(590px, 100%);
+  margin: 0 auto 26px;
+  text-align: left;
+}
+.home-setup-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+  letter-spacing: 0.16em;
+  font-size: 10px;
+  color: #555b52;
+}
+.home-setup-head span {
+  border-bottom: 1px solid #171917;
+  padding-bottom: 5px;
+  font-weight: 700;
+}
+.home-setup-head small {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: #5f635b;
+}
+.home-opponents {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.home-opponent {
+  position: relative;
+  appearance: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 11px 11px 36px;
+  border: 1px solid #c9cac0;
+  background: #f7f6f1d9;
+  color: var(--ink);
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.75, 0.25, 1),
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+.home-opponent:hover,
+.home-opponent:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 3px 5px 0 #d6d6cc;
+}
+.home-opponent-index {
+  position: absolute;
+  left: 11px;
+  top: 13px;
+  font:
+    700 9px/1 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.06em;
+  color: #62665e;
+}
+.home-opponent strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+.home-opponent small {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #555a53;
+}
+.home-opponent.is-active {
+  border-color: var(--ink);
+  background: #171917;
+  color: var(--paper);
+  box-shadow: 3px 3px 0 #c9cac0;
+}
+.home-opponent.is-active .home-opponent-index,
+.home-opponent.is-active small {
+  color: #c9c9c0;
+}
+.home-contracts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+.home-contract {
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 96px;
+  padding: 8px 10px 7px;
+  border: 1px solid #d2d3c9;
+  background: #f7f6f1a6;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+.home-contract span {
+  display: block;
+  font:
+    700 8px/1.2 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.12em;
+  color: #5f635b;
+}
+.home-contract small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--ink);
+}
+.home-contract:hover,
+.home-contract:focus-visible {
+  border-color: #8d9187;
+}
+.home-contract.is-active {
+  border-color: var(--risk);
+  background: #f4e7e4;
+}
+.home-contract.is-active span,
+.home-contract.is-active small {
+  color: var(--risk);
+}
+.intro-mode {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: #555b52;
+}
+.intro-mode span,
+.intro-mode i {
+  font-style: normal;
+}
+.intro-mode i {
+  padding-left: 18px;
+  border-left: 1px solid #b8b9ae;
+  color: var(--risk);
+}
+
+/* A skip control belongs to the cinematic layer, not the result grid. */
+.result-skip {
+  position: absolute;
+  z-index: 6;
+  top: 26px;
+  right: 28px;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #c9cac0;
+  background: #f3f2eeb8;
+  color: #555a53;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.result-skip[hidden] {
+  display: none;
+}
+.result-skip span {
+  font-size: 14px;
+  line-height: 1;
+}
+.result-skip:hover,
+.result-skip:focus-visible {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.result-contract {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 500px;
+  margin: 0 0 24px;
+  padding: 13px 16px;
+  border: 1px solid #c9cac0;
+  background: #f7f6f1d9;
+}
+.result-contract-stamp {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  min-width: 62px;
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font:
+    700 10px/1.1 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.1em;
+  transform: rotate(-3deg);
+}
+.result-contract.is-complete .result-contract-stamp {
+  border-color: var(--risk);
+  color: var(--risk);
+}
+.result-contract.is-missed .result-contract-stamp {
+  border-color: #9a9d94;
+  color: #6d7169;
+  text-decoration: line-through;
+}
+.result-contract strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 15px;
+  letter-spacing: 0.03em;
+}
+.result-contract p {
+  margin: 4px 0 2px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #555a53;
+}
+.result-contract small {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #5f635b;
+}
+
+/* Three recorded frames, styled as a closed comic strip. */
+.comic-recap {
+  max-width: 1180px;
+  margin: 0 auto 64px;
+  padding: 0 32px;
+  color: var(--ink);
+}
+.comic-recap-head {
+  border-top: 2px solid var(--ink);
+  padding-top: 22px;
+  margin-bottom: 20px;
+}
+.comic-recap-head h2 {
+  margin: 7px 0 8px;
+  font-family: var(--serif);
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.02em;
+}
+.comic-recap-head p {
+  margin: 0;
+  font-size: 12px;
+  color: #555a53;
+}
+.comic-recap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 2px solid var(--ink);
+  background: var(--ink);
+}
+.recap-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 214px;
+  padding: 22px 20px 22px;
+  background: #f8f7f2;
+  border-right: 2px solid var(--ink);
+}
+.recap-panel:last-child {
+  border-right: 0;
+}
+.recap-index {
+  position: absolute;
+  top: 8px;
+  right: 11px;
+  font:
+    700 28px/1 Georgia,
+    serif;
+  color: #dcdcd2;
+}
+.recap-kicker {
+  margin: 0;
+  font:
+    700 9px/1.2 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.16em;
+  color: #5f635b;
+}
+.recap-panel h3 {
+  margin: 2px 0 4px;
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.35;
+}
+.recap-panel p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #555a53;
+}
+.recap-big {
+  font:
+    700 40px/1 'Courier New',
+    monospace;
+  letter-spacing: -0.04em;
+}
+.recap-big small {
+  margin-left: 6px;
+  font:
+    600 10px/1 ui-monospace,
+    'Courier New',
+    monospace;
+}
+.recap-hand {
+  margin: 4px 0;
+}
+.recap-hand .battle-card {
+  width: 38px;
+  height: 57px;
+}
+.recap-hand .battle-card-corner {
+  top: 3px;
+  left: 4px;
+  font-size: 14px;
+}
+.recap-hand .battle-card-corner small {
+  margin-top: 1px;
+  font-size: 10px;
+}
+.recap-hand .battle-card-suit {
+  font-size: 18px;
+}
+.recap-hand .battle-card-foot {
+  bottom: 3px;
+  right: 3px;
+  font-size: 7px;
+}
+.recap-stamp {
+  margin-top: auto;
+  align-self: flex-start;
+  padding: 4px 8px;
+  border: 2px solid var(--ink);
+  font:
+    700 10px/1 ui-monospace,
+    'Courier New',
+    monospace;
+  letter-spacing: 0.12em;
+  transform: rotate(-2deg);
+}
+.recap-stamp.is-loss {
+  border-color: var(--risk);
+  color: var(--risk);
+}
+.recap-final {
+  background: #171917;
+  color: var(--paper);
+}
+.recap-final .recap-index {
+  color: #3a3f39;
+}
+.recap-final .recap-kicker {
+  color: #9aa096;
+}
+.recap-final p {
+  color: #c9c9c0;
+}
+.recap-final .recap-stamp {
+  border-color: var(--paper);
+  color: var(--paper);
+}
+.recap-final .recap-stamp.is-loss {
+  border-color: #d79089;
+  color: #e8b6b0;
+}
+
+@media (max-width: 700px) {
+  .home-setup {
+    margin-bottom: 22px;
+  }
+  .home-setup-head small {
+    display: none;
+  }
+  .home-opponents {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .home-opponent {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    column-gap: 6px;
+    padding: 8px 10px;
+    align-items: baseline;
+  }
+  .home-opponent-index {
+    position: static;
+    grid-row: 1;
+    top: auto;
+    left: auto;
+  }
+  .home-opponent strong {
+    font-size: 14px;
+  }
+  .home-opponent small {
+    grid-column: 2;
+    margin-top: 1px;
+  }
+  .home-contracts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .result-page {
+    padding-top: 54px;
+  }
+  .result-skip {
+    top: 9px;
+    right: 10px;
+    min-height: 44px;
+  }
+  .result-contract {
+    order: 5;
+    width: 100%;
+    margin: 0;
+    gap: 12px;
+    padding: 11px 12px;
+  }
+  .result-contract-stamp {
+    min-width: 54px;
+    font-size: 9px;
+  }
+  .comic-recap {
+    padding: 0 20px;
+    margin-bottom: 40px;
+  }
+  .comic-recap-grid {
+    grid-template-columns: 1fr;
+  }
+  .recap-panel {
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 2px solid var(--ink);
+  }
+  .recap-panel:last-child {
+    border-bottom: 0;
+  }
+  .recap-hand .battle-card {
+    width: 34px;
+    height: 51px;
+  }
+  .recap-hand .battle-card-corner {
+    font-size: 12px;
+  }
+  .recap-hand .battle-card-suit {
+    font-size: 16px;
+  }
+}
+@media (max-width: 380px) {
+  .home-contract {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+}
