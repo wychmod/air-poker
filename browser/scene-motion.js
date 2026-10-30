@@ -1,6 +1,66 @@
 // Presentation only. Accepted public facts determine effects; effects never dispatch actions.
 const actors = ['player', 'ai'];
 
+const EASING = Object.freeze({
+  standard: 'cubic-bezier(.2,.75,.25,1)',
+  cinematic: 'cubic-bezier(.16,.84,.3,1)',
+  sweep: 'cubic-bezier(.3,0,.2,1)',
+  drift: 'cubic-bezier(.2,.65,.3,1)',
+  curtain: 'cubic-bezier(.76,0,.24,1)',
+  ink: 'cubic-bezier(.28,.64,.24,1)',
+  frame: 'cubic-bezier(.22,.72,.2,1)',
+});
+
+// The ending is a narrative sequence, not a routine interaction. Keep its full timeline in one
+// place so pacing can be tuned without hunting through the effect branches.
+const ENDING = Object.freeze({
+  total: 2900,
+  stage: 680,
+  ink: 1050,
+  inkDelay: 160,
+  line: 520,
+  lineDelay: 120,
+  art: 1050,
+  artDelay: 80,
+  pulse: 1500,
+  pulseDelay: 120,
+  ring: 1500,
+  ringDelay: 140,
+  ringGap: 210,
+  bloom: 1900,
+  bloomDelay: 110,
+  beam: 1550,
+  beamDelay: 220,
+  cut: 1050,
+  cutDelay: 180,
+  cutGap: 190,
+  mark: 2100,
+  markDelay: 650,
+  copy: Object.freeze({
+    eyebrow: Object.freeze({ delay: 180, duration: 360 }),
+    title: Object.freeze({ delay: 300, duration: 720 }),
+    tagline: Object.freeze({ delay: 620, duration: 420 }),
+    reason: Object.freeze({ delay: 760, duration: 460 }),
+    facts: Object.freeze({ delay: 930, duration: 420 }),
+    actions: Object.freeze({ delay: 1230, duration: 440 }),
+    home: Object.freeze({ delay: 1350, duration: 360 }),
+  }),
+  facts: Object.freeze({ delay: 990, duration: 400, stagger: 80 }),
+  actions: Object.freeze({ delay: 1270, duration: 380, stagger: 55 }),
+  motes: Object.freeze({
+    delay: 150,
+    delaySpread: 520,
+    duration: 1300,
+    durationSpread: 700,
+  }),
+});
+
+export function endingKindForScene(scene) {
+  if (scene === 'result-player') return 'victory';
+  if (scene === 'result-ai') return 'defeat';
+  return null;
+}
+
 export function classifyMotion(before, after) {
   if (!before || !after || before.sessionId !== after.sessionId) return [];
   if (before.round !== after.round) return after.phase === 'lower' ? [{ type: 'deal' }] : [];
@@ -161,6 +221,56 @@ export function createSceneMotion({ root, canvas }) {
       copy,
     );
   }
+  function ring(node, spread = 16, tone = '23,25,23') {
+    if (!node) return;
+    animate(
+      node,
+      [
+        { filter: 'drop-shadow(0 0 0 rgba(' + tone + ',.45))' },
+        { filter: 'drop-shadow(0 0 ' + spread + 'px rgba(' + tone + ',0))' },
+      ],
+      { duration: 520, easing: 'cubic-bezier(.2,.75,.25,1)' },
+    );
+  }
+  function focusVignette() {
+    if (typeof document.createElement !== 'function' || !document.body) return;
+    const node = document.createElement('div');
+    node.className = 'motion-focus';
+    node.setAttribute('aria-hidden', 'true');
+    document.body.append(node);
+    copies.add(node);
+    removeAfter(
+      animate(
+        node,
+        [
+          { opacity: 0 },
+          { opacity: 1, offset: 0.16 },
+          { opacity: 1, offset: 0.58 },
+          { opacity: 0 },
+        ],
+        { duration: 1500, easing: 'ease-out' },
+      ),
+      node,
+    );
+  }
+  function roll(node) {
+    animate(
+      node,
+      [
+        { transform: 'translateY(-62%)', opacity: 0 },
+        { transform: 'translateY(0)', opacity: 1 },
+      ],
+      { duration: 340, easing: 'cubic-bezier(.2,.75,.25,1)' },
+    );
+  }
+  function playRolls(before, after) {
+    if (!before || !after || before.sessionId !== after.sessionId) return;
+    for (const actor of actors) {
+      if (before[actor + 'Air'] !== after[actor + 'Air'])
+        roll(query('[data-air-value="' + actor + '"]'));
+    }
+    if (before.pot !== after.pot) roll(query('[data-pot-value]'));
+  }
   function playTarget(event) {
     const from = positions.targets?.get(event.index);
     const to = rectOf(query('[data-target-slot="player"]'));
@@ -169,6 +279,7 @@ export function createSceneMotion({ root, canvas }) {
     node.className = 'motion-target-token';
     node.textContent = event.value;
     fly(copyAt(node, from), from, to);
+    ring(query('[data-target-slot="player"]'), 14);
   }
   function playLock(event) {
     const sources = positions.draft?.length
@@ -183,6 +294,7 @@ export function createSceneMotion({ root, canvas }) {
       );
       if (to) fly(copyAt(source.node, source.rect), source.rect, to, 250, index * 12);
     });
+    ring(query('.battle-player'), 20, '156,55,55');
   }
   function playPayments(event, delay = 0) {
     const to = rectOf(query('[data-pot]'));
@@ -214,6 +326,7 @@ export function createSceneMotion({ root, canvas }) {
     );
   }
   function playReveal(delay = 0) {
+    focusVignette();
     const cards = query('[data-hand="ai"]')?.querySelectorAll('[data-card-id]') ?? [];
     cards.forEach((card, index) =>
       animate(
@@ -290,9 +403,372 @@ export function createSceneMotion({ root, canvas }) {
       { duration: 250, delay },
     );
   }
-  function enterScene() {
+  function sceneBlocks() {
+    const nodes = [
+      ...root.querySelectorAll(
+        [
+          '.home-center .eyebrow',
+          '.home-center h1',
+          '.home-tagline',
+          '.home-enter',
+          '.home-secondary',
+          '.home-foot',
+          '.narrative-heading',
+          '.concept-panel',
+          '.tutorial-heading',
+          '.tutorial-exercise',
+          '.battle-resources',
+          '.battle-table',
+          '.battle-actions',
+          '.result-copy > *',
+          '.intro-matchup',
+        ].join(','),
+      ),
+    ];
+    if (nodes.length) return nodes;
+    const page = query('#pageContent > section');
+    return page ? [...page.children].slice(0, 6) : [];
+  }
+  function sceneCurtain() {
+    if (typeof document.createElement !== 'function' || !document.body) return;
+    const slab = document.createElement('div');
+    slab.className = 'motion-slab';
+    slab.setAttribute('aria-hidden', 'true');
+    document.body.append(slab);
+    copies.add(slab);
+    removeAfter(
+      animate(slab, [{ transform: 'translateX(0)' }, { transform: 'translateX(104%)' }], {
+        duration: 480,
+        easing: 'cubic-bezier(.76,0,.24,1)',
+      }),
+      slab,
+    );
+  }
+  function titleSweep() {
+    if (typeof document.createElement !== 'function') return;
+    const title = query('.home-center h1');
+    if (!title || title.querySelector('.motion-title-sweep')) return;
+    const band = document.createElement('span');
+    band.className = 'motion-title-sweep';
+    band.setAttribute('aria-hidden', 'true');
+    title.append(band);
+    copies.add(band);
+    removeAfter(
+      animate(band, [{ transform: 'translateX(-160%)' }, { transform: 'translateX(520%)' }], {
+        duration: 1250,
+        delay: 260,
+        easing: 'cubic-bezier(.3,0,.2,1)',
+      }),
+      band,
+    );
+  }
+  function playEnding(kind) {
+    if (
+      !['victory', 'defeat'].includes(kind) ||
+      typeof document.createElement !== 'function' ||
+      !document.body
+    )
+      return;
+    const layer = document.createElement('div');
+    layer.className = 'motion-finale motion-finale-' + kind;
+    layer.setAttribute('aria-hidden', 'true');
+
+    const veil = document.createElement('div');
+    veil.className = 'motion-finale-veil';
+    layer.append(veil);
+
+    for (const edge of ['top', 'bottom']) {
+      const bar = document.createElement('span');
+      bar.className = 'motion-finale-bar motion-finale-bar-' + edge;
+      layer.append(bar);
+      const hidden = edge === 'top' ? 'translateY(-104%)' : 'translateY(104%)';
+      animate(
+        bar,
+        [
+          { transform: hidden },
+          { transform: 'translateY(0)', offset: 0.14 },
+          { transform: 'translateY(0)', offset: 0.82 },
+          { transform: hidden },
+        ],
+        { duration: ENDING.total, easing: EASING.frame },
+      );
+    }
+
+    const pulse = document.createElement('span');
+    pulse.className = 'motion-finale-pulse';
+    layer.append(pulse);
+    animate(
+      pulse,
+      [
+        { transform: 'scale(.8)', opacity: 0 },
+        { transform: 'scale(1)', opacity: 0.9, offset: 0.2 },
+        { transform: 'scale(1.28)', opacity: 0 },
+      ],
+      { duration: ENDING.pulse, delay: ENDING.pulseDelay, easing: EASING.cinematic },
+    );
+
+    for (let index = 0; index < 3; index++) {
+      const ripple = document.createElement('span');
+      ripple.className = 'motion-finale-ring';
+      layer.append(ripple);
+      animate(
+        ripple,
+        [
+          { transform: 'scale(.38)', opacity: 0 },
+          {
+            transform: 'scale(.42)',
+            opacity: kind === 'victory' ? 0.5 : 0.4,
+            offset: 0.18,
+          },
+          { transform: 'scale(1.7)', opacity: 0 },
+        ],
+        {
+          duration: ENDING.ring,
+          delay: ENDING.ringDelay + index * ENDING.ringGap,
+          easing: EASING.cinematic,
+        },
+      );
+    }
+
+    if (kind === 'victory') {
+      const bloom = document.createElement('span');
+      bloom.className = 'motion-finale-bloom';
+      layer.append(bloom);
+      animate(
+        bloom,
+        [
+          { transform: 'scale(.62)', opacity: 0 },
+          { transform: 'scale(.92)', opacity: 0.7, offset: 0.34 },
+          { transform: 'scale(1.34)', opacity: 0 },
+        ],
+        { duration: ENDING.bloom, delay: ENDING.bloomDelay, easing: EASING.cinematic },
+      );
+
+      const beam = document.createElement('span');
+      beam.className = 'motion-finale-beam';
+      layer.append(beam);
+      animate(
+        beam,
+        [
+          { transform: 'translate3d(-38vw,0,0) rotate(-8deg)', opacity: 0 },
+          { transform: 'translate3d(0,0,0) rotate(-8deg)', opacity: 0.72, offset: 0.38 },
+          { transform: 'translate3d(42vw,0,0) rotate(-8deg)', opacity: 0 },
+        ],
+        { duration: ENDING.beam, delay: ENDING.beamDelay, easing: EASING.sweep },
+      );
+    } else {
+      for (let index = 0; index < 2; index++) {
+        const cut = document.createElement('span');
+        cut.className = 'motion-finale-cut';
+        cut.style.top = 35 + index * 25 + '%';
+        cut.style.rotate = index ? '5deg' : '-7deg';
+        layer.append(cut);
+        animate(
+          cut,
+          [
+            { transform: 'scaleX(0)', opacity: 0 },
+            { transform: 'scaleX(1)', opacity: 0.85, offset: 0.22 },
+            { transform: 'scaleX(1)', opacity: 0 },
+          ],
+          {
+            duration: ENDING.cut,
+            delay: ENDING.cutDelay + index * ENDING.cutGap,
+            easing: EASING.cinematic,
+          },
+        );
+      }
+    }
+
+    const motes = width < 650 ? 8 : 15;
+    for (let index = 0; index < motes; index++) {
+      const mote = document.createElement('i');
+      mote.className = 'motion-finale-mote';
+      const startX = 6 + seed(index + 71) * 88;
+      const drift = (seed(index + 91) - 0.5) * (kind === 'victory' ? 80 : 56);
+      const distance = 70 + seed(index + 111) * (kind === 'victory' ? 160 : 110);
+      const size = 1.5 + seed(index + 131) * 4.5;
+      const delay = ENDING.motes.delay + seed(index + 151) * ENDING.motes.delaySpread;
+      const duration = ENDING.motes.duration + seed(index + 171) * ENDING.motes.durationSpread;
+      mote.style.left = startX.toFixed(2) + '%';
+      mote.style.top = kind === 'victory' ? '88%' : '10%';
+      mote.style.width = size.toFixed(2) + 'px';
+      mote.style.height = size.toFixed(2) + 'px';
+      layer.append(mote);
+      animate(
+        mote,
+        kind === 'victory'
+          ? [
+              { transform: 'translate3d(0,26px,0) scale(.65)', opacity: 0 },
+              { transform: 'translate3d(0,0,0) scale(1)', opacity: 0.72, offset: 0.18 },
+              {
+                transform: 'translate3d(' + drift + 'px,-' + distance + 'px,0) scale(1.1)',
+                opacity: 0,
+              },
+            ]
+          : [
+              { transform: 'translate3d(0,-24px,0) scale(.8)', opacity: 0 },
+              { transform: 'translate3d(0,0,0) scale(1)', opacity: 0.5, offset: 0.18 },
+              {
+                transform: 'translate3d(' + drift + 'px,' + distance + 'px,0) scale(.45)',
+                opacity: 0,
+              },
+            ],
+        { duration, delay, easing: EASING.drift },
+      );
+    }
+
+    document.body.append(layer);
+    copies.add(layer);
+
+    const title = query('.result-copy h1');
+    if (title) {
+      const mark = document.createElement('span');
+      mark.className = 'motion-finale-title-mark';
+      mark.classList.add(kind);
+      mark.setAttribute('aria-hidden', 'true');
+      title.append(mark);
+      copies.add(mark);
+      const tilt = kind === 'defeat' ? 'rotate(-.6deg) ' : '';
+      removeAfter(
+        animate(
+          mark,
+          [
+            { transform: tilt + 'scaleX(0)', opacity: 0 },
+            {
+              transform: tilt + 'scaleX(1)',
+              opacity: kind === 'victory' ? 0.76 : 0.86,
+              offset: 0.2,
+            },
+            { transform: tilt + 'scaleX(1)', opacity: 0.62, offset: 0.66 },
+            { transform: tilt + 'scaleX(1.025)', opacity: 0 },
+          ],
+          { duration: ENDING.mark, delay: ENDING.markDelay, easing: EASING.cinematic },
+        ),
+        mark,
+      );
+    }
+
+    removeAfter(
+      animate(
+        layer,
+        [
+          { opacity: 0 },
+          { opacity: 1, offset: 0.08 },
+          { opacity: 1, offset: 0.76 },
+          { opacity: 0 },
+        ],
+        { duration: ENDING.total, easing: 'linear' },
+      ),
+      layer,
+    );
+  }
+  function enterEndingScene(kind) {
+    const page = query('[data-scene]') ?? query('main');
+    animate(
+      page,
+      [
+        { opacity: 0.48, transform: 'translateY(8px)' },
+        { opacity: 1, transform: 'translateY(0)' },
+      ],
+      { duration: ENDING.stage, easing: EASING.cinematic, fill: 'backwards' },
+    );
+
     for (const node of root.querySelectorAll('[data-motion-ink]'))
-      animate(node, [{ strokeDashoffset: 1100 }, { strokeDashoffset: 0 }], { duration: 450 });
+      animate(node, [{ strokeDashoffset: 1100 }, { strokeDashoffset: 0 }], {
+        duration: ENDING.ink,
+        delay: ENDING.inkDelay,
+        easing: EASING.ink,
+      });
+    for (const node of root.querySelectorAll('[data-motion-line]'))
+      animate(node, [{ transform: 'scaleX(.1)' }, { transform: 'scaleX(1)' }], {
+        duration: ENDING.line,
+        delay: ENDING.lineDelay,
+      });
+
+    const image = query('.result-art [data-motion-reveal]') ?? query('.result-art img');
+    animate(
+      image,
+      [
+        { clipPath: 'inset(0 52% 0 52%)', transform: 'scale(1.045)', opacity: 0.25 },
+        {
+          clipPath: 'inset(0 8% 0 8%)',
+          transform: 'scale(1.012)',
+          opacity: 1,
+          offset: 0.72,
+        },
+        { clipPath: 'inset(0)', transform: 'scale(1)', opacity: 1 },
+      ],
+      {
+        duration: ENDING.art,
+        delay: ENDING.artDelay,
+        easing: EASING.cinematic,
+        fill: 'backwards',
+      },
+    );
+
+    const reveal = (selector, timing, distance, extra = {}) => {
+      const node = query(selector);
+      if (!node) return;
+      animate(
+        node,
+        [
+          { opacity: 0.001, transform: 'translateY(' + distance + 'px)', ...extra.from },
+          { opacity: 1, transform: 'translateY(0)', ...extra.to },
+        ],
+        {
+          duration: timing.duration,
+          delay: timing.delay,
+          easing: EASING.cinematic,
+          fill: 'backwards',
+        },
+      );
+    };
+
+    reveal('.result-copy > .eyebrow', ENDING.copy.eyebrow, 9);
+    reveal('.result-copy h1', ENDING.copy.title, 18, {
+      from: { clipPath: 'inset(0 0 100% 0)' },
+      to: { clipPath: 'inset(0)' },
+    });
+    reveal('.result-copy .result-tagline', ENDING.copy.tagline, 15);
+    reveal('.result-copy .result-reason', ENDING.copy.reason, 13);
+    reveal('.result-facts', ENDING.copy.facts, 14);
+    reveal('.result-actions', ENDING.copy.actions, 12);
+    reveal('.result-home', ENDING.copy.home, 8);
+
+    const facts = query('.result-facts');
+    [...(facts?.children ?? [])].forEach((node, index) =>
+      animate(node, [{ transform: 'translateY(10px)' }, { transform: 'translateY(0)' }], {
+        duration: ENDING.facts.duration,
+        delay: ENDING.facts.delay + index * ENDING.facts.stagger,
+        easing: EASING.cinematic,
+        fill: 'backwards',
+      }),
+    );
+
+    const actions = query('.result-actions');
+    [...(actions?.children ?? [])].forEach((node, index) =>
+      animate(node, [{ transform: 'translateY(8px)' }, { transform: 'translateY(0)' }], {
+        duration: ENDING.actions.duration,
+        delay: ENDING.actions.delay + index * ENDING.actions.stagger,
+        easing: EASING.cinematic,
+        fill: 'backwards',
+      }),
+    );
+
+    applyPointer();
+    playEnding(kind);
+  }
+  function enterScene(withCurtain = false) {
+    if (withCurtain) sceneCurtain();
+    const ending = endingKindForScene(scene);
+    if (ending) {
+      enterEndingScene(ending);
+      return;
+    }
+    for (const node of root.querySelectorAll('[data-motion-ink]'))
+      animate(node, [{ strokeDashoffset: 1100 }, { strokeDashoffset: 0 }], {
+        duration: 450,
+      });
     for (const node of root.querySelectorAll('[data-motion-line]'))
       animate(node, [{ transform: 'scaleX(.1)' }, { transform: 'scaleX(1)' }], { duration: 300 });
     animate(
@@ -312,6 +788,23 @@ export function createSceneMotion({ root, canvas }) {
         ],
         { duration: 600 },
       );
+    sceneBlocks().forEach((node, index) =>
+      animate(
+        node,
+        [
+          { opacity: 0.001, transform: 'translateY(16px)' },
+          { opacity: 1, transform: 'translateY(0)' },
+        ],
+        {
+          duration: 460,
+          delay: 150 + index * 45,
+          easing: 'cubic-bezier(.16,.84,.3,1)',
+          fill: 'backwards',
+        },
+      ),
+    );
+    applyPointer();
+    if (scene === 'home') titleSweep();
   }
   function playDeal() {
     root.querySelectorAll('[data-target-index]').forEach((node, index) =>
@@ -363,7 +856,7 @@ export function createSceneMotion({ root, canvas }) {
     if (canvas) canvas.dataset.tone = 'light';
     if (running() && !skipNext) {
       if (changedScene || !previous) {
-        enterScene();
+        enterScene(Boolean(previous));
         if (scene === 'game' && snapshot.phase === 'lower') playDeal();
       } else if (view.screen === 'game' && previousView?.screen === 'game') {
         if (
@@ -405,6 +898,7 @@ export function createSceneMotion({ root, canvas }) {
             });
           }
         }
+        playRolls(previous, snapshot);
         const events = classifyMotion(previous, snapshot);
         const locked = events.some((event) => event.type === 'lock');
         for (const event of events) {
@@ -417,12 +911,13 @@ export function createSceneMotion({ root, canvas }) {
             playBurn(430);
           }
           if (event.type === 'deal') playDeal();
-          if (event.type === 'select')
-            animate(
-              query('[data-candidate-index="' + event.index + '"]'),
-              [{ transform: 'translateY(0)' }, { transform: 'translateY(-3px)' }],
-              { duration: 180 },
-            );
+          if (event.type === 'select') {
+            const card = query('[data-candidate-index="' + event.index + '"]');
+            animate(card, [{ transform: 'translateY(0)' }, { transform: 'translateY(-3px)' }], {
+              duration: 180,
+            });
+            ring(card, 12);
+          }
         }
       }
     }
@@ -507,9 +1002,40 @@ export function createSceneMotion({ root, canvas }) {
     skipNext = true;
     syncPlayback();
   }
+  let pointerFrame = null;
+  const pointer = { x: 0, y: 0 };
+  function applyPointer() {
+    pointerFrame = null;
+    if (!running()) return;
+    for (const node of root.querySelectorAll('[data-parallax]')) {
+      const depth = Number(node.dataset.parallax) || 0.4;
+      node.style.translate =
+        (pointer.x * depth * 14).toFixed(1) + 'px ' + (pointer.y * depth * 10).toFixed(1) + 'px';
+    }
+  }
+  function trackPointer(event) {
+    if (!running()) return;
+    pointer.x = (event.clientX / Math.max(1, win.innerWidth)) * 2 - 1;
+    pointer.y = (event.clientY / Math.max(1, win.innerHeight)) * 2 - 1;
+    const card = event.target?.closest?.('.battle-number, .battle-candidate');
+    if (card) {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--gx', ((event.clientX - rect.left) / rect.width) * 100 + '%');
+      card.style.setProperty('--gy', ((event.clientY - rect.top) / rect.height) * 100 + '%');
+    }
+    if (pointerFrame === null) pointerFrame = win.requestAnimationFrame(applyPointer);
+  }
+  function resetPointer() {
+    pointer.x = 0;
+    pointer.y = 0;
+    applyPointer();
+  }
+
   document.addEventListener('visibilitychange', onVisibility, { signal: listeners.signal });
   win.addEventListener('resize', resize, { signal: listeners.signal, passive: true });
   win.addEventListener('scroll', cancelEffects, { signal: listeners.signal, passive: true });
+  win.addEventListener('pointermove', trackPointer, { signal: listeners.signal, passive: true });
+  win.addEventListener('pointerleave', resetPointer, { signal: listeners.signal, passive: true });
   media.addEventListener('change', syncPlayback, { signal: listeners.signal });
   resize();
   syncPlayback();
@@ -541,6 +1067,7 @@ export function createSceneMotion({ root, canvas }) {
       cancelEffects();
       listeners.abort();
       if (context) context.clearRect(0, 0, canvas.width, canvas.height);
+      for (const node of root.querySelectorAll('[data-parallax]')) node.style.translate = '';
     },
   };
 }
