@@ -1,6 +1,7 @@
 // Platform effects only. The caller provides a public, completed-match SVG.
 export function createShareExporter({ document, notify }) {
   const preview = document.getElementById('sharePreview');
+  const frame = preview.closest('.share-preview');
   const status = document.getElementById('shareStatus');
   const save = document.getElementById('saveShareImage');
   const native = document.getElementById('nativeShareImage');
@@ -18,10 +19,17 @@ export function createShareExporter({ document, notify }) {
     current = null;
     preview.removeAttribute('src');
     preview.hidden = true;
+    frame?.classList.remove('is-revealing');
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = null;
     save.disabled = true;
     native.disabled = true;
+  }
+  function reveal() {
+    if (!frame) return;
+    frame.classList.remove('is-revealing');
+    void frame.offsetWidth;
+    frame.classList.add('is-revealing');
   }
   return {
     clear,
@@ -71,6 +79,7 @@ export function createShareExporter({ document, notify }) {
         preview.src = previewUrl;
         preview.alt = title;
         preview.hidden = false;
+        reveal();
         ready = { ...data, blob };
         save.disabled = false;
         native.disabled = false;
