@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGame } from '../game/engine.js';
 import { shareSummary, shareCopy, shareImageSvg, shareCoverSvg } from '../ui/share.js';
+import { contractCopy, contractResultCopy, opponentCopy } from '../ui/modes.js';
 import { completedMatch } from './fixtures/completed-match.js';
 
 test('sharing rejects unfinished, damaged and unsupported records', () => {
@@ -32,11 +33,32 @@ test('share cards use validated completed facts, reconstruct trends, and exclude
     }
     assert.deepEqual(
       Object.keys(model).sort(),
-      ['burned', 'calamities', 'elapsedMs', 'finalAir', 'points', 'rounds', 'winner'].sort(),
+      [
+        'burned',
+        'calamities',
+        'comic',
+        'elapsedMs',
+        'finalAir',
+        'points',
+        'rounds',
+        'winner',
+      ].sort(),
     );
+    const finalRound = record.rounds.filter((round) => round.status === 'settled').at(-1);
+    assert.deepEqual(
+      model.comic.final.hand,
+      (finalRound?.attempts.at(-1)?.player.hand ?? []).map(({ rank, suit }) => ({ rank, suit })),
+    );
+    assert.deepEqual(model.comic.final.finalAir, record.result.finalAir);
+    assert.equal(model.comic.final.winner, outcome);
+    assert.equal(model.comic.final.settlement, finalRound?.settlement?.winner ?? null);
+    assert.equal(model.comic.wager, null);
+    assert.equal(model.comic.turn?.action ?? null, outcome === 'ai' ? 'fold' : null);
     for (const lang of ['zh', 'en']) {
       const svg = shareImageSvg(model, lang);
       assert.match(svg, /width="1080" height="1440"/);
+      for (const title of ['THE BIGGEST WAGER', 'THE TURNING POINT', 'THE LAST BREATH'])
+        assert.ok(svg.includes(title));
       assert.ok(svg.includes(lang === 'zh' ? '噬谎者' : 'USOGUI'));
       assert.ok(svg.includes(lang === 'zh' ? '未开空气储备' : 'UNOPENED AIR'));
       assert.ok(!svg.includes(record.matchId));
@@ -46,6 +68,74 @@ test('share cards use validated completed facts, reconstruct trends, and exclude
     record.totals.player.burned = before.totals.player.burned;
     assert.deepEqual(record, before);
   }
+});
+
+test('share comic uses the largest public bet and the next decisive action', () => {
+  const record = structuredClone(completedMatch('player'));
+  const wager = record.rounds[1].actions.find(
+    (action) => action.actor === 'player' && action.action === 'check',
+  );
+  Object.assign(wager, { action: 'raise', paid: 7, raised: 6, pot: wager.pot + 7 });
+  const turn = record.rounds[3].actions.find(
+    (action) => action.actor === 'player' && action.action === 'check',
+  );
+  Object.assign(turn, {
+    action: 'call',
+    paid: 4,
+    called: 4,
+    toCall: 4,
+    pot: turn.pot + 4,
+  });
+  record.rounds[0].targets.ai.value = 987654;
+  record.rounds[0].attempts[0].ai.hand = record.rounds[0].attempts[0].ai.hand.map((card) => ({
+    ...card,
+    rank: 'ZZ',
+  }));
+
+  const model = shareSummary(record);
+  assert.ok(model);
+  assert.deepEqual(model.comic.wager, {
+    round: 2,
+    action: 'raise',
+    paid: 7,
+    raised: 6,
+    target: record.rounds[1].targets.player.value,
+    pot: wager.pot,
+  });
+  assert.deepEqual(model.comic.turn, { round: 4, action: 'call', paid: 4, toCall: 4 });
+
+  const svg = shareImageSvg(model, 'zh');
+  assert.ok(svg.includes('R02 · 加注'));
+  assert.ok(svg.includes('R04 · 决定'));
+  assert.ok(!svg.includes('987654'));
+  assert.ok(!svg.includes('ZZ'));
+});
+
+test('share card can carry the recorded opponent and contract result', () => {
+  const model = shareSummary(completedMatch('player'));
+  const meta = {
+    opponent: opponentCopy('abyss', 'zh'),
+    contract: contractCopy('no-fold', 'zh'),
+    contractResult: contractResultCopy(
+      { id: 'no-fold', complete: false, stats: { folds: 2 } },
+      'zh',
+    ),
+  };
+  const zh = shareImageSvg(model, 'zh', meta);
+  assert.ok(zh.includes('对手 · 深渊 / THE ABYSS'));
+  assert.ok(zh.includes('契约 · 不弃之誓 / NEVER FOLD · 未达成'));
+
+  const enMeta = {
+    opponent: opponentCopy('abyss', 'en'),
+    contract: contractCopy('no-fold', 'en'),
+    contractResult: contractResultCopy(
+      { id: 'no-fold', complete: false, stats: { folds: 2 } },
+      'en',
+    ),
+  };
+  const en = shareImageSvg(model, 'en', enMeta);
+  assert.ok(en.includes('OPPONENT · The Abyss / THE ABYSS'));
+  assert.ok(en.includes('CONTRACT · Never-fold vow / NEVER FOLD · MISSED'));
 });
 
 test('share cover is a standalone bilingual SVG without remote resources', () => {
