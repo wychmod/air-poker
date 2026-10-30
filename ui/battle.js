@@ -78,9 +78,11 @@ function resources(state, lang) {
     copy(lang, '未开储备', 'UNOPENED') +
     '</small></span><strong data-air="' +
     id +
+    '"><span data-air-value="' +
+    id +
     '">' +
     state[id + 'Air'] +
-    '<small>AIR</small></strong><span class="battle-supply" data-breath="' +
+    '</span><small>AIR</small></strong><span class="battle-supply" data-breath="' +
     id +
     '">' +
     supplyText(state, id, lang) +
@@ -93,9 +95,9 @@ function resources(state, lang) {
     String(state.round).padStart(2, '0') +
     ' / ' +
     String(state.maxRounds).padStart(2, '0') +
-    '</span><strong data-pot>' +
+    '</span><strong data-pot><span data-pot-value>' +
     state.pot +
-    '</strong><small>' +
+    '</span></strong><small>' +
     copy(lang, '底池 AIR', 'POT · AIR') +
     '</small></div>' +
     actor('player', copy(lang, '你', 'YOU')) +
@@ -113,7 +115,7 @@ function heading(kicker, title, detail, timer, lang) {
     detail +
     '</p></div>' +
     (timer !== undefined
-      ? '<div class="battle-timer"><strong id="turnTimer">' +
+      ? '<div class="battle-timer" style="--timer-p:1"><strong id="turnTimer">' +
         (timer ?? '—') +
         '</strong><span>' +
         copy(lang, '行动秒数', 'SECONDS') +
@@ -534,7 +536,7 @@ function upper(state, view) {
     status.sum +
     ' / ' +
     state.playerTarget +
-    '</strong></span><span class="battle-timer"><strong id="turnTimer">' +
+    '</strong></span><span class="battle-timer battle-timer-inline" style="--timer-p:1"><strong id="turnTimer">' +
     (view.timer ?? '—') +
     '</strong><span>' +
     copy(lang, '秒', 'SEC') +

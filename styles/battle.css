@@ -149,6 +149,31 @@
 .battle-timer.is-urgent {
   color: #9c3737;
 }
+.battle-timer > strong {
+  position: relative;
+  z-index: 1;
+}
+.battle-timer:not(.battle-timer-inline) > strong::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.66em;
+  height: 1.66em;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: conic-gradient(
+    currentColor calc(var(--timer-p, 1) * 1turn),
+    rgba(23, 25, 23, 0.09) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  opacity: 0.45;
+  pointer-events: none;
+}
+.battle-timer:not(.battle-timer-inline).is-urgent > strong::before {
+  opacity: 0.8;
+}
 .battle-targets {
   display: flex;
   justify-content: space-between;

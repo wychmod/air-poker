@@ -96,6 +96,7 @@ function render() {
   motion.capture(snapshot, view);
   renderer.render(snapshot, view);
   updateBetPreview(document, snapshot, view.lang);
+  paintTimer();
   motion.update(snapshot, view);
   liveClocks();
 }
@@ -272,17 +273,25 @@ function exportRecord() {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+function paintTimer() {
+  const node = $('turnTimer');
+  if (!node) return;
+  const box = node.closest('.battle-timer');
+  const remaining = view.timer;
+  if (box) {
+    const total = currentState().phase === 'upper' ? UPPER_SECONDS : BET_SECONDS;
+    const ratio = remaining == null ? 1 : Math.max(0, Math.min(1, remaining / total));
+    box.style.setProperty('--timer-p', String(ratio));
+    box.classList.toggle('is-urgent', remaining != null && remaining <= 10);
+  }
+  node.textContent = remaining == null ? '—' : String(remaining);
+}
 const turnClock = createTurnClock({
   seconds: BET_SECONDS,
   upperSeconds: UPPER_SECONDS,
   onTick(remaining) {
     view.timer = remaining;
-    if ($('turnTimer')) {
-      $('turnTimer').textContent = remaining == null ? '—' : remaining;
-      $('turnTimer')
-        .closest('.battle-timer')
-        ?.classList.toggle('is-urgent', remaining != null && remaining <= 10);
-    }
+    paintTimer();
     liveClocks();
   },
   onPlayerTimeout: (turnId) => dispatch({ type: 'bet-timeout', turnId }),
