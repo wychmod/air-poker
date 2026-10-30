@@ -60,6 +60,7 @@ export function createGame({
   opponent = { choosePlay: chooseCpuPlay, chooseBet: chooseCpuBet },
   swapSides = false,
   recordId = 'local',
+  mode = null,
 } = {}) {
   const { choosePlay, chooseBet } = opponent;
   let state;
@@ -227,6 +228,7 @@ export function createGame({
     recorder = createRecorder({
       matchId: `${recordId}-${state.sessionId}`,
       initialAir: STARTING_AIR,
+      mode,
       rules: {
         canisterMs: CANISTER_MS,
         hypoxiaMs: HYPOXIA_MS,
