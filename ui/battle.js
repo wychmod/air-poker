@@ -3,7 +3,7 @@ import { rankHand } from '../game/rules.js';
 import { createDeck } from '../game/cards.js';
 import { getDraftCards, getDraftStatus } from './hand-builder.js';
 import { CANISTER_MS, HYPOXIA_MS } from '../game/breathing.js';
-import { contractCopy, opponentCopy } from './modes.js';
+import { contractCopy, matchModeSummary } from './modes.js';
 
 const esc = (value) =>
   String(value ?? '').replace(
@@ -11,7 +11,12 @@ const esc = (value) =>
     (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char],
   );
 const copy = (lang, zh, en) => (lang === 'zh' ? zh : en);
-const opponentOf = (view) => opponentCopy(view.setup?.opponent, view.lang);
+const matchMode = (view) => matchModeSummary(view);
+const opponentOf = (view) => ({
+  name: copy(view.lang, '对手', 'Opponent'),
+  latin: matchMode(view).opponent.latin,
+  read: matchMode(view).opponent.read,
+});
 const signed = (value) => (value > 0 ? '+' + value : String(value));
 const clock = (ms) => {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
@@ -129,9 +134,12 @@ function directorMarkup(state, view) {
 
 function modeStrip(state, view) {
   const lang = view.lang;
-  const persona = opponentOf(view);
-  const contract = contractCopy(view.setup?.contract, lang);
-  return `<div class="battle-mode-strip"><span class="battle-persona-tag"><b>${persona.latin}</b>${persona.name} · ${persona.read}</span><span class="battle-contract-tag"><b>${contract.latin}</b>${contract.name}</span></div>`;
+  const mode = matchMode(view);
+  const goal =
+    mode.kind === 'difficulty'
+      ? copy(lang, '本档目标', 'LEVEL GOAL')
+      : copy(lang, '契约', 'CONTRACT');
+  return `<div class="battle-mode-strip"><span class="battle-persona-tag"><b>${copy(lang, '难度', 'DIFFICULTY')} · ${mode.opponent.latin}</b>${mode.opponent.name} · ${mode.opponent.read}</span><span class="battle-contract-tag"><b>${goal} · ${mode.contract.latin}</b>${mode.contract.name}</span></div>`;
 }
 
 function heading(kicker, title, detail, timer, lang) {

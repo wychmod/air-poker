@@ -138,6 +138,23 @@ test('share card can carry the recorded opponent and contract result', () => {
   assert.ok(en.includes('CONTRACT · Never-fold vow / NEVER FOLD · MISSED'));
 });
 
+test('share card labels new difficulties separately while keeping legacy personas intact', () => {
+  const model = shareSummary(completedMatch('player'));
+  const hard = opponentCopy('hard', 'en');
+  const hardSvg = shareImageSvg(model, 'en', {
+    kind: 'difficulty',
+    opponent: hard,
+    contract: contractCopy('perfect', 'en'),
+    contractResult: contractResultCopy({ id: 'perfect', complete: true }, 'en', 'difficulty'),
+  });
+  assert.ok(hardSvg.includes('DIFFICULTY · Hard / HARD'));
+  assert.ok(hardSvg.includes('LEVEL GOAL · Clean sweep / CLEAN SWEEP · COMPLETE'));
+
+  const legacy = opponentCopy('mirror', 'en');
+  const legacySvg = shareImageSvg(model, 'en', { kind: 'persona', opponent: legacy });
+  assert.ok(legacySvg.includes('OPPONENT · The Mirror / THE MIRROR'));
+});
+
 test('share cover is a standalone bilingual SVG without remote resources', () => {
   for (const lang of ['zh', 'en']) {
     const svg = shareCoverSvg(lang);

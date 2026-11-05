@@ -584,7 +584,14 @@ function modeLine(meta, lang) {
       72,
       142,
       14,
-      c('对手', 'OPPONENT') + ' · ' + meta.opponent.name + ' / ' + meta.opponent.latin,
+      c(
+        meta.kind === 'difficulty' ? '难度' : '对手',
+        meta.kind === 'difficulty' ? 'DIFFICULTY' : 'OPPONENT',
+      ) +
+        ' · ' +
+        meta.opponent.name +
+        ' / ' +
+        meta.opponent.latin,
       'font-weight="700" letter-spacing="0.8"',
     );
   if (meta.contract) {
@@ -593,7 +600,10 @@ function modeLine(meta, lang) {
       1008,
       142,
       14,
-      c('契约', 'CONTRACT') +
+      c(
+        meta.kind === 'difficulty' ? '本档目标' : '契约',
+        meta.kind === 'difficulty' ? 'LEVEL GOAL' : 'CONTRACT',
+      ) +
         ' · ' +
         meta.contract.name +
         ' / ' +

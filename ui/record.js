@@ -1,5 +1,5 @@
 import { translate } from '../i18n.js';
-import { contractCopy, contractResultCopy, contractResultFor, opponentCopy } from './modes.js';
+import { contractCopy, contractResultCopy, contractResultFor, modeSummary } from './modes.js';
 
 const escape = (value) =>
   String(value ?? '').replace(
@@ -21,10 +21,8 @@ export function recordMarkup(record, lang) {
   const t = (key, values) => escape(translate(lang, key, values));
   const actor = (key) => t(key === 'player' ? 'you' : key === 'ai' ? 'cpu' : `account_${key}`);
   if (!record) return `<h2>${t('recordTitle')}</h2><p>${t('recordEmpty')}</p>`;
-  const mode = record.mode ?? {};
-  const persona = opponentCopy(mode.opponent, lang);
-  const contract = contractCopy(mode.contract, lang);
-  const contractResult = contractResultCopy(contractResultFor(record), lang);
+  const { opponent, contract, kind } = modeSummary(record, lang);
+  const contractResult = contractResultCopy(contractResultFor(record), lang, kind);
   const balanceLine = (balances) =>
     `${t('you')} ${balances.player} / ${t('cpu')} ${balances.ai} · ${t('account_pot')} ${balances.pot} · ${t('account_breathing')} ${balances.breathing} · ${t('account_burned')} ${balances.burned}`;
   const handLine = (entry) =>
@@ -55,7 +53,7 @@ export function recordMarkup(record, lang) {
   }
   return `<h2>${t('recordTitle')}</h2>
     <p>${t(record.status === 'completed' ? 'recordCompleted' : 'recordOngoing')} · ${t('recordAsOf')} ${time(record.elapsedMs)}<br>${t('recordReadOnly')}</p>
-    <p class="record-mode"><strong>${escape(persona.latin)}</strong> · ${escape(persona.name)} · ${escape(contract.name)}${contractResult ? ` · ${escape(contractResult.status)} — ${escape(contractResult.note)}` : ''}</p>
+    <p class="record-mode"><strong>${kind === 'difficulty' ? (lang === 'en' ? 'DIFFICULTY · ' : '难度 · ') : ''}${escape(opponent.latin)}</strong> · ${escape(opponent.name)} · ${kind === 'difficulty' ? (lang === 'en' ? 'Level goal: ' : '本档目标：') : lang === 'en' ? 'Contract: ' : '契约：'}${escape(contract.name)}${contractResult ? ` · ${escape(contractResult.status)} — ${escape(contractResult.note)}` : ''}</p>
     ${record.result ? `<p><strong>${t('recordResult')}: ${record.result.winner === 'tie' ? t('draw') : `${actor(record.result.winner)} · ${t('recordWinner')}`}</strong><br>${t('recordCompletedRounds')} ${record.result.completedRounds} / ${record.rules.maxRounds} · ${t(`recordReason_${record.result.reason}`)}${record.result.enduranceReason ? ` · ${t(`recordReason_${record.result.enduranceReason}`)}` : ''}</p>` : ''}
     <div class="rule-grid">${['player', 'ai', 'breathing', 'burned'].map((key) => `<div><b>${record.accounts[key]}</b><span>${actor(key)}</span></div>`).join('')}</div>
     <p>${balanceLine(record.accounts)}<br><strong>${t(record.accounting.balanced ? 'recordBalanced' : 'recordUnbalanced')} ${record.accounting.accountedTotal} / ${record.accounting.initialTotal}</strong></p>

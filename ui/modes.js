@@ -1,7 +1,62 @@
 ﻿import { evaluateContract, isContractId } from '../game/contracts.js';
+import { DIFFICULTY_IDS, normalizeDifficulty, isDifficultyId } from '../game/difficulty.js';
 const pick = (lang, zh, en) => (lang === 'en' ? en : zh);
 const DEFAULT_OPPONENT = 'analyst';
 const isOpponentKey = (value) => Object.hasOwn(OPPONENT_COPY, value);
+
+export const DIFFICULTY_COPY = Object.freeze({
+  beginner: Object.freeze({
+    index: '01',
+    zh: Object.freeze({
+      name: '新手',
+      latin: 'BEGINNER',
+      trait: '当前牌力 · 标准对局',
+      read: '侧重当前牌力，下注压力较低；没有额外目标。',
+    }),
+    en: Object.freeze({
+      name: 'Beginner',
+      latin: 'BEGINNER',
+      trait: 'Current hand · Open match',
+      read: 'Focuses on the current hand with lighter pressure and no extra goal.',
+    }),
+  }),
+  medium: Object.freeze({
+    index: '02',
+    zh: Object.freeze({
+      name: '中等',
+      latin: 'MEDIUM',
+      trait: '规划后手 · 逆风翻盘',
+      read: '兼顾后续构牌、费用与灾厄；目标是在曾经落后后夺冠。',
+    }),
+    en: Object.freeze({
+      name: 'Medium',
+      latin: 'MEDIUM',
+      trait: 'Plan ahead · Comeback goal',
+      read: 'Balances future hands, price and calamity; win after trailing at a round end.',
+    }),
+  }),
+  hard: Object.freeze({
+    index: '03',
+    zh: Object.freeze({
+      name: '困难',
+      latin: 'HARD',
+      trait: '适应下注 · 全胜压制',
+      read: '结合本局公开行动调整判断；目标是赢下每个已结算回合并最终夺冠。',
+    }),
+    en: Object.freeze({
+      name: 'Hard',
+      latin: 'HARD',
+      trait: 'Adapt to bets · Clean sweep goal',
+      read: 'Adapts to your public actions; win every settled round and the match.',
+    }),
+  }),
+});
+export const DIFFICULTY_KEYS = DIFFICULTY_IDS;
+const DIFFICULTY_CONTRACT = Object.freeze({
+  beginner: 'none',
+  medium: 'comeback',
+  hard: 'perfect',
+});
 
 export const OPPONENT_COPY = Object.freeze({
   analyst: Object.freeze({
@@ -98,6 +153,10 @@ export const OPPONENT_KEYS = Object.freeze(Object.keys(OPPONENT_COPY));
 export const CONTRACT_KEYS = Object.freeze(Object.keys(CONTRACT_COPY));
 
 export function opponentCopy(id = DEFAULT_OPPONENT, lang = 'zh') {
+  if (isDifficultyId(id)) {
+    const meta = DIFFICULTY_COPY[id];
+    return { id, index: meta.index, ...(lang === 'en' ? meta.en : meta.zh) };
+  }
   const key = isOpponentKey(id) ? id : DEFAULT_OPPONENT;
   const meta = OPPONENT_COPY[key];
   return { id: key, index: meta.index, ...(lang === 'en' ? meta.en : meta.zh) };
@@ -109,11 +168,15 @@ export function contractCopy(id = 'none', lang = 'zh') {
   return { id: key, ...(lang === 'en' ? meta.en : meta.zh) };
 }
 
+export function contractForDifficulty(id) {
+  return DIFFICULTY_CONTRACT[normalizeDifficulty(id)];
+}
+
 export function contractResultFor(record) {
   return evaluateContract(record);
 }
 
-export function contractResultCopy(result, lang = 'zh') {
+export function contractResultCopy(result, lang = 'zh', kind = 'persona') {
   if (!result) return null;
   const detail = contractCopy(result.id, lang);
   if (result.complete)
@@ -121,7 +184,10 @@ export function contractResultCopy(result, lang = 'zh') {
       ...detail,
       complete: true,
       status: pick(lang, '达成', 'COMPLETE'),
-      note: pick(lang, '契约完成 · 已盖章', 'Contract complete · sealed'),
+      note:
+        kind === 'difficulty'
+          ? pick(lang, '本档目标达成 · 已记录', 'Level goal complete · recorded')
+          : pick(lang, '契约完成 · 已盖章', 'Contract complete · sealed'),
     };
   const stats = result.stats ?? {};
   let note;
@@ -149,5 +215,21 @@ export function contractResultCopy(result, lang = 'zh') {
 export function modeSummary(record, lang = 'zh') {
   const opponent = opponentCopy(record?.mode?.opponent, lang);
   const contract = contractCopy(record?.mode?.contract, lang);
-  return { opponent, contract };
+  return {
+    opponent,
+    contract,
+    kind: isDifficultyId(record?.mode?.opponent) ? 'difficulty' : 'persona',
+  };
+}
+
+export function matchModeSummary(view) {
+  const mode =
+    view.matchMode ??
+    (view.setup?.difficulty
+      ? {
+          opponent: view.setup.difficulty,
+          contract: contractForDifficulty(view.setup.difficulty),
+        }
+      : view.setup);
+  return modeSummary({ mode }, view.lang);
 }

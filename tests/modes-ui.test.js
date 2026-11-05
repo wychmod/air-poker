@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resultMarkup } from '../ui/pages.js';
+import { homeMarkup, introMarkup, resultMarkup } from '../ui/pages.js';
 import { comicRecapMarkup } from '../ui/recap.js';
 
 const state = {
@@ -78,4 +78,62 @@ test('the comic recap omits panels that have no recorded facts', () => {
   assert.equal(recap.includes('THE BIGGEST WAGER'), false);
   assert.equal(recap.includes('THE TURNING POINT'), false);
   assert.equal(comicRecapMarkup({ status: 'live' }, 'zh'), '');
+});
+
+test('the home folds a built-in goal into each of the three difficulty choices', () => {
+  const html = homeMarkup(
+    {},
+    {
+      lang: 'en',
+      setup: { difficulty: 'medium' },
+    },
+  );
+  assert.match(html, /data-difficulty="beginner"/);
+  assert.match(html, /data-difficulty="medium"[^>]*aria-pressed="true"/);
+  assert.match(html, /data-difficulty="hard"/);
+  assert.match(html, /Current hand · Open match/);
+  assert.match(html, /Comeback/);
+  assert.match(html, /Clean sweep goal/);
+  assert.doesNotMatch(html, /optional challenge|choose contract|homeChallenges|choose-contract/i);
+  assert.doesNotMatch(html, /data-opponent=/);
+});
+
+test('new records present difficulty separately from the opponent actor in both languages', () => {
+  for (const [lang, name, resultLabel, introLabel] of [
+    ['zh', '困难', '难度', '难度'],
+    ['en', 'Hard', 'Difficulty', 'DIFFICULTY'],
+  ]) {
+    const record = completedRecord({ mode: { opponent: 'hard', contract: 'perfect' } });
+    const html = resultMarkup(state, {
+      lang,
+      setup: { difficulty: 'medium' },
+      matchRecord: record,
+    });
+    assert.ok(html.includes(`<dt>${resultLabel}</dt><dd data-result-mode>${name}</dd>`));
+    if (lang === 'en') {
+      assert.match(html, /<dt>Level goal<\/dt><dd>Clean sweep<\/dd>/);
+      assert.match(html, /Level goal complete · recorded/);
+    } else {
+      assert.match(html, /<dt>本档目标<\/dt><dd>全胜压制<\/dd>/);
+      assert.match(html, /本档目标达成 · 已记录/);
+    }
+    assert.match(
+      introMarkup({ lang, matchMode: { opponent: 'hard', contract: 'none' } }),
+      /Opponent|对手/,
+    );
+    assert.match(
+      introMarkup({ lang, matchMode: { opponent: 'hard', contract: 'none' } }),
+      new RegExp(`${introLabel} · ${name}`),
+    );
+  }
+});
+
+test('legacy and missing modes retain persona wording rather than claiming a difficulty', () => {
+  const legacy = resultMarkup(state, {
+    lang: 'en',
+    matchRecord: completedRecord({ mode: { opponent: 'abyss', contract: 'none' } }),
+  });
+  assert.ok(legacy.includes('<dt>Opponent</dt><dd data-result-mode>The Abyss</dd>'));
+  const missing = resultMarkup(state, { lang: 'zh', matchRecord: completedRecord({ mode: null }) });
+  assert.ok(missing.includes('<dt>对手</dt><dd data-result-mode>精密</dd>'));
 });
