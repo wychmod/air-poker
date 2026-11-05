@@ -8,21 +8,22 @@
 
 完整可执行矩阵位于 scripts/harness/config.js 的 LAYERS：
 
-| 层                                       | 允许依赖                                            |
-| ---------------------------------------- | --------------------------------------------------- |
-| data、rules、betting、breathing、records | 无运行模块依赖                                      |
-| archive（browser/record-store.js）       | records；只负责归档平台读写                         |
-| browser（时钟模块）                      | 无运行模块依赖，负责平台调度                        |
-| cards                                    | data、rules                                         |
-| deal                                     | cards                                               |
-| ai-planning                              | cards、deal                                         |
-| ai-betting                               | cards、deal、rules、ai-planning                     |
-| ai                                       | ai-planning、ai-betting                             |
-| engine                                   | rules、cards、deal、ai、betting、breathing、records |
-| i18n                                     | 无运行模块依赖                                      |
-| ui                                       | ui、data、rules、cards、engine、breathing、i18n     |
-| share-ui（ui/share.js）                  | records；校验完成局并生成有限公开分享模型           |
-| app                                      | engine、browser、archive、ui、share-ui、i18n        |
+| 层                                                                              | 允许依赖                                                                         |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| data、rules、betting、breathing、records、contracts、difficulty、ai-observation | 无运行模块依赖                                                                   |
+| archive（browser/record-store.js）                                              | records；只负责归档平台读写                                                      |
+| browser（时钟模块）                                                             | 无运行模块依赖，负责平台调度                                                     |
+| cards                                                                           | data、rules                                                                      |
+| deal                                                                            | cards                                                                            |
+| ai-planning                                                                     | cards、deal、difficulty                                                          |
+| ai-betting                                                                      | cards、deal、rules、ai-planning、difficulty、ai-observation                      |
+| ai                                                                              | ai-planning、ai-betting                                                          |
+| opponents                                                                       | ai、deal、difficulty                                                             |
+| engine                                                                          | rules、cards、deal、ai、betting、breathing、records、ai-observation              |
+| i18n                                                                            | 无运行模块依赖                                                                   |
+| ui                                                                              | ui、share-ui、data、rules、cards、engine、breathing、i18n、contracts、difficulty |
+| share-ui（ui/share.js）                                                         | records；校验完成局并生成有限公开分享模型                                        |
+| app                                                                             | engine、browser、archive、ui、share-ui、i18n、opponents、contracts、difficulty   |
 
 ui 只消费快照和只读函数，不创建第二份对局状态或自行下注结算。计时器、事件与语言存储属于入口层；game 不使用 DOM、网络、平台时钟或存储。新增模块要明确职责并更新矩阵与说明。
 
@@ -30,12 +31,18 @@ ui 只消费快照和只读函数，不创建第二份对局状态或自行下�
 
 ## 状态与动作
 
-createGame({ random = Math.random, dealRandom = random, opponent, swapSides = false, recordId = 'local' } = {}) 持有私有状态。默认策略来自 ai；整局评估可注入 choosePlay / chooseBet、独立发牌随机源与交换持牌。策略只接收白名单信息的副本，返回成手亦复制；这些入口不增加界面私有数据。默认发牌、规则和记录格式保持兼容：
+createGame({ random = Math.random, dealRandom = random, opponent, swapSides = false, recordId = 'local', mode = null } = {}) 持有私有状态。未显式注入时仍使用 ai 的兼容基线；浏览器通过 opponents 工厂注入所选难度。整局评估可注入 choosePlay / chooseBet、独立发牌随机源与交换持牌。策略只接收白名单信息的副本，返回成手亦复制；这些入口不增加界面私有数据。默认发牌、规则和记录格式保持兼容：
 
 - getState() 返回深拷贝快照，隐藏对手未出数字、来源证明及摊牌前成手。
 - getRecord() 按需深拷贝完整事件、轮次、逐笔账目和派生统计；进行中隐藏未揭示尝试的对手成手，不包含未来对手数字。recordId 由浏览器生成，session 后缀区分重开。getState() 的 accounting 只保留当前五账户摘要，不每次复制完整历史。
 - dispatch(action) 接受当前阶段合法动作，成功返回 true；拒绝的动作返回 false，状态不变。数组形式的无效成手提交是合法游戏动作，会记录成手失败；错误请求类型则被拒绝。
 - reset() 开新局，sessionId、attemptId 和 turnId 跨重开递增；入口同时清理计时器和视图。
+
+难度使用 beginner / medium / hard，默认 medium。构牌与下注以可选 policy 绑定，未传 policy 的旧 ai 接口保留原行为和随机流。困难构牌最多深化两次己方出牌、四个根分支、三个后继代表、256 次候选缓存未命中；不把未探索当作无解。下注只根据己方成手、当前公开目标与公开账户及历史选择，合法性与扣款仍由 betting / engine 决定。
+
+引擎另维护最近 64 个已接受下注的白名单观察，采集动作前的 session / round / attempt / turn 及应跟额、加注上限，接受后加入实付和超时标识。非法、重复与过期动作不追加；reset 清空。只向 chooseBet 传副本，不放入 getState，也不从 recorder 反向读取。统计分别按机会计数，超时不作为主动偏好，少量样本按先验平滑。困难仅在本局内适应，不保存跨局画像。
+
+mode.opponent 对新局保存难度 ID，对旧局仍可能为 analyst / abyss / mirror；UI 区分难度与历史人格。首页偏好归一化不改写旧记录，分享、JSON 和复盘按被查看的记录显示。契约与难度独立，不改变发牌、时限、规则或信息权限。
 
 正常流程：lower → upper → bet → showdown → lower；五轮完成或不能继续匹配底注时，showdown → endurance → summary。双方成手失败时，bet → upper 重做同数字与同底池，upper 确认后直接重新比较；若双方数学无解，则退回底池进入 endurance。任意活动阶段都可能因供气及缺氧宽限结束进入 summary。
 
