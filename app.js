@@ -1,6 +1,6 @@
 import { BET_SECONDS, UPPER_SECONDS, createGame } from './game/engine.js';
-import { DEFAULT_CONTRACT, isContractId } from './game/contracts.js';
-import { DEFAULT_OPPONENT, createOpponent, isOpponentId } from './game/opponents.js';
+import { createOpponent } from './game/opponents.js';
+import { DEFAULT_DIFFICULTY, isDifficultyId, normalizeDifficulty } from './game/difficulty.js';
 import { createTurnClock } from './browser/turn-clock.js';
 import { createMatchClock } from './browser/match-clock.js';
 import { createRecordStore } from './browser/record-store.js';
@@ -8,7 +8,12 @@ import { createSceneMotion } from './browser/scene-motion.js';
 import { createVisitCounter } from './browser/visit-counter.js';
 import { createShareExporter } from './browser/share.js';
 import { shareSummary, shareCopy, shareImageSvg } from './ui/share.js';
-import { contractCopy, contractResultCopy, contractResultFor, opponentCopy } from './ui/modes.js';
+import {
+  contractForDifficulty,
+  modeSummary,
+  contractResultCopy,
+  contractResultFor,
+} from './ui/modes.js';
 import { isLanguage, translate } from './i18n.js';
 import { createRenderer } from './ui/render.js';
 import { cardMarkup, updateBetPreview } from './ui/battle.js';
@@ -38,8 +43,11 @@ const visitCounter = createVisitCounter({ root: $('siteVisits') });
 const motion = createSceneMotion({ root: $('app'), canvas: $('sceneCanvas') });
 const defaultLanguage = document.documentElement.lang === 'en' ? 'en' : 'zh';
 const savedLanguage = stored('air-poker-lang', defaultLanguage);
-const savedOpponent = stored('air-poker-opponent', DEFAULT_OPPONENT);
-const savedContract = stored('air-poker-contract', DEFAULT_CONTRACT);
+const savedDifficulty = stored('air-poker-difficulty', null);
+const initialDifficulty = normalizeDifficulty(
+  savedDifficulty ?? stored('air-poker-opponent', DEFAULT_DIFFICULTY),
+);
+if (savedDifficulty !== initialDifficulty) persist('air-poker-difficulty', initialDifficulty);
 const view = {
   lang: isLanguage(savedLanguage) ? savedLanguage : defaultLanguage,
   screen: 'home',
@@ -49,9 +57,9 @@ const view = {
   tutorial: createTutorial(),
   motionEnabled: stored('air-poker-motion', 'on') !== 'off',
   hasLastRecord: false,
+  matchMode: null,
   setup: {
-    opponent: isOpponentId(savedOpponent) ? savedOpponent : DEFAULT_OPPONENT,
-    contract: isContractId(savedContract) ? savedContract : DEFAULT_CONTRACT,
+    difficulty: initialDifficulty,
   },
 };
 motion.setEnabled(view.motionEnabled);
@@ -219,11 +227,11 @@ function showShare(record) {
     toast(c('请在对局完成后生成战报。', 'Finish a match to create its share card.'));
     return;
   }
-  const mode = record.mode
+  const summary = record.mode ? modeSummary(record, view.lang) : null;
+  const mode = summary
     ? {
-        opponent: opponentCopy(record.mode.opponent, view.lang),
-        contract: contractCopy(record.mode.contract, view.lang),
-        contractResult: contractResultCopy(contractResultFor(record), view.lang),
+        ...summary,
+        contractResult: contractResultCopy(contractResultFor(record), view.lang, summary.kind),
       }
     : null;
   sharingRecord = record;
@@ -376,10 +384,14 @@ function restart(withIntro) {
   const recordId =
     globalThis.crypto?.randomUUID?.() ??
     'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  view.matchMode = Object.freeze({
+    opponent: view.setup.difficulty,
+    contract: contractForDifficulty(view.setup.difficulty),
+  });
   game = createGame({
     recordId,
-    opponent: createOpponent(view.setup.opponent),
-    mode: { opponent: view.setup.opponent, contract: view.setup.contract },
+    opponent: createOpponent(view.matchMode.opponent),
+    mode: view.matchMode,
   });
   matchStarted = true;
   abandoned = false;
@@ -491,16 +503,10 @@ document.addEventListener('click', (event) => {
       clearTimeout(introHandle);
       setScreen('game');
       break;
-    case 'choose-opponent':
-      if (!isOpponentId(data.opponent)) break;
-      view.setup.opponent = data.opponent;
-      persist('air-poker-opponent', data.opponent);
-      render();
-      break;
-    case 'choose-contract':
-      if (!isContractId(data.contract)) break;
-      view.setup.contract = data.contract;
-      persist('air-poker-contract', data.contract);
+    case 'choose-difficulty':
+      if (view.screen !== 'home' || !isDifficultyId(data.difficulty)) break;
+      view.setup.difficulty = data.difficulty;
+      persist('air-poker-difficulty', data.difficulty);
       render();
       break;
     case 'skip-ending':

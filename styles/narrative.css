@@ -1802,51 +1802,6 @@ html[lang='zh-CN'] .home-center h1 span {
 .home-opponent.is-active small {
   color: #c9c9c0;
 }
-.home-contracts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 7px;
-}
-.home-contract {
-  appearance: none;
-  flex: 1 1 0;
-  min-width: 96px;
-  padding: 8px 10px 7px;
-  border: 1px solid #d2d3c9;
-  background: #f7f6f1a6;
-  text-align: left;
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease;
-}
-.home-contract span {
-  display: block;
-  font:
-    700 8px/1.2 ui-monospace,
-    'Courier New',
-    monospace;
-  letter-spacing: 0.12em;
-  color: #5f635b;
-}
-.home-contract small {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--ink);
-}
-.home-contract:hover,
-.home-contract:focus-visible {
-  border-color: #8d9187;
-}
-.home-contract.is-active {
-  border-color: var(--risk);
-  background: #f4e7e4;
-}
-.home-contract.is-active span,
-.home-contract.is-active small {
-  color: var(--risk);
-}
 .intro-mode {
   display: flex;
   flex-wrap: wrap;
@@ -2129,10 +2084,6 @@ html[lang='zh-CN'] .home-center h1 span {
   .home-opponent small {
     grid-column: 2;
     margin-top: 1px;
-  }
-  .home-contracts {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .result-page {
     padding-top: 54px;

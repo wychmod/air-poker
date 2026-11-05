@@ -1391,6 +1391,9 @@ html[data-motion='off'] .battle *::after {
   }
 }
 @media (max-width: 560px) {
+  .battle-director {
+    inset: -10px -8px;
+  }
   .battle-mode-strip {
     justify-content: flex-start;
     font-size: 10px;
@@ -1398,6 +1401,8 @@ html[data-motion='off'] .battle *::after {
   }
   .battle-mode-strip > span {
     max-width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
   }
   .battle-director-mark {
     left: 12px;

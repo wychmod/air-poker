@@ -1,6 +1,6 @@
 import { translate } from '../i18n.js';
 import { recordMarkup, settlementBasisKey } from './record.js';
-import { contractCopy, contractResultCopy, contractResultFor, opponentCopy } from './modes.js';
+import { contractCopy, contractResultCopy, contractResultFor, modeSummary } from './modes.js';
 
 const escape = (value) =>
   String(value ?? '').replace(
@@ -21,10 +21,8 @@ export function reviewMarkup(record, view, selection) {
   const t = (key) => escape(translate(view.lang, key));
   if (!record)
     return `<div class="review-empty"><p class="eyebrow">MATCH ARCHIVE</p><h2>${c('这里还没有对局记录。', 'No match recorded yet.')}</h2><p>${c('完成一局后，这里会留下每一手牌与每一次空气转移。', 'Complete a match to keep its hands and every AIR transfer here.')}</p></div>`;
-  const mode = record.mode ?? {};
-  const persona = opponentCopy(mode.opponent, view.lang);
-  const contract = contractCopy(mode.contract, view.lang);
-  const contractResult = contractResultCopy(contractResultFor(record), view.lang);
+  const { opponent, contract, kind } = modeSummary(record, view.lang);
+  const contractResult = contractResultCopy(contractResultFor(record), view.lang, kind);
   const actor = (key) =>
     key === 'player' ? c('你', 'You') : key === 'ai' ? t('cpu') : t(`account_${key}`);
   const events = reviewEvents(record, selection.round);
@@ -64,7 +62,7 @@ export function reviewMarkup(record, view, selection) {
           `${20 + (index / Math.max(1, points.length - 1)) * 560},${140 - (point.after[who] / 50) * 120}`,
       )
       .join(' ');
-  return `<div class="review-heading"><p class="eyebrow">MATCH ARCHIVE / ${escape(record.matchId.slice(-10))}</p><h2>${record.result ? (record.result.winner === 'tie' ? c('本局平局', 'A shared ending') : record.result.winner === 'player' ? c('胜利之后，回看每一步。', 'Revisit your victory.') : c('每一次选择，都有迹可循。', 'Every choice leaves a trace.')) : c('对局进行中 · 打开时快照', 'Live match · snapshot at opening')}</h2><p>${record.result ? `${t(`recordReason_${record.result.reason}`)} · ${c('完成', 'Completed')} ${record.result.completedRounds} / 5 · ` : ''}${clock(record.elapsedMs)} · ${c('只读查看不暂停正式对局', 'Viewing does not pause a live match')}</p><p class="review-mode"><b>${escape(persona.latin)}</b> ${escape(persona.name)} · ${escape(contract.name)}${contractResult ? ` · ${escape(contractResult.status)} — ${escape(contractResult.note)}` : ''}</p></div>
+  return `<div class="review-heading"><p class="eyebrow">MATCH ARCHIVE / ${escape(record.matchId.slice(-10))}</p><h2>${record.result ? (record.result.winner === 'tie' ? c('本局平局', 'A shared ending') : record.result.winner === 'player' ? c('胜利之后，回看每一步。', 'Revisit your victory.') : c('每一次选择，都有迹可循。', 'Every choice leaves a trace.')) : c('对局进行中 · 打开时快照', 'Live match · snapshot at opening')}</h2><p>${record.result ? `${t(`recordReason_${record.result.reason}`)} · ${c('完成', 'Completed')} ${record.result.completedRounds} / 5 · ` : ''}${clock(record.elapsedMs)} · ${c('只读查看不暂停正式对局', 'Viewing does not pause a live match')}</p><p class="review-mode"><b>${kind === 'difficulty' ? c('难度 · ', 'DIFFICULTY · ') : ''}${escape(opponent.latin)}</b> ${escape(opponent.name)} · ${kind === 'difficulty' ? c('本档目标：', 'Level goal: ') : c('契约：', 'Contract: ')}${escape(contract.name)}${contractResult ? ` · ${escape(contractResult.status)} — ${escape(contractResult.note)}` : ''}</p></div>
   <div class="review-layout"><nav class="review-rounds" aria-label="${c('回合与尝试', 'Rounds and attempts')}"><button data-action="review-round" data-round="all" aria-pressed="${selection.round === 'all'}"><span>${c('整局时间线', 'Match timeline')}</span><small>${record.events.length} ${c('个事件', 'events')}</small></button>${record.rounds.map((item) => `<button data-action="review-round" data-round="${item.number}" aria-pressed="${Number(selection.round) === item.number}"><b>R${String(item.number).padStart(2, '0')}</b><span>${t(`roundStatus_${item.status}`)}</span><small>${item.attempts.length} ${c('次构造', 'attempts')}</small></button>`).join('')}</nav>
   <div class="review-detail">
   ${round ? `<div class="review-round-head"><h3>${c('第', 'Round')} ${round.number} ${c('轮', '')} · ${t(`roundStatus_${round.status}`)}</h3><div class="review-attempts">${round.attempts.map((item, index) => `<button class="button secondary" data-action="review-attempt" data-index="${index}" aria-pressed="${item.id === attempt?.id}">${c('尝试', 'Attempt')} ${item.number}</button>`).join('')}</div></div><div class="review-hands">${hand(attempt?.player, 'player')}${hand(attempt?.ai, 'ai')}</div>${settlement ? `<p class="review-basis">${c('结算依据', 'Basis')}: ${t(settlementBasisKey(settlement))} · ${c('实际烧毁', 'Actually burned')} ${settlement.burned} AIR</p>` : ''}<div class="review-totals">${['player', 'ai'].map((who) => `<div><strong>${actor(who)} · ${c('净变化', 'Net change')} ${signed(round.totals[who].net)}</strong><span>${c('投入', 'Paid')} ${round.totals[who].ante + round.totals[who].bet} / ${c('收款', 'Received')} ${round.totals[who].received} / ${c('退款', 'Refund')} ${round.totals[who].refunded} / ${c('烧毁', 'Burned')} ${round.totals[who].burned} / ${c('呼吸开罐', 'Breathing cans')} ${round.totals[who].breathing}</span></div>`).join('')}</div>` : ''}

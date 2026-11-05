@@ -1,12 +1,13 @@
 import { translate } from '../i18n.js';
 import {
-  CONTRACT_KEYS,
-  OPPONENT_KEYS,
-  contractCopy,
+  DIFFICULTY_KEYS,
   contractResultCopy,
   contractResultFor,
   opponentCopy,
+  modeSummary,
+  matchModeSummary,
 } from './modes.js';
+import { normalizeDifficulty } from '../game/difficulty.js';
 import { comicRecapMarkup } from './recap.js';
 
 const copy = (lang, zh, en) => (lang === 'en' ? en : zh);
@@ -22,18 +23,13 @@ export function lessonCards(cards, extra = '') {
 function matchSetupMarkup(view) {
   const c = (zh, en) => copy(view.lang, zh, en);
   const setup = view.setup ?? {};
+  const difficulty = normalizeDifficulty(setup.difficulty);
   return `<div class="home-setup" aria-label="${c('对局设定', 'Match setup')}">
-    <div class="home-setup-head"><span>${c('对局设定', 'MATCH SETUP')}</span><small>${c('选择对手与契约', 'CHOOSE OPPONENT / CONTRACT')}</small></div>
-    <div class="home-opponents" role="group" aria-label="${c('选择对手', 'Choose opponent')}">${OPPONENT_KEYS.map(
+    <div class="home-setup-head"><span>${c('选择难度', 'CHOOSE DIFFICULTY')}</span><small>${c('每局固定，打法随局势调整', 'ONE LEVEL. MANY WAYS TO PLAY.')}</small></div>
+    <div class="home-opponents" role="group" aria-label="${c('选择难度', 'Choose difficulty')}">${DIFFICULTY_KEYS.map(
       (id) => {
         const opponent = opponentCopy(id, view.lang);
-        return `<button type="button" class="home-opponent${setup.opponent === id ? ' is-active' : ''}" data-action="choose-opponent" data-opponent="${id}" aria-pressed="${setup.opponent === id}"><span class="home-opponent-index">${opponent.index}</span><strong>${opponent.name}</strong><small>${opponent.trait}</small></button>`;
-      },
-    ).join('')}</div>
-    <div class="home-contracts" role="group" aria-label="${c('选择契约', 'Choose contract')}">${CONTRACT_KEYS.map(
-      (id) => {
-        const contract = contractCopy(id, view.lang);
-        return `<button type="button" class="home-contract${setup.contract === id ? ' is-active' : ''}" data-action="choose-contract" data-contract="${id}" aria-pressed="${setup.contract === id}" title="${contract.detail}"><span>${contract.latin}</span><small>${contract.name}</small></button>`;
+        return `<button type="button" class="home-opponent${difficulty === id ? ' is-active' : ''}" data-action="choose-difficulty" data-difficulty="${id}" aria-pressed="${difficulty === id}"><span class="home-opponent-index">${opponent.index}</span><strong>${opponent.name}</strong><small>${opponent.trait}</small></button>`;
       },
     ).join('')}</div>
   </div>`;
@@ -146,19 +142,25 @@ export function rulesMarkup(lang) {
 
 export function introMarkup(view) {
   const c = (zh, en) => copy(view.lang, zh, en);
-  const opponent = opponentCopy(view.setup?.opponent, view.lang);
-  const contract = contractCopy(view.setup?.contract, view.lang);
-  return `<section class="match-intro" data-scene="intro"><div class="intro-slash" aria-hidden="true"></div><p class="eyebrow">FIVE TARGETS. ONE LAST BREATH.</p><div class="intro-matchup"><span>${c('你', 'YOU')}</span><em>VS</em><span>${opponent.name}</span></div><p class="intro-mode"><span>${opponent.latin}</span><i>${contract.latin}</i></p><p>${contract.id === 'none' ? c('双方各 25 罐。呼吸已经开始。', '25 cans each. Breathing has begun.') : contract.detail}</p><button class="button secondary" data-action="skip-intro">${c('跳过表现', 'Skip intro')} →</button></section>`;
+  const { opponent, contract, kind } = matchModeSummary(view);
+  const goalLabel = kind === 'difficulty' ? c('本档目标', 'LEVEL GOAL') : c('契约', 'CONTRACT');
+  const goalDetail =
+    contract.id === 'none'
+      ? c('标准对局，没有额外目标。双方各 25 罐。', 'Open match, no extra goal. 25 cans each.')
+      : contract.detail;
+  return `<section class="match-intro" data-scene="intro"><div class="intro-slash" aria-hidden="true"></div><p class="eyebrow">FIVE TARGETS. ONE LAST BREATH.</p><div class="intro-matchup"><span>${c('你', 'YOU')}</span><em>VS</em><span>${c('对手', 'Opponent')}</span></div><p class="intro-mode"><span>${kind === 'difficulty' ? c('难度', 'DIFFICULTY') : c('对手', 'OPPONENT')} · ${opponent.name}</span><i>${goalLabel} · ${contract.latin}</i></p><p>${goalDetail}</p><button class="button secondary" data-action="skip-intro">${c('跳过表现', 'Skip intro')} →</button></section>`;
 }
 
 export function resultMarkup(state, view) {
   if (state.phase !== 'summary' || !['player', 'ai', 'tie'].includes(state.winner)) return '';
   const c = (zh, en) => copy(view.lang, zh, en);
   const record = view.matchRecord;
-  const mode = record?.mode ?? view.setup ?? {};
-  const opponent = opponentCopy(mode.opponent, view.lang);
-  const contract = contractCopy(mode.contract, view.lang);
-  const contractResult = contractResultCopy(contractResultFor(record), view.lang);
+  const {
+    opponent,
+    contract,
+    kind: modeKind,
+  } = record ? modeSummary(record, view.lang) : matchModeSummary(view);
+  const contractResult = contractResultCopy(contractResultFor(record), view.lang, modeKind);
   const kind = state.winner === 'player' ? 'victory' : state.winner === 'ai' ? 'defeat' : 'draw';
   const title =
     kind === 'victory'
@@ -192,7 +194,7 @@ export function resultMarkup(state, view) {
   return `<section class="result-page result-${kind}" data-scene="${kind}" aria-labelledby="resultTitle"><button class="result-skip" data-action="skip-ending">${c('跳过收尾', 'Skip ending')} <span aria-hidden="true">×</span></button>
     ${kind === 'draw' ? '<div class="paper-figures" aria-hidden="true"></div><div class="draw-waterline" data-motion-line aria-hidden="true"></div>' : `<div class="result-art" aria-hidden="true" data-parallax="0.26">${kind === 'victory' ? '<svg class="victory-arc" viewBox="0 0 500 500"><path data-motion-ink d="M80 420 Q-20 180 280 50 Q450 5 440 210"/></svg>' : ''}<img src="${resultAssets[kind]}" alt="" data-motion-reveal /></div>`}
     <div class="result-copy" data-parallax="0.08"><p class="eyebrow">${kind === 'victory' ? 'THE LAST BREATH IS YOURS' : kind === 'defeat' ? 'THE ABYSS REMEMBERS' : 'A PERFECT EQUILIBRIUM'}</p><h1 id="resultTitle">${title}</h1><p class="result-tagline">${tagline}</p><p class="result-reason">${reason}</p>
-      <dl class="result-facts"><div><dt>${c('完成轮次', 'Rounds completed')}</dt><dd>${state.completedRounds} / ${state.maxRounds}</dd></div><div><dt>${c('对局时长', 'Match duration')}</dt><dd>${duration}</dd></div><div><dt>${c('实际烧毁', 'Actually burned')}</dt><dd>${state.accounting?.burned ?? 0} AIR</dd></div><div><dt>${c('对手', 'Opponent')}</dt><dd>${opponent.name}</dd></div><div><dt>${c('契约', 'Contract')}</dt><dd>${contract.name}</dd></div></dl>
+      <dl class="result-facts"><div><dt>${c('完成轮次', 'Rounds completed')}</dt><dd>${state.completedRounds} / ${state.maxRounds}</dd></div><div><dt>${c('对局时长', 'Match duration')}</dt><dd>${duration}</dd></div><div><dt>${c('实际烧毁', 'Actually burned')}</dt><dd>${state.accounting?.burned ?? 0} AIR</dd></div><div><dt>${modeKind === 'difficulty' ? c('难度', 'Difficulty') : c('对手', 'Opponent')}</dt><dd data-result-mode>${opponent.name}</dd></div><div><dt>${modeKind === 'difficulty' ? c('本档目标', 'Level goal') : c('契约', 'Contract')}</dt><dd>${contract.name}</dd></div></dl>
       ${contractResult ? `<div class="result-contract${contractResult.complete ? ' is-complete' : ' is-missed'}" data-contract-result="${contractResult.id}"><span class="result-contract-stamp">${contractResult.status}</span><div><strong>${contractResult.name} · ${contractResult.latin}</strong><p>${contractResult.detail}</p><small>${contractResult.note}</small></div></div>` : ''}
       <div class="result-actions"><button class="button primary" data-action="enter-match">${kind === 'draw' ? c('再较量一局', 'Play again') : c('再来一局', 'Play again')} →</button><button class="button secondary" data-action="open-record">${c('查看复盘', 'Review match')}</button><button class="button secondary" data-action="share-result">${c('分享战报', 'Share card')}</button></div><button class="result-home" data-action="go-home">← ${c('返回首页', 'Back to home')}</button>
     </div>
