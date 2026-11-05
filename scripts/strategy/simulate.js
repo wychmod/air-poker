@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict';
+import { performance } from 'node:perf_hooks';
 import { createGame } from '../../game/engine.js';
 import { makeCandidates } from '../../game/cards.js';
 import { dealTargets } from '../../game/deal.js';
 import { compareRanks } from '../../game/rules.js';
 import { isCompletedRecord } from '../../game/records.js';
 import { chooseCpuPlay, chooseCpuBet } from '../../game/ai.js';
+import { planDifficultyPlay } from '../../game/ai-planning.js';
 import { chooseCpuPlay as legacyPlay, chooseCpuBet as legacyBet } from './legacy.js';
+import { createOpponent } from '../../game/opponents.js';
+import { difficultyPolicy, isDifficultyId } from '../../game/difficulty.js';
 
 export function seeded(seed) {
   return () => {
@@ -58,13 +62,61 @@ export function simulateMatch({
   opponent = 'legacy',
   swapSides = false,
   slow = false,
+  measure = false,
 }) {
   const playerPolicy = policy(player);
   const playerRandom = seeded(seed ^ 0x9e3779b9);
+  const opponentDifficultyPolicy = isDifficultyId(opponent) ? difficultyPolicy(opponent) : null;
+  const difficultyOpponent = opponentDifficultyPolicy !== null;
+  const opponentPolicy = difficultyOpponent ? createOpponent(opponent) : policy(opponent);
+  const planningDiagnostics = {
+    candidateCalls: 0,
+    maxCandidateCalls: 0,
+    deepened: 0,
+    budgetExhausted: 0,
+  };
+  const decisionCounts = { planning: 0, betting: 0 };
+  const timings = { planningMs: 0, bettingMs: 0, maxPlanningMs: 0, maxBettingMs: 0 };
+  const opponentTargets = { unsolvable: 0, observed: 0 };
+  function measuredDecision(kind, decide, args) {
+    decisionCounts[kind]++;
+    if (!measure) return decide(...args);
+    const start = performance.now();
+    const decision = decide(...args);
+    const elapsed = performance.now() - start;
+    timings[kind + 'Ms'] += elapsed;
+    const maxKey = kind === 'planning' ? 'maxPlanningMs' : 'maxBettingMs';
+    timings[maxKey] = Math.max(timings[maxKey], elapsed);
+    return decision;
+  }
   const game = createGame({
     dealRandom: seeded(seed),
     random: seeded(seed ^ 0x85ebca6b),
-    opponent: policy(opponent),
+    opponent: {
+      choosePlay: (...args) => {
+        const decision = measuredDecision(
+          'planning',
+          (...playArgs) => {
+            if (!difficultyOpponent) return opponentPolicy.choosePlay(...playArgs);
+            const { play, diagnostics } = planDifficultyPlay(...playArgs, opponentDifficultyPolicy);
+            assert.ok(diagnostics.candidateCalls <= 256, 'Planner exceeded its candidate budget');
+            planningDiagnostics.candidateCalls += diagnostics.candidateCalls;
+            planningDiagnostics.maxCandidateCalls = Math.max(
+              planningDiagnostics.maxCandidateCalls,
+              diagnostics.candidateCalls,
+            );
+            planningDiagnostics.deepened += Number(diagnostics.deepened);
+            planningDiagnostics.budgetExhausted += Number(diagnostics.budgetExhausted);
+            return play;
+          },
+          args,
+        );
+        opponentTargets.observed += Number(Boolean(decision));
+        opponentTargets.unsolvable += Number(Boolean(decision) && !decision.hand);
+        return decision;
+      },
+      chooseBet: (...args) => measuredDecision('betting', opponentPolicy.chooseBet, args),
+    },
     swapSides,
     recordId: 'simulation-' + seed,
   });
@@ -82,6 +134,9 @@ export function simulateMatch({
     folds: { player: 0, ai: 0 },
     unsolvable: 0,
     unusedObservations: 0,
+    decisionCounts,
+    opponentTargets,
+    ...(difficultyOpponent ? { planningDiagnostics } : {}),
   };
   function act(action) {
     assert.equal(
@@ -194,23 +249,45 @@ export function simulateMatch({
     bankroll: bankroll ?? { player: final.playerAir, ai: final.aiAir },
     end: final.enduranceReason,
     balanced: final.accounting.balanced,
+    ...(measure ? { timings } : {}),
   };
 }
 
 export function comparePolicies(
   player,
   opponent,
-  { startSeed = 1, seeds = 20, slow = false } = {},
+  {
+    startSeed = 1,
+    seeds = 20,
+    slow = false,
+    perspective = 'player',
+    measure = false,
+    includePairedSamples = false,
+  } = {},
 ) {
+  if (!['player', 'opponent'].includes(perspective))
+    throw new RangeError('perspective must be player or opponent');
+  const actor = perspective === 'opponent' ? 'ai' : 'player';
+  const other = actor === 'ai' ? 'player' : 'ai';
   const rows = [];
   for (let seed = startSeed; seed < startSeed + seeds; seed++)
     for (const swapSides of [false, true])
-      rows.push(simulateMatch({ seed, player, opponent, swapSides, slow }));
-  const wins = rows.filter((row) => row.winner === 'player').length;
+      rows.push(simulateMatch({ seed, player, opponent, swapSides, slow, measure }));
+  const wins = rows.filter((row) => row.winner === actor).length;
   const ties = rows.filter((row) => row.winner === 'tie').length;
-  const points = rows.map((row) => (row.winner === 'player' ? 1 : row.winner === 'tie' ? 0.5 : 0));
+  const points = rows.map((row) => (row.winner === actor ? 1 : row.winner === 'tie' ? 0.5 : 0));
   // Both swapped games form one statistical unit; they share the same deal.
   const paired = Array.from({ length: seeds }, (_, i) => (points[2 * i] + points[2 * i + 1]) / 2);
+  const pairedSamples = Array.from({ length: seeds }, (_, i) => ({
+    seed: startSeed + i,
+    score: paired[i],
+    meanAirDifference:
+      (rows[2 * i].bankroll[actor] -
+        rows[2 * i].bankroll[other] +
+        rows[2 * i + 1].bankroll[actor] -
+        rows[2 * i + 1].bankroll[other]) /
+      2,
+  }));
   const score = points.reduce((a, b) => a + b, 0) / rows.length;
   const se =
     seeds > 1
@@ -220,6 +297,7 @@ export function comparePolicies(
   return {
     player,
     opponent,
+    perspective,
     startSeed,
     seeds,
     matches: rows.length,
@@ -227,25 +305,85 @@ export function comparePolicies(
     ties,
     losses: rows.length - wins - ties,
     score,
+    winScore: score,
     approximate95Interval:
       se === null ? null : [Math.max(0, score - 1.96 * se), Math.min(1, score + 1.96 * se)],
-    meanAirGain: sum((row) => row.bankroll.player - 24) / rows.length,
-    meanAirDifference: sum((row) => row.bankroll.player - row.bankroll.ai) / rows.length,
+    meanAirGain: sum((row) => row.bankroll[actor] - 24) / rows.length,
+    meanAirDifference: sum((row) => row.bankroll[actor] - row.bankroll[other]) / rows.length,
+    meanAirGap: sum((row) => row.bankroll[actor] - row.bankroll[other]) / rows.length,
     failedHands: {
       player: sum((row) => row.failedHands.player),
       opponent: sum((row) => row.failedHands.ai),
     },
     unsolvableTargetRate:
-      sum((row) => row.unsolvable) /
+      sum((row) => (actor === 'ai' ? row.opponentTargets.unsolvable : row.unsolvable)) /
       Math.max(
         1,
-        sum((row) => row.unusedObservations),
+        sum((row) => (actor === 'ai' ? row.opponentTargets.observed : row.unusedObservations)),
       ),
     calamities: sum((row) => row.calamities),
     burned: sum((row) => row.burned),
-    folds: { player: sum((row) => row.folds.player), opponent: sum((row) => row.folds.ai) },
+    folds: {
+      player: sum((row) => row.folds.player),
+      opponent: sum((row) => row.folds.ai),
+    },
     meanRounds: sum((row) => row.rounds) / rows.length,
     allBalanced: rows.every((row) => row.balanced),
+    decisionCounts: {
+      planning: sum((row) => row.decisionCounts.planning),
+      betting: sum((row) => row.decisionCounts.betting),
+    },
+    ...(isDifficultyId(opponent)
+      ? {
+          planningDiagnostics: {
+            candidateCalls: sum((row) => row.planningDiagnostics.candidateCalls),
+            maxCandidateCalls: Math.max(
+              ...rows.map((row) => row.planningDiagnostics.maxCandidateCalls),
+            ),
+            deepened: sum((row) => row.planningDiagnostics.deepened),
+            budgetExhausted: sum((row) => row.planningDiagnostics.budgetExhausted),
+          },
+        }
+      : {}),
+    ...(measure
+      ? {
+          timings: {
+            planningMs: sum((row) => row.timings.planningMs),
+            bettingMs: sum((row) => row.timings.bettingMs),
+            maxPlanningMs: Math.max(...rows.map((row) => row.timings.maxPlanningMs)),
+            maxBettingMs: Math.max(...rows.map((row) => row.timings.maxBettingMs)),
+          },
+        }
+      : {}),
+    ...(includePairedSamples ? { pairedSamples } : {}),
+  };
+}
+
+function summarizeDelta(values) {
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  if (values.length < 2) return { mean, interval95: null };
+  const variance =
+    values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length - 1);
+  const margin = 1.96 * Math.sqrt(variance / values.length);
+  return { mean, interval95: [mean - margin, mean + margin] };
+}
+
+export function summarizePairedDelta(samples, referenceSamples) {
+  if (
+    samples.length !== referenceSamples.length ||
+    samples.some((sample, index) => sample.seed !== referenceSamples[index].seed)
+  )
+    throw new RangeError('Paired samples must use the same seeds in the same order');
+  return {
+    seeds: samples.length,
+    score: summarizeDelta(
+      samples.map((sample, index) => sample.score - referenceSamples[index].score),
+    ),
+    meanAirDifference: summarizeDelta(
+      samples.map(
+        (sample, index) => sample.meanAirDifference - referenceSamples[index].meanAirDifference,
+      ),
+    ),
   };
 }
 

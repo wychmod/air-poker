@@ -1,7 +1,15 @@
 ﻿import { chooseCpuBet, chooseCpuPlay } from './ai.js';
 
-export const OPPONENT_IDS = Object.freeze(['analyst', 'abyss', 'mirror']);
-export const DEFAULT_OPPONENT = 'analyst';
+import {
+  DEFAULT_DIFFICULTY,
+  DIFFICULTY_IDS,
+  difficultyPolicy,
+  isDifficultyId,
+} from './difficulty.js';
+
+export const LEGACY_OPPONENT_IDS = Object.freeze(['analyst', 'abyss', 'mirror']);
+export const OPPONENT_IDS = Object.freeze([...DIFFICULTY_IDS, ...LEGACY_OPPONENT_IDS]);
+export const DEFAULT_OPPONENT = DEFAULT_DIFFICULTY;
 
 export const isOpponentId = (value) => OPPONENT_IDS.includes(value);
 
@@ -73,6 +81,15 @@ const bettingByOpponent = Object.freeze({
 
 export function createOpponent(id = DEFAULT_OPPONENT) {
   const opponentId = isOpponentId(id) ? id : DEFAULT_OPPONENT;
+  if (isDifficultyId(opponentId)) {
+    const policy = difficultyPolicy(opponentId);
+    return {
+      id: opponentId,
+      choosePlay: (targets, usedTargets, discard, random) =>
+        chooseCpuPlay(targets, usedTargets, discard, random, policy),
+      chooseBet: (input, random) => chooseCpuBet(input, random, policy),
+    };
+  }
   return {
     id: opponentId,
     choosePlay: chooseCpuPlay,

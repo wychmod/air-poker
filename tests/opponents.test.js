@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGame } from '../game/engine.js';
 import { DEFAULT_OPPONENT, OPPONENT_IDS, createOpponent, isOpponentId } from '../game/opponents.js';
+import { chooseCpuBet, chooseCpuPlay } from '../game/ai.js';
+import { difficultyPolicy } from '../game/difficulty.js';
 
 const seeded = (initial) => {
   let seed = initial;
@@ -57,18 +59,45 @@ function publicInput() {
   };
 }
 
-test('opponent ids are explicit and unknown ids fall back to the analyst', () => {
-  assert.deepEqual(OPPONENT_IDS, ['analyst', 'abyss', 'mirror']);
-  assert.equal(DEFAULT_OPPONENT, 'analyst');
+test('opponent ids include new difficulties and keep legacy injection compatible', () => {
+  assert.deepEqual(OPPONENT_IDS, ['beginner', 'medium', 'hard', 'analyst', 'abyss', 'mirror']);
+  assert.equal(DEFAULT_OPPONENT, 'medium');
   assert.equal(isOpponentId('mirror'), true);
   assert.equal(isOpponentId('Mirror'), false);
-  assert.equal(createOpponent('unknown').id, 'analyst');
-  assert.equal(createOpponent().id, 'analyst');
+  assert.equal(createOpponent('unknown').id, 'medium');
+  assert.equal(createOpponent().id, 'medium');
   for (const id of OPPONENT_IDS) {
     const opponent = createOpponent(id);
     assert.equal(opponent.id, id);
     assert.equal(typeof opponent.choosePlay, 'function');
     assert.equal(typeof opponent.chooseBet, 'function');
+  }
+});
+
+test('difficulty opponent factories bind the same policy to play and betting', () => {
+  const playInput = { targets: [37, 25], usedTargets: [], discard: [] };
+  const betInput = {
+    ...publicInput(),
+    options: options({ toCall: 3, canCheck: false, canCall: true, maxRaise: 4 }),
+    history: [{ actor: 'player', action: 'raise', raised: 2 }],
+  };
+  for (const id of ['beginner', 'medium', 'hard']) {
+    const policy = difficultyPolicy(id);
+    const opponent = createOpponent(id);
+    assert.deepEqual(
+      opponent.choosePlay(playInput.targets, playInput.usedTargets, playInput.discard, seeded(28)),
+      chooseCpuPlay(
+        playInput.targets,
+        playInput.usedTargets,
+        playInput.discard,
+        seeded(28),
+        policy,
+      ),
+    );
+    assert.deepEqual(
+      opponent.chooseBet(structuredClone(betInput), seeded(93)),
+      chooseCpuBet(structuredClone(betInput), seeded(93), policy),
+    );
   }
 });
 
