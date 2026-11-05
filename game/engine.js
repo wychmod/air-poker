@@ -11,6 +11,7 @@ import {
   HYPOXIA_MS,
 } from './breathing.js';
 import { createRecorder } from './records.js';
+import { appendBetObservation, makeBetObservation } from './ai-observation.js';
 
 export const STARTING_AIR = 25;
 export const BET_SECONDS = 30;
@@ -73,6 +74,7 @@ export function createGame({
   let aiUsed;
   let cpuPlay;
   let candidatesByTarget;
+  let betObservations;
 
   function log(key, args = {}, strong = '') {
     state.feed.unshift({
@@ -219,6 +221,7 @@ export function createGame({
   }
 
   function reset() {
+    betObservations = [];
     const deal = dealTargets(dealRandom);
     if (swapSides) [deal.player, deal.ai] = [deal.ai, deal.player];
     state = initialState(deal.player.map((group) => group.target));
@@ -475,8 +478,16 @@ export function createGame({
 
   function resolveBet(actor, action, amount, turnId, timedOut = false) {
     if (!isBetTurn(actor, turnId)) return false;
+    const before = {
+      sessionId: state.sessionId,
+      round: state.round,
+      attemptId: state.upper.attemptId,
+    };
+    const options = getBetOptions(state, actor);
     const result = applyBetAction(state, actor, action, amount);
     if (!result) return false;
+    const observation = makeBetObservation(before, options, result.event, timedOut);
+    betObservations = appendBetObservation(betObservations, observation);
     state = result.state;
     betSerial = state.betting.turnId;
     state.betting.deadlineMs =
@@ -524,6 +535,7 @@ export function createGame({
         discard: state.discard,
         options: getBetOptions(state, 'ai'),
         history: state.betting.history,
+        observations: betObservations,
       }),
       random,
     );

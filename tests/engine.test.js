@@ -359,3 +359,51 @@ test('opponent betting history cannot depend on which hidden player candidate wa
     assert.deepEqual(history, expected);
   }
 });
+
+test('accepted public bets reach the opponent as isolated observations and reset clears them', () => {
+  const received = [];
+  const opponent = {
+    choosePlay: (targets, used, discard) => {
+      const index = targets.findIndex((_, slot) => !used.includes(slot));
+      return { index, target: targets[index], ...makeCandidates(targets[index], discard)[0] };
+    },
+    chooseBet: ({ options, observations }) => {
+      received.push(structuredClone(observations));
+      return { action: options.canCheck ? 'check' : options.canCall ? 'call' : 'fold' };
+    },
+  };
+  const game = createGame({ random: seeded(97), opponent });
+  function startWithTurn(actor, resetBetweenAttempts = false) {
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const index = game.getState().targetPlayable.indexOf(true);
+      game.dispatch({ type: 'choose-target', index });
+      game.dispatch({ type: 'confirm-hand', attemptId: game.getState().upper.attemptId });
+      if (game.getState().phase === 'bet' && game.getState().betting.turn === actor) return;
+      if (resetBetweenAttempts) game.reset();
+      else assert.fail('No deterministic betting fixture found for ' + actor);
+    }
+    assert.fail('No deterministic betting fixture found for ' + actor);
+  }
+
+  startWithTurn('player');
+  const state = game.getState();
+  assert.equal(state.legalBets.canCheck, true);
+  assert.equal(
+    game.dispatch({ type: 'bet', action: 'check', turnId: state.betting.turnId - 1 }),
+    false,
+  );
+  assert.equal(game.getState().betting.history.length, 0);
+  assert.equal(game.dispatch({ type: 'bet', action: 'check', turnId: state.betting.turnId }), true);
+  const aiTurn = game.getState();
+  assert.equal(game.dispatch({ type: 'cpu-bet', turnId: aiTurn.betting.turnId }), true);
+  assert.equal(received[0].at(-1).action, 'check');
+  assert.equal(received[0].at(-1).turnId, state.betting.turnId);
+  received[0].at(-1).action = 'fold';
+
+  game.reset();
+  startWithTurn('ai', true);
+  const fresh = game.getState();
+  assert.equal(game.dispatch({ type: 'cpu-bet', turnId: fresh.betting.turnId }), true);
+  assert.deepEqual(received.at(-1), [], 'reset clears observations from the previous session');
+  assert.notEqual(fresh.sessionId, state.sessionId);
+});
