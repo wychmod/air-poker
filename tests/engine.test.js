@@ -130,10 +130,11 @@ test('opponent locked target and physical hand do not change with player target 
     }
 });
 
-test('target positions persist and are consumed once, including equal values', () => {
+test('target positions persist and are consumed once, and the player side never repeats a value', () => {
   const game = createGame({ random: () => 0.5 }),
     initial = game.getState().targets;
-  assert.equal(initial[0], initial[1]);
+  // The deal constrains only the player half, so its five numbers stay distinct.
+  assert.equal(new Set(initial).size, 5);
   startBet(game, 0);
   finishBet(game, 'fold');
   game.dispatch({ type: 'advance-round' });
@@ -267,10 +268,18 @@ test('complete multi-turn matches conserve AIR, support both folds and preserve 
         const settled = game.getState();
         burned += settled.lastResult.burned;
         overlaps += settled.lastResult.overlap.length;
-        for (const [hand, target] of [
-          [settled.playerHand, settled.playerTarget],
-          [settled.aiHand, settled.aiTarget],
+        for (const [hand, target, side] of [
+          [settled.playerHand, settled.playerTarget, 'player'],
+          [settled.aiHand, settled.aiTarget, 'ai'],
         ]) {
+          // A side with no legal hand locks a documented failure instead of cards.
+          if (hand === null) {
+            assert.ok(
+              side === 'ai' || settled.upper?.playerReason !== null,
+              'a missing player hand must carry a failure reason',
+            );
+            continue;
+          }
           assert.equal(hand.length, 5);
           assert.equal(new Set(hand.map((next) => next.id)).size, 5);
           assert.equal(

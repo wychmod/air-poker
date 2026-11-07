@@ -267,7 +267,7 @@ const I18N = {
     lowerKicker: '下层 // 选择目标',
     lowerTitle: '先选一个目标值',
     lowerCopy:
-      '你与对手开局各持五张独立数字牌，整局用后不补。选一张公开；数字相同也按不同位置计数。',
+      '你与对手开局各持五张独立数字牌，整局用后不补。你的五张数字互不相同；双方之间仍可能撞上同一数值。',
     upperKicker: '上层 // 锁定私牌',
     upperTitle: '把五张牌藏起来',
     upperCopy:
@@ -443,7 +443,7 @@ const I18N = {
     lowerKicker: 'LOWER // SELECT TARGET',
     lowerTitle: 'Choose a target value',
     lowerCopy:
-      'Each side has five private number cards for the match. Reveal one; used positions are never replenished, even when values repeat.',
+      'Each side has five private number cards for the match; your five values are all distinct, though both sides can still hold the same number. Used positions are never replenished.',
     upperKicker: 'UPPER // LOCK PRIVATE HAND',
     upperTitle: 'Hide five cards',
     upperCopy:
