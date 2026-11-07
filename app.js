@@ -67,7 +67,6 @@ const c = (zh, en) => (view.lang === 'en' ? en : zh);
 let introHandle = null;
 let toastHandle = null;
 let reviewHandle = null;
-let conceptHandle = null;
 let lastScreen = 'home';
 const recordStore = createRecordStore();
 const savedRecord = recordStore.load();
@@ -357,7 +356,6 @@ function dispatch(action) {
   return true;
 }
 function setScreen(screen) {
-  clearTimeout(conceptHandle);
   lastScreen = view.screen;
   view.screen = screen;
   render();
@@ -461,10 +459,25 @@ function setLanguage(lang) {
   if ($('utilityDialog').open) renderUtility();
   if ($('shareDialog').open && sharingRecord) showShare(sharingRecord);
 }
+document.addEventListener('pointerup', (event) => {
+  if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+  const panel = event.target.closest('[data-action="preview-concept"]');
+  if (!panel) return;
+  panel.dataset.previewActive = '';
+  panel.focus({ preventScroll: true });
+  for (const animation of panel.getAnimations({ subtree: true })) {
+    animation.currentTime = 0;
+    animation.play();
+  }
+});
+document.addEventListener('focusout', (event) => {
+  const panel = event.target.closest('[data-action="preview-concept"]');
+  if (panel && !panel.contains(event.relatedTarget)) delete panel.dataset.previewActive;
+});
 // All authoritative actions go through dispatch; tutorial and playback change view state only.
 document.addEventListener('click', (event) => {
   const button = event.target.closest('[data-action], [data-lang]');
-  if (!button || button.disabled) return;
+  if (!button || button.disabled || button.dataset.action === 'preview-concept') return;
   const data = { ...button.dataset };
   matchClock.flush();
   const { action, lang } = data;
@@ -595,20 +608,6 @@ document.addEventListener('click', (event) => {
       renderRecord();
       scheduleReview();
       break;
-    case 'play-concept': {
-      clearTimeout(conceptHandle);
-      document
-        .querySelectorAll('.concept-demo')
-        .forEach((node) => node.classList.remove('is-playing'));
-      const node = document.querySelector('.concept-demo[data-concept="' + data.concept + '"]');
-      if (node) {
-        void node.offsetWidth;
-        node.classList.add('is-playing');
-        button.textContent = c('重播 ↗', 'Replay ↗');
-        conceptHandle = setTimeout(() => node.classList.remove('is-playing'), 2200);
-      }
-      break;
-    }
     case 'choose-target': {
       const state = currentState(),
         index = Number(data.index);
@@ -732,7 +731,6 @@ window.addEventListener('pagehide', (event) => {
   motion.suspend();
   clearTimeout(introHandle);
   clearTimeout(toastHandle);
-  clearTimeout(conceptHandle);
   stopReview();
 });
 window.addEventListener('pageshow', (event) => {

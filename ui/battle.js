@@ -466,7 +466,7 @@ function handDraftMarkup(state, view, status, used) {
   );
 }
 
-function handPoolMarkup(state, view, cards, used) {
+function handPoolMarkup(state, view, cards, used, helpText) {
   const lang = view.lang;
   const draft = view.handDraft;
   const current =
@@ -509,10 +509,13 @@ function handPoolMarkup(state, view, cards, used) {
     '">' +
     filters +
     '</div></div><p class="hand-library-help">' +
-    copy(
-      lang,
-      '点击选牌，再点取消，最多 5 张。同点数不同花色是不同实体；灰标「已用」牌再次使用会失败。',
-      'Select a card to add or remove it, up to 5. Different suits are distinct cards; cards marked USED will fail your hand.',
+    esc(
+      helpText ??
+        copy(
+          lang,
+          '点击选牌，再点取消，最多 5 张。同点数不同花色是不同实体；灰标「已用」牌再次使用会失败。',
+          'Select a card to add or remove it, up to 5. Different suits are distinct cards; cards marked USED will fail your hand.',
+        ),
     ) +
     '</p><div class="hand-pool" data-hand-pool>' +
     deck
@@ -1148,12 +1151,12 @@ function endurance(state, view) {
   );
 }
 
-export function practiceEditorMarkup(state, draft, lang) {
+export function practiceEditorMarkup(state, draft, lang, { helpText } = {}) {
   const view = { lang, handDraft: draft };
   const used = new Set(state.discard.map((card) => card.id));
   return (
     handDraftMarkup(state, view, getDraftStatus(state, draft), used) +
-    handPoolMarkup(state, view, getDraftCards(state, draft), used)
+    handPoolMarkup(state, view, getDraftCards(state, draft), used, helpText)
   );
 }
 

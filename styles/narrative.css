@@ -288,6 +288,10 @@ html[lang='zh-CN'] .home-center h1 span {
 .concept-panel + article {
   border-left: 1px solid var(--line);
 }
+.concept-panel:focus-visible {
+  outline: 3px solid var(--risk);
+  outline-offset: -4px;
+}
 .concept-top {
   display: flex;
   justify-content: space-between;
@@ -318,12 +322,7 @@ html[lang='zh-CN'] .home-center h1 span {
   color: #555a53;
   font-size: 14px;
   line-height: 1.85;
-  margin: 0 0 24px;
-}
-.concept-panel > .button {
-  margin-top: auto;
-  align-self: flex-start;
-  min-width: 116px;
+  margin: 0;
 }
 .lesson-hand {
   display: flex;
@@ -449,6 +448,22 @@ html[lang='zh-CN'] .home-center h1 span {
   padding: 3px;
   font-size: 13px;
 }
+.risk-hand {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+.risk-hand > small {
+  font-size: 10px;
+  line-height: 1.4;
+  color: #555a53;
+}
+.concept-panel > .risk-explanation {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
 .risk-pair .lesson-card small {
   font-size: 9px;
 }
@@ -466,6 +481,155 @@ html[lang='zh-CN'] .home-center h1 span {
   margin-top: 14px;
   color: var(--risk);
 }
+.source-feature {
+  margin: 0 0 34px;
+}
+.source-feature-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 15px;
+}
+.source-feature-heading h2 {
+  margin: 0;
+  font: 600 22px/1.4 var(--serif);
+}
+.source-feature-heading > span {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  color: #555a53;
+}
+.source-video {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+  align-items: center;
+  border: 1px solid var(--ink);
+  padding: 12px;
+  gap: 32px;
+  background: #f3f2eee8;
+  text-decoration: none;
+  transition: background-color 180ms ease;
+}
+.source-video:hover,
+.source-video:focus-visible {
+  background: #fffef9;
+}
+.source-video-cover {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--ink);
+}
+.source-video-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(1);
+}
+.source-video-play {
+  position: absolute;
+  left: 18px;
+  bottom: 16px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid #fffef9;
+  border-radius: 50%;
+  background: #171917e8;
+  color: #fffef9;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+.source-video-play svg {
+  width: 24px;
+  height: 24px;
+}
+.source-video:hover .source-video-play,
+.source-video:focus-visible .source-video-play {
+  background: #fffef9;
+  color: var(--ink);
+}
+.source-video-duration {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 4px 7px;
+  background: #171917e8;
+  color: #fffef9;
+  font: 13px/1.2 var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+.source-video-copy {
+  min-width: 0;
+  padding: 12px 16px 12px 0;
+}
+.source-video-kicker {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #555a53;
+}
+.source-video-kicker > span:first-child {
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+.source-video-copy h3 {
+  margin: 12px 0;
+  font: 600 clamp(22px, 2.1vw, 29px)/1.45 var(--serif);
+  text-wrap: balance;
+}
+.source-video-description {
+  margin: 0 0 16px;
+  color: #555a53;
+  font-size: 13px;
+  line-height: 1.85;
+}
+.source-video-author {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 18px;
+  font-size: 11px;
+  color: #555a53;
+}
+.source-video-author span {
+  color: var(--ink);
+}
+.source-video-bottom {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.source-video-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 32px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.source-video-cta svg {
+  width: 22px;
+  height: 22px;
+}
+.source-video-notice {
+  color: #555a53;
+  font-size: 11px;
+  line-height: 1.6;
+}
 .narrative-footer {
   padding-top: 28px;
   display: flex;
@@ -478,24 +642,30 @@ html[lang='zh-CN'] .home-center h1 span {
   gap: 12px;
   flex-wrap: wrap;
 }
-.concept-demo.is-playing .concept-hand .lesson-card {
+.concept-panel:is(:hover, :focus-visible, [data-preview-active])
+  .concept-demo
+  .concept-hand
+  .lesson-card {
   animation: lesson-deal 400ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   animation-delay: calc(var(--card-index) * 45ms);
 }
-.concept-demo.is-playing .sum-line {
+.concept-panel:is(:hover, :focus-visible, [data-preview-active]) .concept-demo .sum-line {
   animation: lesson-emphasis 1100ms ease both;
 }
-.concept-demo.is-playing .air-transfer {
+.concept-panel:is(:hover, :focus-visible, [data-preview-active]) .concept-demo .air-transfer {
   animation: lesson-transfer 1300ms ease both;
 }
-.concept-demo.is-playing .demo-pot > b {
+.concept-panel:is(:hover, :focus-visible, [data-preview-active]) .concept-demo .demo-pot > b {
   animation: lesson-emphasis 1300ms ease both;
 }
-.concept-demo.is-playing .risk-pair .lesson-card {
+.concept-panel:is(:hover, :focus-visible, [data-preview-active])
+  .concept-demo
+  .risk-pair
+  .lesson-card {
   animation: lesson-flip 500ms ease both;
   animation-delay: calc(var(--card-index) * 45ms);
 }
-.concept-demo.is-playing .risk-caption {
+.concept-panel:is(:hover, :focus-visible, [data-preview-active]) .concept-demo .risk-caption {
   animation: lesson-emphasis 1400ms ease both;
 }
 .full-rules {
@@ -510,7 +680,7 @@ html[lang='zh-CN'] .home-center h1 span {
   gap: 4px;
   align-self: start;
   position: sticky;
-  top: 0;
+  top: 90px;
 }
 .full-rules nav a {
   color: var(--ink);
@@ -533,7 +703,7 @@ html[lang='zh-CN'] .home-center h1 span {
   padding-bottom: 28px;
   margin-bottom: 28px;
   border-bottom: 1px solid var(--line);
-  scroll-margin-top: 16px;
+  scroll-margin-top: 90px;
 }
 .rules-chapters h2 {
   font: 600 24px/1.3 var(--serif);
@@ -543,6 +713,108 @@ html[lang='zh-CN'] .home-center h1 span {
   font-size: 14px;
   line-height: 1.95;
   color: #454a43;
+}
+.poker-reference-intro,
+.poker-comparisons p {
+  font-size: 14px;
+  line-height: 1.85;
+  color: #454a43;
+}
+.poker-ranks-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 22px 0 12px;
+  border-bottom: 2px solid var(--ink);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.poker-ranks-heading > span {
+  color: var(--muted);
+}
+.poker-ranks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.poker-ranks li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.poker-rank-number {
+  align-self: start;
+  padding-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.poker-rank-copy h3,
+.poker-comparisons > h3 {
+  font: 600 18px/1.4 var(--serif);
+  margin: 0 0 6px;
+}
+.poker-rank-copy p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #555a53;
+  margin: 0;
+}
+#rule-poker .lesson-hand {
+  justify-content: flex-start;
+  gap: 5px;
+}
+#rule-poker .lesson-card {
+  width: 34px;
+  height: 52px;
+  font-size: 14px;
+  padding: 4px;
+}
+#rule-poker .lesson-card small {
+  font-size: 10px;
+}
+#rule-poker .lesson-card > b {
+  font-size: 19px;
+}
+.poker-comparisons {
+  margin-top: 30px;
+}
+.poker-comparison {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid var(--line);
+}
+.poker-comparison h4 {
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0 0 16px;
+}
+.poker-matchup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.poker-matchup figure {
+  margin: 0;
+  min-width: 0;
+}
+.poker-matchup figcaption {
+  margin-bottom: 10px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #555a53;
+}
+.poker-comparison > p {
+  margin-bottom: 0;
+}
+.poker-suit-note {
+  border-left: 2px solid var(--ink);
+  padding-left: 14px;
+  margin: 22px 0 0;
 }
 .match-intro {
   position: relative;
@@ -1382,6 +1654,25 @@ html[lang='zh-CN'] .home-center h1 span {
   .narrative-footer > div {
     width: 100%;
   }
+  .source-feature {
+    margin-bottom: 28px;
+  }
+  .source-video {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px;
+    gap: 0;
+  }
+  .source-video-copy {
+    padding: 20px 10px 12px;
+  }
+  .source-video-copy h3 {
+    font-size: 24px;
+  }
+  .source-video-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
   .narrative-footer > div > .button {
     flex: 1;
   }
@@ -1403,6 +1694,19 @@ html[lang='zh-CN'] .home-center h1 span {
   }
   .rules-chapters h2 {
     font-size: 23px;
+  }
+  .poker-ranks li {
+    grid-template-columns: 22px minmax(0, 1fr);
+    row-gap: 12px;
+  }
+  .poker-ranks .lesson-hand {
+    grid-column: 2;
+  }
+  .poker-matchup {
+    grid-template-columns: 1fr;
+  }
+  .poker-comparison {
+    padding: 16px 12px;
   }
   .result-page {
     display: flex;
@@ -1662,6 +1966,10 @@ html[lang='zh-CN'] .home-center h1 span {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .source-video,
+  .source-video-play {
+    transition: none;
+  }
   .home-figure-layer,
   .home-water-ring,
   .home-light,

@@ -5,7 +5,7 @@ import { createDeck, judgeHand } from '../game/cards.js';
 import { getBetOptions, applyBetAction } from '../game/betting.js';
 import { advanceBreathing, startBreathing } from '../game/breathing.js';
 import { compareHands, rankHand, settleBets } from '../game/rules.js';
-import { introductionMarkup, resultMarkup } from '../ui/pages.js';
+import { introductionMarkup, resultMarkup, rulesMarkup } from '../ui/pages.js';
 import { createTutorial, tutorialAction, tutorialMarkup } from '../ui/tutorial.js';
 
 const view = { lang: 'zh' };
@@ -45,17 +45,13 @@ test('tutorial requires actual lesson actions, preserves snapshots and never tou
   state = immutableAction(state, 'tutorial-lock');
   assert.equal(state.complete, false);
   state = immutableAction(state, 'tutorial-target', { value: '30' });
-  assert.equal(state.error, true);
+  assert.equal(state.target, 30);
   state = immutableAction(state, 'tutorial-lock');
   assert.equal(state.complete, false);
   state = immutableAction(state, 'tutorial-target', { value: '24' });
   state = immutableAction(state, 'tutorial-select', { index: '1' });
   state = immutableAction(state, 'tutorial-lock');
-  assert.equal(state.complete, false, 'the player must actually edit the practice hand');
-  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '8-0', attempt: '1' });
-  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '8-0', attempt: '1' });
-  state = immutableAction(state, 'tutorial-lock');
-  assert.equal(state.complete, true);
+  assert.equal(state.complete, true, 'a valid example can be locked directly');
   state = immutableAction(state, 'tutorial-next');
   assert.equal(state.step, 1);
   state = immutableAction(state, 'tutorial-call');
@@ -76,18 +72,148 @@ test('tutorial requires actual lesson actions, preserves snapshots and never tou
   assert.deepEqual(immutableAction(state, 'tutorial-restart'), createTutorial());
 });
 
+test('valid practice examples enable locking immediately without manual edits', () => {
+  for (const target of [24, 30]) {
+    for (const index of [0, 1]) {
+      let state = immutableAction(createTutorial(), 'tutorial-target', { value: String(target) });
+      state = immutableAction(state, 'tutorial-select', { index: String(index) });
+      for (const lang of ['zh', 'en']) {
+        const html = tutorialMarkup(state, { lang });
+        const status = html.match(/data-hand-status>([^<]*)/)[1];
+        assert.match(status, /可锁定|Ready to lock/);
+        const hint = html.match(/id="tutorialLockHint"[^>]*>([^<]*)/)[1];
+        assert.match(hint, lang === 'zh' ? /条件已满足/ : /Ready to finish/);
+        assert.doesNotMatch(
+          html,
+          /请先移除|手动编辑|Remove a selected card first|Edit a card first/,
+        );
+        assert.doesNotMatch(html.match(/data-action="tutorial-lock"[^>]*>/)[0], /disabled/);
+        assert.match(html, lang === 'zh' ? /教学预设：7♥/ : /Practice setup: 7♥/);
+      }
+      assert.equal(immutableAction(state, 'tutorial-lock').complete, true);
+      state = immutableAction(state, 'tutorial-filter-hand-suit', { suit: '0', attempt: '1' });
+      assert.equal(immutableAction(state, 'tutorial-lock').complete, true);
+      const card = state.draft.cardIds.at(-1);
+      state = immutableAction(state, 'tutorial-toggle-hand-card', { card, attempt: '1' });
+      assert.equal(immutableAction(state, 'tutorial-lock').complete, false);
+      state = immutableAction(state, 'tutorial-toggle-hand-card', { card, attempt: '1' });
+      for (const lang of ['zh', 'en']) {
+        const html = tutorialMarkup(state, { lang });
+        assert.match(html.match(/data-hand-status>([^<]*)/)[1], /可锁定|Ready to lock/);
+        assert.doesNotMatch(html.match(/data-action="tutorial-lock"[^>]*>/)[0], /disabled/);
+      }
+      assert.equal(immutableAction(state, 'tutorial-lock').complete, true);
+    }
+  }
+});
+
+test('target 30 practice rejects wrong sums and used cards, then locks the corrected hand', () => {
+  let state = immutableAction(createTutorial(), 'tutorial-target', { value: '30' });
+  state = immutableAction(state, 'tutorial-select', { index: '0' });
+  assert.equal(state.draft.cardIds.length, 5, 'target 30 must have usable examples');
+  state = immutableAction(state, 'tutorial-clear-hand', { attempt: '1' });
+  for (const card of ['6-0', '6-1', '6-2', '5-3', '8-0'])
+    state = immutableAction(state, 'tutorial-toggle-hand-card', { card, attempt: '1' });
+  state = immutableAction(state, 'tutorial-lock');
+  assert.equal(state.complete, false, '31 does not match target 30');
+  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '8-0', attempt: '1' });
+  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '7-1', attempt: '1' });
+  state = immutableAction(state, 'tutorial-lock');
+  assert.equal(state.complete, false, 'used 7♥ cannot complete a hand even with the right sum');
+  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '7-1', attempt: '1' });
+  state = immutableAction(state, 'tutorial-lock');
+  assert.equal(state.complete, false, 'four cards cannot complete the exercise');
+  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '7-0', attempt: '1' });
+  state = immutableAction(state, 'tutorial-lock');
+  assert.equal(state.complete, true);
+  for (const lang of ['zh', 'en'])
+    assert.match(tutorialMarkup(state, { lang }), /(?:点数和|totaling) 30/);
+  assert.equal(immutableAction(state, 'tutorial-next').step, 1);
+});
+
+test('switching practice targets clears the draft but repeated selection preserves it', () => {
+  let state = immutableAction(createTutorial(), 'tutorial-target', { value: '24' });
+  state = immutableAction(state, 'tutorial-select', { index: '0' });
+  state = immutableAction(state, 'tutorial-toggle-hand-card', { card: '7-0', attempt: '1' });
+  state = immutableAction(state, 'tutorial-filter-hand-suit', { suit: '2', attempt: '1' });
+  const repeated = immutableAction(state, 'tutorial-target', { value: '24' });
+  assert.deepEqual(repeated.draft, state.draft);
+  state = immutableAction(state, 'tutorial-target', { value: '30' });
+  assert.deepEqual(state.draft.cardIds, []);
+  assert.equal(state.draft.candidateIndex, null);
+  assert.equal(state.draft.suit, 'all');
+  state = immutableAction(state, 'tutorial-select', { index: '1' });
+  assert.equal(state.draft.cardIds.length, 5);
+  assert.deepEqual(immutableAction(state, 'tutorial-target', { value: '99' }), state);
+  state = immutableAction(state, 'tutorial-target', { value: '24' });
+  assert.deepEqual(state.draft.cardIds, []);
+  assert.equal(state.draft.candidateIndex, null);
+  assert.equal(immutableAction(state, 'tutorial-lock').complete, false);
+});
+
 test('illustrated candidate and introduction hands obey the real five-card and rank rules in both languages', () => {
   for (const lang of ['zh', 'en']) {
-    const candidates = readHands(tutorialMarkup(createTutorial(), { lang }));
-    assert.equal(candidates.length, 2);
-    for (const hand of candidates) assert.equal(judgeHand(hand, 24).valid, true);
-    assert.equal(rankHand(candidates[0]).key, 'threeKind');
-    assert.equal(rankHand(candidates[1]).key, 'highCard');
-    assert.ok(compareHands(candidates[0], candidates[1]) > 0);
+    for (const target of [24, 30]) {
+      const state = immutableAction(createTutorial(), 'tutorial-target', { value: String(target) });
+      const candidates = readHands(tutorialMarkup(state, { lang }));
+      assert.equal(candidates.length, 2);
+      for (const hand of candidates) {
+        assert.equal(judgeHand(hand, target).valid, true);
+        assert.equal(
+          hand.some((card) => card.id === '7-1'),
+          false,
+        );
+      }
+      assert.equal(rankHand(candidates[0]).key, 'threeKind');
+      assert.equal(rankHand(candidates[1]).key, 'highCard');
+      assert.ok(compareHands(candidates[0], candidates[1]) > 0);
+    }
     const introduction = readHands(introductionMarkup({ lang }));
     assert.equal(introduction.length, 3);
     for (const hand of introduction) assert.equal(judgeHand(hand, 24).valid, true);
     assert.ok(compareHands(introduction[1], introduction[2]) > 0);
+  }
+});
+
+test('full-rules poker examples match the real ranking order, kicker and ace-low comparisons', () => {
+  const expected = [
+    'royalFlush',
+    'straightFlush',
+    'fourKind',
+    'fullHouse',
+    'flush',
+    'straight',
+    'threeKind',
+    'twoPair',
+    'onePair',
+    'highCard',
+  ];
+  for (const lang of ['zh', 'en']) {
+    const hands = readHands(rulesMarkup(lang));
+    assert.equal(hands.length, 14);
+    for (const hand of hands)
+      assert.equal(
+        judgeHand(
+          hand,
+          hand.reduce((sum, card) => sum + card.value, 0),
+        ).valid,
+        true,
+      );
+    assert.deepEqual(
+      hands.slice(0, 10).map((hand) => rankHand(hand).key),
+      expected,
+    );
+    for (let index = 0; index < 9; index += 1)
+      assert.ok(compareHands(hands[index], hands[index + 1]) > 0);
+    const [kingKicker, queenKicker, sixHigh, wheel] = hands.slice(10);
+    assert.equal(rankHand(kingKicker).key, 'onePair');
+    assert.equal(rankHand(queenKicker).key, 'onePair');
+    assert.equal(rankHand(kingKicker).tie[0], rankHand(queenKicker).tie[0]);
+    assert.ok(compareHands(kingKicker, queenKicker) > 0);
+    assert.equal(rankHand(sixHigh).key, 'straight');
+    assert.equal(rankHand(wheel).key, 'straight');
+    assert.deepEqual(rankHand(wheel).tie, [5]);
+    assert.ok(compareHands(sixHigh, wheel) > 0);
   }
 });
 

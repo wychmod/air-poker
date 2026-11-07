@@ -5,22 +5,41 @@ import { editHandDraft, getDraftStatus } from './hand-builder.js';
 import { practiceEditorMarkup } from './battle.js';
 
 const copy = (lang, zh, en) => (lang === 'en' ? en : zh);
-const hands = [
-  [
-    ['4', '♠'],
-    ['4', '♥'],
-    ['4', '♦'],
-    ['5', '♣'],
-    ['7', '♠'],
+const hands = {
+  24: [
+    [
+      ['4', '♠'],
+      ['4', '♥'],
+      ['4', '♦'],
+      ['5', '♣'],
+      ['7', '♠'],
+    ],
+    [
+      ['2', '♠'],
+      ['3', '♥'],
+      ['4', '♦'],
+      ['7', '♣'],
+      ['8', '♠'],
+    ],
   ],
-  [
-    ['2', '♠'],
-    ['3', '♥'],
-    ['4', '♦'],
-    ['7', '♣'],
-    ['8', '♠'],
+  30: [
+    [
+      ['6', '♠'],
+      ['6', '♥'],
+      ['6', '♦'],
+      ['5', '♣'],
+      ['7', '♠'],
+    ],
+    [
+      ['2', '♠'],
+      ['4', '♥'],
+      ['6', '♦'],
+      ['8', '♣'],
+      ['10', '♠'],
+    ],
   ],
-];
+};
+const targets = [24, 30];
 
 const practiceDeck = createDeck();
 function practiceState(tutorial) {
@@ -30,7 +49,7 @@ function practiceState(tutorial) {
     upper: { attemptId: 1 },
     playerTarget: tutorial.target ?? 24,
     discard: [practiceDeck.find((card) => card.id === '7-1')],
-    candidates: hands.map((hand) => ({
+    candidates: hands[tutorial.target ?? 24].map((hand) => ({
       hand: hand.map(([rank, suit]) =>
         practiceDeck.find((card) => card.rank === rank && card.suit === suit),
       ),
@@ -44,13 +63,11 @@ export function createTutorial() {
     step: 0,
     target: null,
     complete: false,
-    error: false,
     increment: 2,
     paid: 0,
     scenario: null,
     seen: [],
     breath: 0,
-    edited: false,
     draft: { sessionId: 0, attemptId: 1, cardIds: [], suit: 'all', candidateIndex: null },
   };
 }
@@ -64,25 +81,26 @@ export function tutorialAction(current, action, data = {}) {
   if (state.complete && action !== 'tutorial-scenario') return state;
   if (state.step === 0) {
     if (action === 'tutorial-target') {
-      state.target = Number(data.value);
-      state.error = state.target !== 24;
+      const target = Number(data.value);
+      if (!targets.includes(target)) return state;
+      if (state.target !== target) {
+        state.target = target;
+        state.draft = { ...state.draft, cardIds: [], suit: 'all', candidateIndex: null };
+      }
     }
-    if (state.target === 24) {
+    if (targets.includes(state.target)) {
       const actual = practiceState(state);
       if (action === 'tutorial-select' && ['0', '1'].includes(data.index)) {
         state.draft = editHandDraft(actual, state.draft, 'select-candidate', {
           ...data,
           attempt: '1',
         });
-        state.edited = false;
       }
       const edit = action.slice('tutorial-'.length);
       if (['toggle-hand-card', 'filter-hand-suit', 'clear-hand'].includes(edit)) {
-        const next = editHandDraft(actual, state.draft, edit, data);
-        if (next !== state.draft && edit === 'toggle-hand-card') state.edited = true;
-        state.draft = next;
+        state.draft = editHandDraft(actual, state.draft, edit, data);
       }
-      if (action === 'tutorial-lock' && state.edited && getDraftStatus(actual, state.draft).valid)
+      if (action === 'tutorial-lock' && getDraftStatus(actual, state.draft).valid)
         state.complete = true;
     }
   }
@@ -113,19 +131,27 @@ export function tutorialAction(current, action, data = {}) {
 function handExercise(state, c, _opponent, lang) {
   const actual = practiceState(state);
   const status = getDraftStatus(actual, state.draft);
+  const hasTarget = targets.includes(state.target);
+  const lockHint = status.valid
+    ? c('条件已满足，可以完成组牌练习。', 'Ready to finish the hand-building exercise.')
+    : c(
+        '请选择五张未用牌，使点数和等于目标。',
+        'Choose five unused cards with a sum equal to the target.',
+      );
+  const triplet = state.target === 30 ? 6 : 4;
   const examples =
     '<div class="lesson-candidates">' +
-    hands
+    hands[state.target ?? 24]
       .map(
         (hand, index) =>
           '<button class="lesson-candidate' +
-          (state.target === 24 && state.draft.candidateIndex === index ? ' is-selected' : '') +
+          (hasTarget && state.draft.candidateIndex === index ? ' is-selected' : '') +
           '" data-action="tutorial-select" data-index="' +
           index +
           '" aria-pressed="' +
-          (state.target === 24 && state.draft.candidateIndex === index) +
+          (hasTarget && state.draft.candidateIndex === index) +
           '" ' +
-          (state.target !== 24 || state.complete ? 'disabled' : '') +
+          (!hasTarget || state.complete ? 'disabled' : '') +
           '>' +
           lessonCards(hand) +
           '<span><b>' +
@@ -133,7 +159,7 @@ function handExercise(state, c, _opponent, lang) {
             ? c('三条示例', 'Three-of-a-kind example')
             : c('高牌示例', 'High-card example')) +
           '</b><small>' +
-          c('填入后，试着换一张', 'Fill, then edit a card') +
+          c('填入即可完成，也可改牌', 'Fill to finish, or edit') +
           '</small></span></button>',
       )
       .join('') +
@@ -142,10 +168,12 @@ function handExercise(state, c, _opponent, lang) {
     '<div class="tutorial-targets" aria-label="' +
     c('选择练习目标', 'Choose the practice target') +
     '">' +
-    [24, 30]
+    targets
       .map(
         (value) =>
-          '<button class="lesson-number" data-action="tutorial-target" data-value="' +
+          '<button class="lesson-number' +
+          (state.target === value ? ' is-selected' : '') +
+          '" data-action="tutorial-target" data-value="' +
           value +
           '" aria-pressed="' +
           (state.target === value) +
@@ -159,14 +187,14 @@ function handExercise(state, c, _opponent, lang) {
       )
       .join('') +
     '</div><p class="lesson-hint">' +
-    (state.error
+    (hasTarget
       ? c(
-          '本课练习目标 24；选回 24 后，用五张未用牌完成。',
-          'This exercise uses 24. Choose 24 and build five unused cards.',
+          `当前目标 ${state.target}，可直接填入示例并完成，也可自由组牌；7♥ 在练习中已用。`,
+          `Your target is ${state.target}. Fill an example to finish, or build your own hand; 7♥ is already used in this exercise.`,
         )
       : c(
-          '选择 24，亲手添牌、移除或换牌。可先填入示例；7♥ 在练习中已用。',
-          'Choose 24, then add, remove or replace cards. You can fill an example first; 7♥ is already used in this exercise.',
+          '选择 24 或 30，用五张未用牌凑出目标点数。切换目标会清空当前组牌。',
+          'Choose 24 or 30, then build five unused cards totaling your target. Switching targets clears your hand.',
         )) +
     '</p>';
   if (state.complete)
@@ -174,31 +202,37 @@ function handExercise(state, c, _opponent, lang) {
       intro +
       '<div class="lesson-feedback">✓ ' +
       c(
-        '你已亲手编辑并锁定合法成手：五张未用实体牌，点数和 24。',
-        'You edited and locked a valid hand: five unused cards totaling 24.',
+        `你已锁定合法成手：五张未用实体牌，点数和 ${state.target}。`,
+        `You locked a valid hand: five unused cards totaling ${state.target}.`,
       ) +
       '</div>'
     );
   return (
     intro +
     examples +
-    (state.target === 24
+    (hasTarget
       ? '<p class="lesson-hint">' +
         c(
-          '试着用 4♠、4♥、4♦、5♣、8♠ 组出 25，再把 8♠ 换成 7♠，观察提示如何变化。',
-          'Try 4♠, 4♥, 4♦, 5♣, 8♠ for 25. Replace 8♠ with 7♠ and watch the sum become 24.',
+          `也可练习纠错：用 ${triplet}♠、${triplet}♥、${triplet}♦、5♣、8♠ 组出 ${state.target + 1}，再把 8♠ 换成 7♠，观察提示如何变化。`,
+          `Optional correction practice: try ${triplet}♠, ${triplet}♥, ${triplet}♦, 5♣, 8♠ for ${state.target + 1}. Replace 8♠ with 7♠ and watch the sum become ${state.target}.`,
         ) +
         '</p>' +
-        practiceEditorMarkup(actual, state.draft, lang).replaceAll(
-          'data-action="',
-          'data-action="tutorial-',
-        ) +
-        '<div class="tutorial-practice-actions"><span>' +
+        practiceEditorMarkup(actual, state.draft, lang, {
+          helpText: c(
+            '点击选牌，再点取消，最多 5 张。同点数不同花色是不同实体。教学预设：7♥ 已用，用于演示已用牌不能再组成合法成手。',
+            'Select a card to add or remove it, up to 5. Different suits are distinct cards. Practice setup: 7♥ is marked USED to demonstrate that used cards cannot form a valid hand.',
+          ),
+        }).replaceAll('data-action="', 'data-action="tutorial-') +
+        '<div class="tutorial-practice-actions"><p id="tutorialLockHint" class="tutorial-lock-hint" role="status">' +
+        lockHint +
+        '</p><span>' +
         c('点数和 / 目标', 'SUM / TARGET') +
         ' <b>' +
         status.sum +
-        ' / 24</b></span><button class="button primary" data-action="tutorial-lock" ' +
-        (!status.valid || !state.edited ? 'disabled' : '') +
+        ' / ' +
+        state.target +
+        '</b></span><button class="button primary" data-action="tutorial-lock" aria-describedby="handDraftStatus tutorialLockHint" ' +
+        (!status.valid ? 'disabled' : '') +
         '>' +
         c('完成组牌练习', 'Lock practice hand') +
         ' →</button></div>'
@@ -223,7 +257,7 @@ function riskExercise(state, c, opponentName) {
   };
   let scene = `<p class="lesson-hint">${c('依次查看三个情景，分清“输掉底池”与“额外烧毁”。', 'Explore all three cases. Losing the pot and burning extra reserve are different events.')}</p>`;
   if (state.scenario === 'failure')
-    scene = `<div class="risk-film"><span class="failure-stamp">${c('构造失败', 'HAND FAILED')}</span><div>${lessonCards(hands[0])}</div><p>${c('例：你主动放弃，对手有效。对手收底池；你的失败牌不消耗，也不追加烧毁。双方都失败则保留底池重做。', 'You give up the hand; the opponent has a valid hand and collects the pot. Your failed cards are not consumed and no extra air burns. Two failures keep the pot and retry.')}</p><strong>${c('额外烧毁', 'Extra burned')}: 0 AIR</strong></div>`;
+    scene = `<div class="risk-film"><span class="failure-stamp">${c('构造失败', 'HAND FAILED')}</span><div>${lessonCards(hands[24][0])}</div><p>${c('例：你主动放弃，对手有效。对手收底池；你的失败牌不消耗，也不追加烧毁。双方都失败则保留底池重做。', 'You give up the hand; the opponent has a valid hand and collects the pot. Your failed cards are not consumed and no extra air burns. Two failures keep the pot and retry.')}</p><strong>${c('额外烧毁', 'Extra burned')}: 0 AIR</strong></div>`;
   if (state.scenario === 'fold')
     scene = `<div class="risk-film"><span class="failure-stamp">${c('停止下注', 'FOLD')}</span><div class="fold-arrow">${c('底池', 'POT')} → ${opponentName}</div><p>${c('例：你在下注时弃牌，对手收实际底池。双方已经合法锁定的实体牌仍进入公共弃牌，但不追加灾厄。', 'You fold during betting; the opponent receives the actual pot. Both valid locked hands enter the shared discard pile, but there is no extra calamity burn.')}</p><strong>${c('额外烧毁', 'Extra burned')}: 0 AIR</strong></div>`;
   if (state.scenario === 'calamity')
@@ -235,7 +269,7 @@ function riskExercise(state, c, opponentName) {
         ['4', '♣'],
         ['8', '♠'],
       ],
-    )}</div><div><small>${c('三条 · 负', 'Three of a kind · loses')}</small>${lessonCards(hands[0])}</div></div><p>${c('4♠、4♥、4♦ 是双方使用的相同实体牌。双方有效且分出胜负，触发灾厄。假设各投 6、各剩 18，底池 12 给胜方，败方再烧 min(6,18)=6。', 'The shared 4♠, 4♥ and 4♦ are identical physical cards. Both hands are valid and do not tie: calamity. If each invested 6 and has 18 left, the winner receives the pot of 12 and the loser burns min(6,18)=6.')}</p><strong class="burned-copy">${c('实际烧毁', 'Actually burned')}: 6 AIR</strong></div>`;
+    )}</div><div><small>${c('三条 · 负', 'Three of a kind · loses')}</small>${lessonCards(hands[24][0])}</div></div><p>${c('4♠、4♥、4♦ 是双方使用的相同实体牌。双方有效且分出胜负，触发灾厄。假设各投 6、各剩 18，底池 12 给胜方，败方再烧 min(6,18)=6。', 'The shared 4♠, 4♥ and 4♦ are identical physical cards. Both hands are valid and do not tie: calamity. If each invested 6 and has 18 left, the winner receives the pot of 12 and the loser burns min(6,18)=6.')}</p><strong class="burned-copy">${c('实际烧毁', 'Actually burned')}: 6 AIR</strong></div>`;
   return `<div class="risk-tabs">${Object.entries(names)
     .map(
       ([key, label]) =>
