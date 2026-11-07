@@ -490,8 +490,9 @@ export function createGame({
     betObservations = appendBetObservation(betObservations, observation);
     state = result.state;
     betSerial = state.betting.turnId;
-    state.betting.deadlineMs =
-      state.respiration.elapsedMs + (state.betting.turn === 'ai' ? 600 : BET_SECONDS * 1000);
+    if (state.betting.turn)
+      state.betting.deadlineMs =
+        state.respiration.elapsedMs + (state.betting.turn === 'ai' ? 600 : BET_SECONDS * 1000);
     const cpu = actor === 'ai';
     const event = result.event;
     recorder.bet(state, event, timedOut);

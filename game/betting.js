@@ -15,6 +15,7 @@ export function getBetOptions(state, actor) {
     Math.min(Math.floor((state.pot + toCall) / 2), matchedLimit - Math.max(ownBet, opponentBet)),
   );
   const allInCost = Math.max(0, matchedLimit - ownBet);
+  const canCall = Boolean(active && toCall > 0 && toCall <= ownAir);
   return {
     active: Boolean(active),
     toCall,
@@ -25,10 +26,13 @@ export function getBetOptions(state, actor) {
     reserve: ownAir,
     potAfterCall: state.pot + toCall,
     canCheck: Boolean(active && toCall === 0),
-    canCall: Boolean(active && toCall > 0 && toCall <= ownAir),
+    canCall,
     canRaise: Boolean(active && maxRaise >= 1),
     canFold: Boolean(active),
     canAllIn: Boolean(active && allInCost > 0 && allInCost - toCall <= maxRaise),
+    // Matching the outstanding call closes the round: the caller never hands
+    // the action back, so only a raise keeps betting open.
+    callEndsBetting: canCall,
   };
 }
 
@@ -71,8 +75,14 @@ export function applyBetAction(state, actor, action, amount) {
     turnId: state.betting.turnId,
   };
   const matchedAllIn = next.playerBet === next.aiBet && Math.min(next.playerAir, next.aiAir) === 0;
+  // A call settles the stakes, so it ends betting immediately; raises and
+  // all-ins leave the opponent a response, and two checks still finish.
   const outcome =
-    action === 'fold' ? 'fold' : checks >= 2 || matchedAllIn ? 'showdown' : 'continue';
+    action === 'fold'
+      ? 'fold'
+      : action === 'call' || checks >= 2 || matchedAllIn
+        ? 'showdown'
+        : 'continue';
   next.betting = {
     ...state.betting,
     turn: outcome === 'continue' ? otherPlayer(actor) : null,
