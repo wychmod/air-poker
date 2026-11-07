@@ -32,6 +32,30 @@ test('independent number cards have ten disjoint proof hands, with two cards lef
   for (const bad of [() => 1, () => -1, () => NaN]) assert.throws(() => dealTargets(bad));
 });
 
+test('the five numbers handed to the player never repeat, while an equal cross-side value stays possible', () => {
+  let encountersTie = 0;
+  for (let seed = 1; seed <= 400; seed++) {
+    const { player, ai } = dealTargets(seeded(seed));
+    const values = player.map((group) => group.target);
+    assert.equal(new Set(values).size, 5);
+    if (values.some((value) => ai.some((group) => group.target === value))) encountersTie++;
+  }
+  // Both sides may still hold an equal number, so the first-round tie-break stays reachable.
+  assert.ok(encountersTie > 0, 'cross-side equal values must remain dealable');
+});
+
+test('a degenerate random source cannot loop the distinctness rule', () => {
+  for (const constant of [0.41, 0.5, 0, 0.99, 0.3]) {
+    const { player, ai, leftovers } = dealTargets(() => constant);
+    assert.equal(player.length, 5);
+    assert.equal(ai.length, 5);
+    assert.equal(leftovers.length, 2);
+    assert.equal(new Set(player.map((group) => group.target)).size, 5);
+    const all = [...player, ...ai].flatMap((group) => group.proof).concat(leftovers);
+    assert.equal(new Set(all.map((next) => next.id)).size, 52);
+  }
+});
+
 test('opponent chooses only its unused solvable positions, and reports no legal hand explicitly', () => {
   const targets = [6, 47, 64, 35, 25];
   const play = chooseCpuPlay(targets, [1], [], () => 0);
