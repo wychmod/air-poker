@@ -1,4 +1,4 @@
-import { judgeHand, makeCandidates } from './cards.js';
+import { judgeHand, makeCandidates, makeRecommendations } from './cards.js';
 import { dealTargets, randomIndex } from './deal.js';
 import { chooseCpuPlay, chooseCpuBet } from './ai.js';
 import { applyBetAction, getBetOptions, otherPlayer } from './betting.js';
@@ -206,7 +206,7 @@ export function createGame({
 
   function prepareRound() {
     candidatesByTarget = state.targets.map((target, index) =>
-      state.usedTargets.includes(index) ? [] : makeCandidates(target, state.discard),
+      state.usedTargets.includes(index) ? [] : makeRecommendations(target, state.discard),
     );
     state.targetSolvable = candidatesByTarget.map((candidates) => candidates.length > 0);
     state.targetPlayable = state.targets.map((_, index) => !state.usedTargets.includes(index));
@@ -390,7 +390,7 @@ export function createGame({
       };
       state.playerHand = null;
       state.aiHand = null;
-      state.candidates = makeCandidates(state.playerTarget, state.discard);
+      state.candidates = makeRecommendations(state.playerTarget, state.discard);
       const cpuCandidates = makeCandidates(state.aiTarget, state.discard);
       cpuPlay = { ...cpuPlay, hand: cpuCandidates[0]?.hand ?? null };
       state.selectedCandidate = 0;

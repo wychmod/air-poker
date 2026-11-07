@@ -559,7 +559,11 @@ function handRecommendations(state, view) {
     '<section class="hand-recommendations" aria-labelledby="handRecommendationsTitle"><div class="hand-recommendations-heading"><h3 id="handRecommendationsTitle">' +
     copy(lang, '快速填入推荐', 'QUICK PICKS') +
     '</h3><p>' +
-    copy(lang, '只是参考，填入后仍可逐张调整。', 'A starting point. Every card stays editable.') +
+    copy(
+      lang,
+      '至多三种不同牌型，填入后仍可逐张调整。',
+      'Up to three different hand types. Every card stays editable.',
+    ) +
     '</p></div><div class="battle-candidates" data-hand-recommendations>' +
     candidates
       .map((candidate, index) => {

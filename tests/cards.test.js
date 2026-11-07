@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { card, createDeck, makeCandidates } from '../game/cards.js';
-import { compareHands } from '../game/rules.js';
+import { card, createDeck, makeCandidates, makeRecommendations } from '../game/cards.js';
+import { compareHands, rankHand } from '../game/rules.js';
 
 function assertLegal(hand, target, discard = []) {
   assert.equal(hand.length, 5);
@@ -38,6 +38,34 @@ test('all 59 possible target sums produce distinct physical five-card recommenda
   assert.equal(makeCandidates(47)[0].rank.key, 'royalFlush');
   assert.equal(makeCandidates(6)[0].rank.key, 'fourKind');
   assert.equal(makeCandidates(64)[0].rank.key, 'fourKind');
+});
+
+test('player recommendations offer distinct types with the original strongest hand first', () => {
+  for (let target = 6; target <= 64; target++) {
+    const recommendations = makeRecommendations(target);
+    assert.ok(recommendations.length >= 1 && recommendations.length <= 3);
+    assert.equal(
+      new Set(recommendations.map((candidate) => candidate.rank.key)).size,
+      recommendations.length,
+    );
+    assert.deepEqual(recommendations[0], makeCandidates(target, [], 1)[0]);
+    for (const { hand } of recommendations) assertLegal(hand, target);
+    for (let index = 1; index < recommendations.length; index++)
+      assert.ok(compareHands(recommendations[index - 1].hand, recommendations[index].hand) > 0);
+  }
+  for (const [target, count] of [
+    [6, 1],
+    [7, 2],
+    [63, 2],
+    [64, 1],
+  ])
+    assert.equal(
+      makeRecommendations(target).length,
+      count,
+      'suit variants do not fill empty slots',
+    );
+  assert.deepEqual(makeRecommendations(6, [card(1, 0)]), []);
+  assert.deepEqual(makeRecommendations(35, createDeck()), []);
 });
 
 test('discarded extremes are unavailable, never partial or fabricated hands', () => {
@@ -85,10 +113,15 @@ test('best recommendation agrees with exhaustive physical hands on restricted de
   ];
   for (const available of fixtures) {
     const best = new Map();
+    const types = new Map();
     function enumerate(hand, start) {
       if (hand.length === 5) {
         const sum = hand.reduce((total, next) => total + next.value, 0);
         if (!best.has(sum) || compareHands(hand, best.get(sum)) > 0) best.set(sum, hand);
+        if (!types.has(sum)) types.set(sum, new Map());
+        const key = rankHand(hand).key;
+        const previous = types.get(sum).get(key);
+        if (!previous || compareHands(hand, previous) > 0) types.get(sum).set(key, hand);
         return;
       }
       for (let i = start; i < available.length; i++) enumerate([...hand, available[i]], i + 1);
@@ -101,6 +134,16 @@ test('best recommendation agrees with exhaustive physical hands on restricted de
       else {
         assertLegal(recommended[0].hand, target, discard);
         assert.equal(compareHands(recommended[0].hand, best.get(target)), 0);
+      }
+      const diverse = makeRecommendations(target, discard);
+      const expected = [...(types.get(target)?.values() ?? [])]
+        .sort((first, second) => compareHands(second, first))
+        .slice(0, 3);
+      assert.equal(diverse.length, expected.length);
+      for (const [index, candidate] of diverse.entries()) {
+        assertLegal(candidate.hand, target, discard);
+        assert.equal(candidate.rank.key, rankHand(expected[index]).key);
+        assert.equal(compareHands(candidate.hand, expected[index]), 0);
       }
     }
   }

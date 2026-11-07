@@ -49,6 +49,16 @@ export function judgeHand(hand, target, discard = []) {
 // suit representatives. The best poker rank is exact, but physical choices
 // are only a recommended subset, not all possible overlap-avoidance plays.
 export function makeCandidates(target, discard = [], limit = 3) {
+  return collectCandidates(target, discard, limit, false);
+}
+
+// Player quick picks keep the strongest hand of each type, rather than filling
+// multiple slots with suit variants. Strategy candidate ordering stays intact.
+export function makeRecommendations(target, discard = []) {
+  return collectCandidates(target, discard, 3, true);
+}
+
+function collectCandidates(target, discard, limit, distinctTypes) {
   if (!Number.isInteger(limit) || limit < 1 || limit > 24)
     throw new RangeError('Candidate limit must be an integer from 1 to 24');
   if (!Number.isInteger(target) || target < 6 || target > 64)
@@ -66,6 +76,13 @@ export function makeCandidates(target, discard = [], limit = 3) {
     if (seen.has(id)) return;
     seen.add(id);
     const candidate = { hand, rank: rankHand(hand) };
+    if (distinctTypes) {
+      const sameType = best.findIndex((other) => other.rank.key === candidate.rank.key);
+      if (sameType >= 0) {
+        if (compareRanks(candidate.rank, best[sameType].rank) <= 0) return;
+        best.splice(sameType, 1);
+      }
+    }
     const index = best.findIndex((other) => compareRanks(candidate.rank, other.rank) > 0);
     best.splice(index < 0 ? best.length : index, 0, candidate);
     if (best.length > limit) best.pop();
