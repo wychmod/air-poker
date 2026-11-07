@@ -98,7 +98,22 @@ test('分享和剪贴板不受支持或取消时仍可保存图片', async ({ pa
   await expect(page.locator('#saveShareImage')).toBeEnabled();
 });
 
-test('系统分享只在点击后使用已生成 PNG；取消可恢复', async ({ page }) => {
+test('桌面只保留保存图片，系统分享按钮不出现', async ({ page }, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'desktop-subpath',
+    'Desktop-only expectation; phone projects assert the share button instead.',
+  );
+  await openArchiveShare(page, completedMatch('player'));
+  await expect(page.locator('#nativeShareImage')).toBeHidden();
+  await expect(page.locator('#saveShareImage')).toBeEnabled();
+  await expect(page.locator('#shareStatus')).toContainText('保存图片即可分享');
+});
+
+test('系统分享只在点击后使用已生成 PNG；取消可恢复', async ({ page }, testInfo) => {
+  test.skip(
+    testInfo.project.name === 'desktop-subpath',
+    'Desktop hides the share button; its fallback is asserted in the desktop test.',
+  );
   await page.addInitScript(() => {
     window.shareCalls = [];
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
@@ -116,6 +131,7 @@ test('系统分享只在点击后使用已生成 PNG；取消可恢复', async (
   });
   await openArchiveShare(page, completedMatch('player'));
   expect(await page.evaluate(() => window.shareCalls)).toEqual([]);
+  await expect(page.locator('#nativeShareImage')).toBeVisible();
   await page.locator('#nativeShareImage').click();
   await expect(page.locator('#shareStatus')).toContainText('已取消分享');
   const calls = await page.evaluate(() => window.shareCalls);
@@ -169,7 +185,11 @@ test('分享元信息和两张封面在实际发布路径可加载，英文入�
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('button', { name: 'Enter the match', exact: false })).toBeVisible();
 });
-test('图片生成失败保留链接，系统仅支持链接分享时正常降级', async ({ page }) => {
+test('图片生成失败保留链接，系统仅支持链接分享时正常降级', async ({ page }, testInfo) => {
+  test.skip(
+    testInfo.project.name === 'desktop-subpath',
+    'Link-only share needs the phone share button; desktop keeps the PNG download.',
+  );
   await page.addInitScript(() => {
     window.linkShares = [];
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false });

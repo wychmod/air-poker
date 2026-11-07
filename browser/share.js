@@ -1,5 +1,15 @@
+// System share is a phone affordance. Desktop Chromium also exposes navigator.share, but its
+// share sheet is frequently missing or crashes, so desktop keeps the PNG download only.
+export function systemShareSheetAvailable(win) {
+  const nav = win?.navigator;
+  if (!nav || typeof nav.share !== 'function') return false;
+  const coarse =
+    typeof win.matchMedia === 'function' && win.matchMedia('(pointer: coarse)').matches;
+  return coarse || nav.userAgentData?.mobile === true;
+}
+
 // Platform effects only. The caller provides a public, completed-match SVG.
-export function createShareExporter({ document, notify }) {
+export function createShareExporter({ document, notify, win = document.defaultView }) {
   const preview = document.getElementById('sharePreview');
   const frame = preview.closest('.share-preview');
   const status = document.getElementById('shareStatus');
@@ -44,7 +54,7 @@ export function createShareExporter({ document, notify }) {
       link.value = url;
       save.textContent = messages.save;
       native.textContent = messages.share;
-      native.hidden = typeof navigator.share !== 'function';
+      native.hidden = !systemShareSheetAvailable(win);
       say('loading');
       const sourceUrl = URL.createObjectURL(
         new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }),
@@ -84,7 +94,7 @@ export function createShareExporter({ document, notify }) {
         save.disabled = false;
         native.disabled = false;
         if (previousUrl) URL.revokeObjectURL(previousUrl);
-        say('ready');
+        say(systemShareSheetAvailable(win) ? 'ready' : 'readyDownload');
       } catch {
         if (id === generation) say(previewUrl ? 'refreshFailed' : 'failed');
       } finally {
@@ -103,8 +113,14 @@ export function createShareExporter({ document, notify }) {
       say('downloaded');
     },
     async share() {
-      if (!ready || typeof navigator.share !== 'function') return;
+      if (!ready) return;
       const data = ready;
+      // Desktop keeps the PNG download; the share button is not shown there.
+      if (!systemShareSheetAvailable(win)) {
+        say('shareFailed');
+        notify(data.messages.unavailable);
+        return;
+      }
       const file = new File([data.blob], data.filename, { type: 'image/png' });
       try {
         // Called directly from the click: PNG generation has already finished.
@@ -116,7 +132,12 @@ export function createShareExporter({ document, notify }) {
         );
         if (ready === data) say('shared');
       } catch (error) {
-        if (ready === data) say(error.name === 'AbortError' ? 'cancelled' : 'shareFailed');
+        if (ready !== data) return;
+        if (error.name === 'AbortError') say('cancelled');
+        else {
+          say('shareFailed');
+          notify(data.messages.unavailable);
+        }
       }
     },
     async copy() {

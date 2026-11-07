@@ -207,7 +207,7 @@ flowchart LR
 
 完整检查报告写入 `output/harness/latest.json`；浏览器报告在 `output/e2e/report/`。首次运行浏览器回归前执行 `npx playwright install chromium`（Linux CI 加 `--with-deps`）。
 
-终局与最近完成局现在支持中英文战报预览、PNG 下载和用户主动分享；静态分享封面/摘要也提供中文和英文入口。详细命令、素材重建和降级行为见[浏览器回归与分享](doc/optimization/README.md)。HTTP 资源检查不执行页面脚本，交互改动仍需按[浏览器验收清单](doc/harness/acceptance.md)验证。
+终局与最近完成局现在支持中英文战报预览、PNG 下载和链接复制；系统分享只在手机/平板出现，桌面保留保存图片。静态分享封面/摘要也提供中文和英文入口。详细命令、素材重建和降级行为见[浏览器回归与分享](doc/optimization/README.md)。HTTP 资源检查不执行页面脚本，交互改动仍需按[浏览器验收清单](doc/harness/acceptance.md)验证。
 
 ### 项目结构
 

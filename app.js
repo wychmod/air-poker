@@ -256,6 +256,10 @@ function showShare(record) {
       share: c('系统分享', 'Share'),
       loading: c('正在生成战报…', 'Creating your card…'),
       ready: c('战报已就绪。图片和链接都可以分享。', 'Your card is ready to save or share.'),
+      readyDownload: c(
+        '战报已就绪。保存图片即可分享。',
+        'Your card is ready. Save the image to share it.',
+      ),
       failed: c(
         '图片暂时无法生成。仍可复制试玩链接，关闭后可重试。',
         'Could not create the image. Copy the play link or reopen to retry.',
@@ -274,8 +278,12 @@ function showShare(record) {
         'Share cancelled. Your card is still ready to save.',
       ),
       shareFailed: c(
-        '系统分享不可用，请保存图片或复制链接。',
-        'Sharing is unavailable. Save the PNG or copy the link.',
+        '当前设备无法直接分享，请保存战报图片后分享。',
+        'Sharing is unavailable on this device. Save the PNG and share that.',
+      ),
+      unavailable: c(
+        '当前分享无法进行，请保存图片分享。',
+        'Sharing is unavailable right now. Save the image and share it.',
       ),
       copied: c('试玩链接已复制。', 'Play link copied.'),
       manualCopy: c(
