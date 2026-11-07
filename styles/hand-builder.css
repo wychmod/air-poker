@@ -540,8 +540,9 @@ html[data-motion='off'] .hand-draft-card {
 }
 
 .tutorial-practice-actions {
-  display: flex;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
   align-items: center;
   justify-content: space-between;
   padding: 14px 0;
@@ -551,12 +552,18 @@ html[data-motion='off'] .hand-draft-card {
 .tutorial-practice-actions > span {
   font-size: 12px;
 }
+.tutorial-lock-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
 .tutorial-workspace .hand-pool {
   grid-template-columns: repeat(8, minmax(0, 1fr));
 }
 @media (max-width: 720px) {
   .tutorial-page:has(.tutorial-practice-actions) {
-    padding-bottom: 110px;
+    padding-bottom: 160px;
   }
   .tutorial-practice-actions {
     position: fixed;

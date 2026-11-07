@@ -2,6 +2,8 @@
 
 ## 当前工程入口
 
+[游戏介绍页原作解说入口](harness/introduction-video.md)：指定 B 站视频、真实封面与作者、双语观看卡片及响应式/外链验收。
+
 [三档难度与融合策略](rules/difficulty/spec.md)：新手、中等、困难及各档固定目标；[技术设计](rules/difficulty/plan.md)、[实施任务](rules/difficulty/task.md)与[验收清单](rules/difficulty/checklist.md)。难度功能已实施；剩余自动、浏览器与真人验收状态见清单。
 
 [手机体验、浏览器回归与分享](optimization/README.md)：真实浏览器 CI、终局战报 PNG、双语分享摘要/封面、运行素材瘦身与实践教学；[实施验收](optimization/results.md)。

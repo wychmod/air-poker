@@ -21,6 +21,7 @@ export const SITE_FILES = [
   'assets/runtime/tutorial.webp',
   'assets/runtime/victory.webp',
   'assets/runtime/defeat.webp',
+  'assets/runtime/original-commentary.webp',
   'assets/share/cover-zh.png',
   'assets/share/cover-en.png',
   'assets/share/favicon.svg',

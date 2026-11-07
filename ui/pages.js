@@ -45,7 +45,7 @@ export function homeMarkup(_state, view) {
       <button class="button primary home-enter" data-action="enter-match">${c('开始对局', 'Enter the match')} <span aria-hidden="true">→</span></button>
       <div class="home-secondary"><button data-action="open-playbook">${c('了解玩法', 'How to play')}</button><span aria-hidden="true">／</span><button data-action="open-tutorial">${c('先练一次', 'Try the tutorial')}</button></div>
     </div>
-    <footer class="home-foot"><div class="home-foot-copy"><p>${c('本地单人', 'SINGLE PLAYER')}<span>25 AIR × 2</span>${c('五轮后耐息', 'FIVE ROUNDS. THEN ENDURANCE.')}</p><p class="manga-credit">${translate(view.lang, 'mangaSource')}</p></div><div class="home-foot-actions">${view.hasLastRecord ? `<button data-action="previous-record">${c('最近完成局', 'Last completed match')} ↗</button>` : '<span class="home-edition">THE ABYSS / 01</span>'}<a id="homeStarLink" class="star-link" href="https://github.com/wychmod/air-poker" target="_blank" rel="noopener noreferrer" aria-label="${c('前往 GitHub 为项目点 Star（新标签页打开）', 'Star this project on GitHub (opens in a new tab)')}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.78 5.63 6.22.91-4.5 4.38 1.06 6.2L12 17.19l-5.56 2.93 1.06-6.2L3 9.54l6.22-.91Z"/></svg>${c('给项目点个 Star', 'Star on GitHub')}<span aria-hidden="true">↗</span></a></div></footer>
+    <footer class="home-foot"><div class="home-foot-copy"><p>${c('本地单人', 'SINGLE PLAYER')}<span>25 AIR × 2</span>${c('最高五轮结算', 'UP TO FIVE ROUNDS TO SETTLE.')}</p><p class="manga-credit">${translate(view.lang, 'mangaSource')}</p></div><div class="home-foot-actions">${view.hasLastRecord ? `<button data-action="previous-record">${c('最近完成局', 'Last completed match')} ↗</button>` : '<span class="home-edition">THE ABYSS / 01</span>'}<a id="homeStarLink" class="star-link" href="https://github.com/wychmod/air-poker" target="_blank" rel="noopener noreferrer" aria-label="${c('前往 GitHub 为项目点 Star（新标签页打开）', 'Star this project on GitHub (opens in a new tab)')}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.78 5.63 6.22.91-4.5 4.38 1.06 6.2L12 17.19l-5.56 2.93 1.06-6.2L3 9.54l6.22-.91Z"/></svg>${c('给项目点个 Star', 'Star on GitHub')}<span aria-hidden="true">↗</span></a></div></footer>
   </section>`;
 }
 
@@ -60,11 +60,28 @@ export function introductionMarkup(view) {
   ]);
   return `<section class="manga-introduction narrative-page" data-scene="introduction" aria-labelledby="introductionTitle">
     <div class="paper-figures" aria-hidden="true"></div>
-    <header class="narrative-heading"><p class="eyebrow">THE RULES OF SURVIVAL</p><h1 id="introductionTitle">${c('先理解目标。再承担下注。', 'Know the target. Own the risk.')}</h1><p>${c('一副共享的实体牌，五张私有的数字牌。赌桌上的筹码，是空气。', 'One shared deck. Five private targets. Every wager is air.')}</p></header>
+    <header class="narrative-heading"><p class="eyebrow">THE RULES OF SURVIVAL</p><h1 id="introductionTitle">${c('先看解说。再理解规则。', 'Watch the story. Learn the rules.')}</h1><p>${c('先看视频解说理解空气赌局，再通过下方图解熟悉本作玩法。', 'Start with the original story commentary, then explore this game’s rules in the illustrated guide below.')}</p></header>
+    <section class="source-feature" aria-labelledby="sourceVideoTitle">
+      <div class="source-feature-heading"><h2 id="sourceVideoTitle">${c('原作解说', 'Behind the game')}</h2><span>${c('建议先观看，再阅读下方规则', 'WATCH FIRST. THEN EXPLORE THE RULES.')}</span></div>
+      <a class="source-video" href="https://www.bilibili.com/video/BV1T84y177Cz/" target="_blank" rel="noopener noreferrer" aria-labelledby="sourceVideoName sourceVideoWatch" aria-describedby="sourceVideoNotice">
+        <div class="source-video-cover">
+          <img src="assets/runtime/original-commentary.webp" width="865" height="540" loading="eager" decoding="async" alt="${c('视频封面：《噬谎者》空气扑克篇，水下对峙的两位赌徒', 'Video thumbnail: two gamblers face off underwater in Usogui’s Air Poker arc')}">
+          <span class="source-video-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 5.5v13l10-6.5Z"/></svg></span>
+          <span class="source-video-duration" aria-label="${c('时长 57 分 26 秒', 'Duration: 57 minutes, 26 seconds')}">57:26</span>
+        </div>
+        <div class="source-video-copy">
+          <div class="source-video-kicker"><span>BILIBILI</span><span>${c('中文 · 完整解说', 'CHINESE · FULL COMMENTARY')}</span></div>
+          <h3 id="sourceVideoName">${c('水下，以空气为赌注的致命扑克。', 'Underwater. Every wager is a breath.')}</h3>
+          <p class="source-video-description">${c('跟随这支《噬谎者》「空气扑克」篇解说，了解原作中的规则、心理博弈与逆转。', 'Explore the rules, mind games and reversals of the original Air Poker arc in Usogui.')}</p>
+          <p class="source-video-author">${c('视频作者', 'BY')}<span>浪里白朴piao</span></p>
+          <div class="source-video-bottom"><span class="source-video-cta" id="sourceVideoWatch">${c('前往 B 站观看', 'Watch on Bilibili')}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span><span class="source-video-notice" id="sourceVideoNotice">${c('含剧情剧透 · 新标签页打开', 'Story spoilers · Opens in a new tab')}</span></div>
+        </div>
+      </a>
+    </section>
     <div class="concept-grid">
-      <article class="concept-panel"><div class="concept-top"><span>01</span><span>THE HAND</span></div><div class="concept-demo" data-concept="hand"><div class="concept-hand">${cards}</div><div class="sum-line">4 + 4 + 4 + 5 + 7 <b>= 24</b></div></div><h2>${c('数字，是目标和。', 'The number is your target.')}</h2><p>${c('挑选一张数字牌，用五张不同实体牌凑齐点数和。目标 24 可以组成三条；和的大小不代表牌型强弱。', 'Choose a target, then name five different cards that add up to it. This 24 is three of a kind. A larger total is not a stronger hand.')}</p><button class="button secondary" data-action="play-concept" data-concept="hand">${c('看演示', 'Play example')} <span aria-hidden="true">↗</span></button></article>
-      <article class="concept-panel"><div class="concept-top"><span>02</span><span>THE WAGER</span></div><div class="concept-demo" data-concept="bet"><div class="air-demo"><div><span class="draw-canister">AIR</span><small>${c('未开储备', 'RESERVE')}</small></div><span class="air-transfer">+1 →</span><div class="demo-pot"><b>2 → 3</b><small>${c('底池', 'POT')}</small></div></div><span class="supply-stays">◉ ${c('当前呼吸罐继续供气', 'The open can keeps supplying air')}</span></div><h2>${c('下注，用未开储备。', 'Wager your reserve.')}</h2><p>${c('底池 2、无需跟注时，最多再加 1。当前呼吸罐不能下注。对手跟齐之后，行动继续；连续两次过牌才结束。', 'With a pot of 2 and nothing to call, you may raise by 1. Your open can cannot be wagered. A call passes the turn; two checks end betting.')}</p><button class="button secondary" data-action="play-concept" data-concept="bet">${c('看演示', 'Play example')} <span aria-hidden="true">↗</span></button></article>
-      <article class="concept-panel"><div class="concept-top"><span>03</span><span>THE REVEAL</span></div><div class="concept-demo" data-concept="risk"><div class="risk-pair">${lessonCards(
+      <article class="concept-panel" data-action="preview-concept" id="concept-hand-panel" tabindex="0" aria-labelledby="concept-hand-title"><div class="concept-top"><span>01</span><span>THE HAND</span></div><div class="concept-demo" data-concept="hand"><div class="concept-hand">${cards}</div><div class="sum-line">4 + 4 + 4 + 5 + 7 <b>= 24</b></div></div><h2 id="concept-hand-title">${c('数字，是目标和。', 'The number is your target.')}</h2><p>${c('挑选一张数字牌，用五张不同实体牌凑齐点数和。目标 24 可以组成三条；和的大小不代表牌型强弱。', 'Choose a target, then name five different cards that add up to it. This 24 is three of a kind. A larger total is not a stronger hand.')}</p></article>
+      <article class="concept-panel" data-action="preview-concept" id="concept-bet-panel" tabindex="0" aria-labelledby="concept-bet-title"><div class="concept-top"><span>02</span><span>THE WAGER</span></div><div class="concept-demo" data-concept="bet"><div class="air-demo"><div><span class="draw-canister">AIR</span><small>${c('未开储备', 'RESERVE')}</small></div><span class="air-transfer">+1 →</span><div class="demo-pot"><b>2 → 3</b><small>${c('底池', 'POT')}</small></div></div><span class="supply-stays">◉ ${c('当前呼吸罐继续供气', 'The open can keeps supplying air')}</span></div><h2 id="concept-bet-title">${c('没开封的空气罐，才能下注。', 'Bet only your unopened cans.')}</h2><p>${c('正在供你呼吸的那一罐，不能拿来下注。双方下得一样多、底池里有 2 罐时，你最多再加 1 罐。对手跟上后，还会轮到你行动；如果双方接连选择不加注（过牌），就进入摊牌。', 'The can you are breathing from is off the table. If both players have bet the same amount and the pot holds 2 cans, you can add at most 1. If the opponent matches your bet, it is your turn again. If both players check in a row, the hands are revealed.')}</p></article>
+      <article class="concept-panel" data-action="preview-concept" id="concept-risk-panel" tabindex="0" aria-labelledby="concept-risk-title"><div class="concept-top"><span>03</span><span>THE REVEAL</span></div><div class="concept-demo" data-concept="risk"><div class="risk-pair"><div class="risk-hand"><small>${c('四条 · 胜', 'Four of a kind · wins')}</small>${lessonCards(
         [
           ['4', '♠'],
           ['4', '♥'],
@@ -72,16 +89,94 @@ export function introductionMarkup(view) {
           ['4', '♣'],
           ['8', '♠'],
         ],
-      )}${lessonCards([
-        ['4', '♠'],
-        ['4', '♥'],
-        ['4', '♦'],
-        ['5', '♣'],
-        ['7', '♠'],
-      ])}</div><span class="risk-caption">${c('四条胜三条 · 同实体牌重叠', 'Four of a kind wins · physical cards overlap')}</span></div><h2>${c('摊牌，才知道代价。', 'The reveal has a price.')}</h2><p>${c('两手完整牌比较牌型。双方有效、实体重叠且分出胜负时，败者额外烧毁空气。本例双方各投 6、败方剩 18，实际烧毁 6；普通弃牌不触发灾厄。', 'Compare complete hands. If both are valid, overlap and do not tie, the loser burns reserve. Here each invested 6 and the loser has 18 left: 6 actually burns. Folding does not trigger calamity.')}</p><button class="button secondary" data-action="play-concept" data-concept="risk">${c('看演示', 'Play example')} <span aria-hidden="true">↗</span></button></article>
+      )}</div><div class="risk-hand"><small>${c('三条 · 负', 'Three of a kind · loses')}</small>${lessonCards(
+        [
+          ['4', '♠'],
+          ['4', '♥'],
+          ['4', '♦'],
+          ['5', '♣'],
+          ['7', '♠'],
+        ],
+      )}</div></div><span class="risk-caption">${c('撞牌：4♠、4♥、4♦（红框）', 'Shared cards: 4♠, 4♥, 4♦ (outlined)')}</span></div><h2 id="concept-risk-title">${c('赢的人，拿走双方的下注。', 'The winner collects both bets.')}</h2><p>${c('双方各押 6 罐，四条赢过三条。胜者收走底池里的 12 罐：拿回自己的 6 罐，赢走对手的 6 罐。', 'Each player bets 6 cans. Four of a kind beats three of a kind, so the winner collects all 12: their own 6 back, plus the opponent’s 6.')}</p><p class="risk-explanation">${c('图中两手都用了红框里的三张牌，触发「灾厄」。假设败者还剩 18 罐，就得额外放空 6 罐，这部分不归胜者。只同点数、花色不同不算撞牌；弃牌不追加这项处罚。', 'The three outlined cards appear in both hands, triggering calamity. With 18 cans left, the loser must vent another 6; the winner does not receive them. Matching ranks in different suits do not count. Folding adds no calamity penalty.')}</p></article>
     </div>
     <p class="manga-credit">${translate(view.lang, 'mangaSource')}</p>
     <footer class="narrative-footer"><button class="button secondary" data-action="open-rules">${c('查看完整规则', 'Read full rules')}</button><div><button class="button secondary" data-action="open-tutorial">${c('进入教学', 'Try the tutorial')}</button><button class="button primary" data-action="enter-match">${c('开始对局', 'Enter the match')} →</button></div></footer>
+  </section>`;
+}
+
+function pokerReferenceMarkup(lang) {
+  const c = (zh, en) => copy(lang, zh, en);
+  const hand = (faces) =>
+    lessonCards(faces.split(' ').map((face) => [face.slice(0, -1), face.slice(-1)]));
+  const ranks = [
+    [
+      c('皇家同花顺', 'Royal flush'),
+      c(
+        '同花色的 10、J、Q、K、A，最大的同花顺。',
+        '10, J, Q, K, A of one suit: the highest straight flush.',
+      ),
+      '10♠ J♠ Q♠ K♠ A♠',
+    ],
+    [
+      c('同花顺', 'Straight flush'),
+      c('同花色，且五张点数连续。', 'Five consecutive ranks, all of one suit.'),
+      '5♥ 6♥ 7♥ 8♥ 9♥',
+    ],
+    [
+      c('四条', 'Four of a kind'),
+      c('四张同点数，加一张其他牌。', 'Four cards of one rank, plus one other card.'),
+      '8♠ 8♥ 8♦ 8♣ K♠',
+    ],
+    [
+      c('葫芦', 'Full house'),
+      c('三张同点数，加一对。', 'Three cards of one rank, plus a pair.'),
+      'Q♠ Q♥ Q♦ 3♣ 3♥',
+    ],
+    [
+      c('同花', 'Flush'),
+      c('五张同花色，点数不连续。', 'Five cards of one suit, with nonconsecutive ranks.'),
+      'A♣ J♣ 8♣ 6♣ 2♣',
+    ],
+    [
+      c('顺子', 'Straight'),
+      c('五张点数连续，花色可以不同。', 'Five consecutive ranks; suits can differ.'),
+      '4♠ 5♥ 6♣ 7♦ 8♠',
+    ],
+    [
+      c('三条', 'Three of a kind'),
+      c('三张同点数，加两张不同点数的单牌。', 'Three cards of one rank, plus two unpaired cards.'),
+      '7♠ 7♥ 7♦ K♣ 2♠',
+    ],
+    [
+      c('两对', 'Two pair'),
+      c('两组对子，加一张单牌。', 'Two different pairs, plus one other card.'),
+      'K♠ K♥ 5♦ 5♣ 2♠',
+    ],
+    [
+      c('一对', 'One pair'),
+      c('一组对子，加三张不同点数的单牌。', 'One pair, plus three unpaired cards.'),
+      'J♠ J♥ 9♦ 6♣ 3♠',
+    ],
+    [
+      c('高牌', 'High card'),
+      c(
+        '以上都没凑成，就从最大的一张开始比。',
+        'None of the above: compare from the highest card down.',
+      ),
+      'A♠ J♥ 8♦ 6♣ 3♠',
+    ],
+  ];
+  return `<section id="rule-poker" aria-labelledby="pokerReferenceTitle">
+    <p class="eyebrow">07</p><h2 id="pokerReferenceTitle">${c('德州牌型速查', 'Texas Hold’em hand rankings')}</h2>
+    <p class="poker-reference-intro">${c('记住五张牌的大小，就能看懂摊牌。本作沿用德州扑克的牌型比较；组牌仍要凑齐你的数字牌点数。', 'Use these five-card rankings to read a showdown. Air Poker uses the same hand rankings as Texas Hold’em; your five cards still have to add up to your target.')}</p>
+    <div class="poker-ranks-heading"><strong>${c('牌型从强到弱', 'STRONGEST TO WEAKEST')}</strong><span>${c('每手均为五张牌示例', 'FIVE-CARD EXAMPLES')}</span></div>
+    <ol class="poker-ranks" role="list">${ranks.map(([name, description, faces], index) => `<li><span class="poker-rank-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span><div class="poker-rank-copy"><h3>${name}</h3><p>${description}</p></div>${hand(faces)}</li>`).join('')}</ol>
+    <div class="poker-comparisons"><h3>${c('同牌型，怎么分胜负？', 'How do you break a tie?')}</h3>
+      <p>${c('单张从大到小：A、K、Q、J、10 … 2。先比组成牌型的牌：四条先比四张相同牌的点数，葫芦先比三条，两对先比大对再比小对。还是一样，就从大到小比剩下的单牌（踢脚牌）；顺子比最大的一张，同花和高牌逐张比。', 'Individual cards rank A, K, Q, J, 10 … 2, highest first. Compare the cards that make the hand first: quads by rank, full houses by the triple first, and two pairs by the higher pair then the lower. If still tied, compare the remaining cards (kickers) from highest to lowest. Straights compare their top card; flushes and high-card hands compare all five in descending order.')}</p>
+      <article class="poker-comparison"><h4>${c('同是一对 A，K 踢脚赢 Q 踢脚', 'Same pair of aces: a king kicker beats a queen')}</h4><div class="poker-matchup"><figure><figcaption>${c('胜 · 先比到 K', 'WIN · K kicker')}</figcaption>${hand('A♠ A♥ K♣ 9♦ 8♠')}</figure><figure><figcaption>${c('负 · 先比到 Q', 'LOSE · Q kicker')}</figcaption>${hand('A♣ A♦ Q♠ J♥ 9♣')}</figure></div></article>
+      <article class="poker-comparison"><h4>${c('A2345 是最小顺子，输给 23456', 'A2345 is the lowest straight; 23456 beats it')}</h4><div class="poker-matchup"><figure><figcaption>${c('胜 · 6 高顺子', 'WIN · Six-high straight')}</figcaption>${hand('2♠ 3♥ 4♣ 5♦ 6♠')}</figure><figure><figcaption>${c('负 · 5 高顺子', 'LOSE · Five-high straight')}</figcaption>${hand('A♣ 2♥ 3♠ 4♦ 5♣')}</figure></div><p>${c('A 通常最大，也能放在 2345 前组成最小顺子；QKA23 不能首尾相接。凑目标点数时，A 始终算 1。', 'Aces are normally high, but can precede 2345 to make the lowest straight. QKA23 cannot wrap around. For your target sum, an ace always counts as 1.')}</p></article>
+      <p class="poker-suit-note">${c('花色不分大小。两手牌型和逐张点数完全一样，就是平局；例如两手都是 A2345 顺子，即使花色不同也打平。', 'Suits have no ranking. If the hand type and every compared rank match, it is a tie. For example, two A2345 straights tie even with different suits.')}</p>
+    </div>
   </section>`;
 }
 
@@ -98,10 +193,10 @@ export function rulesMarkup(lang) {
     ],
     [
       'hand',
-      c('数字与完整成手', 'Targets and complete hands'),
+      c('数字与组牌', 'Numbers and hands'),
       c(
-        '五张数字牌各使用一次，不补牌。实体成手必须是五张不同、未弃掉的牌，点数和等于目标；A=1，J/Q/K=11/12/13。比较通常 A 高，A2345 为五高。可从牌库自由选择五张，或填入最多三个推荐后编辑；构造限时 60 秒。前轮双方有效成手中的实体牌不可再用，锁定含已用牌的手牌会判成手失败；同点不同花色仍是不同牌。无解数字仍能选择，主动放弃或超时均记为成手失败，不消耗失败实体牌。',
-        'Each of five number cards is used once. A valid hand has five different unused cards whose values sum to the target: A=1, J/Q/K=11/12/13. Aces usually compare high; A2345 is five-high. Choose five cards freely, or fill and edit one of up to three recommendations within 60 seconds. Reusing any physical card from either valid hand in a previous round fails your hand on lock; a different suit is a different card. Unsolvable targets remain selectable. Giving up or timing out fails the hand without consuming its cards.',
+        '每轮选一张数字牌，用 5 张没用过的扑克牌凑出这个点数。A=1，J/Q/K=11/12/13；牌型大小按德州扑克比较，A2345 是最小顺子。数字牌不补发，前几轮双方用过的扑克牌不能再用。你有 60 秒组牌，可手选或用推荐；超时、放弃或组错都算失败。',
+        'Play one number card, then pick 5 unused playing cards that add up to it. A=1, J/Q/K=11/12/13. Hands rank as in Texas Hold’em; A2345 is the lowest straight. Number cards are not replaced, and neither player can reuse cards from earlier rounds. You have 60 seconds to build your hand, by hand or with a recommendation. Running out of time, giving up or submitting an invalid hand counts as a failure.',
       ),
     ],
     [
@@ -137,7 +232,7 @@ export function rulesMarkup(lang) {
       ),
     ],
   ];
-  return `<div class="full-rules"><nav aria-label="${c('规则章节', 'Rule chapters')}">${chapters.map(([id, title], index) => `<a href="#rule-${id}"><span>0${index + 1}</span>${title}</a>`).join('')}</nav><div class="rules-chapters">${chapters.map(([id, title, body], index) => `<section id="rule-${id}"><p class="eyebrow">0${index + 1}</p><h2>${title}</h2><p>${body}</p></section>`).join('')}</div></div>`;
+  return `<div class="full-rules"><nav aria-label="${c('规则章节', 'Rule chapters')}">${[...chapters, ['poker', c('德州牌型速查', 'Poker hand rankings')]].map(([id, title], index) => `<a href="#rule-${id}"><span>0${index + 1}</span>${title}</a>`).join('')}</nav><div class="rules-chapters">${chapters.map(([id, title, body], index) => `<section id="rule-${id}"><p class="eyebrow">0${index + 1}</p><h2>${title}</h2><p>${body}</p></section>`).join('')}${pokerReferenceMarkup(lang)}</div></div>`;
 }
 
 export function introMarkup(view) {
