@@ -115,7 +115,7 @@ npm ci
 npm start
 ```
 
-Open **[http://127.0.0.1:4173](http://127.0.0.1:4173)** in your browser. If you already downloaded the repository, run `npm ci` and `npm start` from its root. Set the `AIR_POKER_PORT` environment variable to use a different port.
+Open **[http://127.0.0.1:4180](http://127.0.0.1:4180)** in your browser. If you already downloaded the repository, run `npm ci` and `npm start` from its root. Set the `AIR_POKER_PORT` environment variable to use a different port.
 
 Access the game through the local HTTP server so that ES modules load correctly. There is no code compilation step and no third-party game runtime package. The home-page visit counter uses a remote image.
 

@@ -5,7 +5,8 @@ import { dirname, extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const port = Number(process.env.AIR_POKER_PORT ?? 4173);
+// 4180 instead of Vite's default 4173, which the EAC design world plugin owns.
+const port = Number(process.env.AIR_POKER_PORT ?? 4180);
 const mime = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
