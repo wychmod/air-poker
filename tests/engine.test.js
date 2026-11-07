@@ -104,6 +104,15 @@ test('snapshots are independent and expose no opponent future cards, proof or lo
   assert.equal(createGame({ random: seeded(8) }).getState().phase, 'lower');
 });
 
+test('quick picks offer different hand types while retaining the strongest first choice', () => {
+  const game = createGame({ random: () => 0.41 });
+  assert.equal(game.dispatch({ type: 'choose-target', index: 0 }), true);
+  const state = game.getState();
+  assert.equal(state.candidates.length, 3);
+  assert.equal(new Set(state.candidates.map((candidate) => candidate.rank.key)).size, 3);
+  assert.deepEqual(state.candidates[0], makeCandidates(state.playerTarget, state.discard, 1)[0]);
+});
+
 test('opponent locked target and physical hand do not change with player target or candidate', () => {
   let expected;
   for (let index = 0; index < 5; index++)

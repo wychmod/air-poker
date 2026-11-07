@@ -5,7 +5,7 @@ import {
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGame } from '../game/engine.js';
-import { createDeck, judgeHand, makeCandidates } from '../game/cards.js';
+import { createDeck, judgeHand, makeCandidates, makeRecommendations } from '../game/cards.js';
 import { CANISTER_MS, HYPOXIA_MS } from '../game/breathing.js';
 
 // Keep rare rule scenarios stable when the production opponent changes.
@@ -122,6 +122,11 @@ test('both failed hands rebuild the same round and pot, with no extra ante or di
     assert.equal(retry.pot, 10);
     assert.equal(retry.playerBet, 5);
     assert.equal(retry.aiBet, 5);
+    assert.deepEqual(retry.candidates, makeRecommendations(retry.playerTarget, retry.discard));
+    assert.equal(
+      new Set(retry.candidates.map((candidate) => candidate.rank.key)).size,
+      retry.candidates.length,
+    );
     const history = retry.betting.history;
     inert(game, { type: 'confirm-hand', attemptId: firstAttempt });
     lock(game);
