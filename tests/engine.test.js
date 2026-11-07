@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGame } from '../game/engine.js';
 import { makeCandidates } from '../game/cards.js';
+import { getBetOptions } from '../game/betting.js';
 
 // Rule fixtures specify the intended tie independently of opponent policy.
 const tieOpponent = {
@@ -415,4 +416,92 @@ test('accepted public bets reach the opponent as isolated observations and reset
   assert.equal(game.dispatch({ type: 'cpu-bet', turnId: fresh.betting.turnId }), true);
   assert.deepEqual(received.at(-1), [], 'reset clears observations from the previous session');
   assert.notEqual(fresh.sessionId, state.sessionId);
+});
+
+test('calling ends betting at once, so neither side is ever offered a reply', () => {
+  // The opponent always raises the first chance it gets, then calls. Under the
+  // old rule this loop ran many turns; now the player's call reveals at once.
+  const aggressive = {
+    choosePlay: (targets, used, discard) => {
+      const index = targets.findIndex((_, slot) => !used.includes(slot));
+      return { index, target: targets[index], ...makeCandidates(targets[index], discard)[0] };
+    },
+    chooseBet: ({ options }) =>
+      options.canRaise ? { action: 'raise', amount: 1 } : { action: 'call' },
+  };
+  for (const seed of [3, 11, 29, 42, 77]) {
+    const game = createGame({ random: seeded(seed), opponent: aggressive });
+    startBet(game);
+    if (game.getState().phase !== 'bet') continue;
+    // Let the opponent raise if it moves first; the player answers by calling.
+    for (let guard = 0; guard < 8 && game.getState().phase === 'bet'; guard++) {
+      const state = game.getState();
+      if (state.betting.turn === 'ai') {
+        game.dispatch({ type: 'cpu-bet', turnId: state.betting.turnId });
+        continue;
+      }
+      if (!state.legalBets.canCall) {
+        game.dispatch({ type: 'bet', action: 'check', turnId: state.betting.turnId });
+        continue;
+      }
+      const called = game.getState();
+      assert.equal(
+        game.dispatch({ type: 'bet', action: 'call', turnId: called.betting.turnId }),
+        true,
+      );
+      const after = game.getState();
+      assert.equal(after.phase, 'showdown', 'a call reveals immediately (seed ' + seed + ')');
+      assert.equal(after.betting.turn, null);
+      assert.equal(after.playerBet, after.aiBet, 'a caller has matched the stakes');
+      assert.equal(after.pot, 0);
+      assert.equal(after.accounting.balanced, true);
+      assert.equal(after.accounting.accountedTotal, 50);
+      assert.deepEqual(
+        after.betting.history.map((event) => event.actor).at(-2),
+        'ai',
+        'the last action before the reveal was the opponent raise being called',
+      );
+      break;
+    }
+  }
+});
+
+test('an opponent call also ends betting, so the player never gets to raise again', () => {
+  // The opponent always calls the player's raise. Under the old rule the player
+  // was then handed another raise option; the call must settle the round.
+  const caller = {
+    choosePlay: (targets, used, discard) => {
+      const index = targets.findIndex((_, slot) => !used.includes(slot));
+      return { index, target: targets[index], ...makeCandidates(targets[index], discard)[0] };
+    },
+    chooseBet: ({ options }) => (options.canCall ? { action: 'call' } : { action: 'check' }),
+  };
+  for (const seed of [5, 13, 21, 38]) {
+    const game = createGame({ random: seeded(seed), opponent: caller });
+    startBet(game);
+    let state = game.getState();
+    if (state.phase !== 'bet' || state.betting.turn !== 'player') continue;
+    assert.equal(
+      game.dispatch({
+        type: 'bet',
+        action: state.legalBets.canRaise ? 'raise' : 'check',
+        amount: state.legalBets.canRaise ? 1 : undefined,
+        turnId: state.betting.turnId,
+      }),
+      true,
+    );
+    state = game.getState();
+    if (state.phase !== 'bet' || state.betting.turn !== 'ai') continue;
+    // The opponent answers with a call, which must reveal immediately.
+    assert.equal(game.dispatch({ type: 'cpu-bet', turnId: state.betting.turnId }), true);
+    const after = game.getState();
+    assert.equal(after.phase, 'showdown', 'an opponent call reveals at once (seed ' + seed + ')');
+    assert.equal(after.betting.turn, null);
+    assert.equal(after.playerBet, after.aiBet);
+    assert.equal(after.accounting.balanced, true);
+    assert.equal(after.accounting.accountedTotal, 50);
+    assert.equal(after.betting.history.at(-1).action, 'call');
+    return;
+  }
+  assert.fail('No deterministic fixture found for an opponent call');
 });

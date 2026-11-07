@@ -195,7 +195,10 @@ test('opponent-perspective benchmark reverses scores and AIR gaps without changi
   assert.equal(opponent.losses, player.wins);
   assert.equal(opponent.ties, player.ties);
   assert.equal(opponent.score + player.score, 1);
-  assert.equal(opponent.meanAirDifference, -player.meanAirDifference);
+  // The two perspectives describe the same matches, so their AIR differences
+  // must cancel exactly. Compare the sum rather than `-value` so a perfectly
+  // balanced sample cannot fail on the signed zero of `-(0)`.
+  assert.equal(opponent.meanAirDifference + player.meanAirDifference, 0);
   assert.equal(opponent.meanAirGap, opponent.meanAirDifference);
   assert.equal(opponent.winScore, opponent.score);
   assert.equal(opponent.allBalanced, true);

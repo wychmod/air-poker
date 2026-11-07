@@ -237,8 +237,9 @@ test('every practice wager agrees with the engine half-pot cap, payment and next
     lesson = immutableAction(lesson, increment ? 'tutorial-raise' : 'tutorial-call');
     const actual = applyBetAction(fixture, 'player', increment ? 'raise' : 'call', increment);
     assert.equal(lesson.paid, actual.event.paid);
-    assert.equal(actual.state.betting.turn, 'ai');
-    assert.equal(actual.outcome, 'continue');
+    // A bare call settles the stakes; a raise keeps betting open for a reply.
+    assert.equal(actual.state.betting.turn, increment ? 'ai' : null);
+    assert.equal(actual.outcome, increment ? 'continue' : 'showdown');
     for (const lang of ['zh', 'en']) {
       const html = tutorialMarkup(lesson, { lang });
       assert.ok(html.includes(`<b>${actual.state.playerAir}<small> AIR</small></b>`));

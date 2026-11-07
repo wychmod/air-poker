@@ -41,16 +41,17 @@ test('source sequence: raise 1, call+raise 2, call+raise 4 gives stakes of 8 eac
     assert.equal(applyBetAction(state, actor, 'raise', amount + 1), null);
     state = move(state, actor, 'raise', amount).state;
   }
+  // Both sides now hold 8. Calling the last raise closes betting: the caller is
+  // no longer given the action back, so there is no check sequence to finish.
   const call = move(state, 'ai', 'call');
-  assert.equal(call.outcome, 'continue', 'calling does not silently count as both checks');
+  assert.equal(call.outcome, 'showdown', 'matching the raise ends betting and reveals');
   assert.equal(call.state.playerBet, 8);
   assert.equal(call.state.aiBet, 8);
-  const firstCheck = move(call.state, 'player', 'check');
-  assert.equal(firstCheck.outcome, 'continue');
-  assert.equal(move(firstCheck.state, 'ai', 'check').outcome, 'showdown');
+  assert.equal(call.state.betting.turn, null);
+  assert.equal(getBetOptions(call.state, 'player').active, false);
 });
 
-test('only unpressured checks are legal; calls and raises reset the check sequence', () => {
+test('only unpressured checks are legal; checking twice ends betting without a call', () => {
   const first = move(table(), 'player', 'check');
   assert.equal(first.outcome, 'continue');
   assert.equal(first.state.betting.turn, 'ai');
@@ -61,13 +62,13 @@ test('only unpressured checks are legal; calls and raises reset the check sequen
   assert.equal(raised.state.betting.checks, 0);
   assert.equal(getBetOptions(raised.state, 'player').toCall, 1);
   assert.equal(applyBetAction(raised.state, 'player', 'check'), null);
+  // A raise keeps betting open, so the caller gets a response; the response is
+  // a call, which settles the round instead of continuing it.
+  assert.equal(getBetOptions(raised.state, 'player').canRaise, true);
   const called = move(raised.state, 'player', 'call');
-  assert.equal(called.state.betting.checks, 0);
+  assert.equal(called.outcome, 'showdown');
+  assert.equal(called.state.betting.turn, null);
   assert.equal(called.state.playerAir, 23);
-  assert.equal(
-    move(move(called.state, 'ai', 'check').state, 'player', 'check').outcome,
-    'showdown',
-  );
 });
 
 test('raise bounds apply to the increment and do not impose a Texas minimum raise', () => {
@@ -78,6 +79,39 @@ test('raise bounds apply to the increment and do not impose a Texas minimum rais
     assert.equal(applyBetAction(state, 'player', 'raise', amount), null);
   assert.equal(applyBetAction(table(), 'player', 'dance'), null);
   assert.equal(applyBetAction({ ...table(), phase: 'showdown' }, 'player', 'check'), null);
+});
+
+test('a raise leaves the opponent a response, and that response ends betting', () => {
+  const raised = move(table(), 'player', 'raise', 1).state;
+  const pressure = getBetOptions(raised, 'ai');
+  assert.equal(pressure.toCall, 1);
+  assert.equal(pressure.canRaise, true, 'a raise reopens the opponent’s options');
+  assert.equal(pressure.canCheck, false);
+  const response = move(raised, 'ai', 'call');
+  assert.equal(response.outcome, 'showdown');
+  assert.equal(response.state.betting.turn, null);
+  assert.equal(response.state.playerBet, 2);
+  assert.equal(response.state.aiBet, 2);
+});
+
+test('math and caps are unchanged, only who may reply after a call', () => {
+  // The caller pays exactly the outstanding difference and is never asked again.
+  const raised = move(table(), 'player', 'raise', 1).state;
+  const options = getBetOptions(raised, 'ai');
+  assert.equal(options.toCall, 1);
+  assert.equal(options.callEndsBetting, true);
+  assert.equal(options.canCall, true);
+  const called = applyBetAction(raised, 'ai', 'call');
+  assert.equal(called.event.paid, 1);
+  assert.equal(called.event.called, 1);
+  assert.equal(called.state.aiAir, 23);
+  assert.equal(called.state.aiBet, 2);
+  // Calling with nothing owed is illegal; the unpressured action stays a check.
+  const flat = getBetOptions(table(), 'player');
+  assert.equal(flat.toCall, 0);
+  assert.equal(flat.canCall, false);
+  assert.equal(flat.callEndsBetting, false);
+  assert.equal(applyBetAction(table(), 'player', 'call'), null);
 });
 
 test('matched all-in respects half-pot and the poorer side, then waits for a response', () => {
