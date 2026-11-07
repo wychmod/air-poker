@@ -5,7 +5,7 @@ import {
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGame } from '../game/engine.js';
-import { battleMarkup, cardMarkup } from '../ui/battle.js';
+import { battleMarkup, cardMarkup, hypoxiaAlert, updateBattleBreathing } from '../ui/battle.js';
 import { CANISTER_MS } from '../game/breathing.js';
 import { createDeck } from '../game/cards.js';
 import { translate } from '../i18n.js';
@@ -416,4 +416,116 @@ test('retry preserves the pot and recommendations but starts with an empty edita
       match[0].includes('disabled'),
     ),
   );
+});
+
+function fakeBattleDom() {
+  const classList = () => {
+    const names = new Set();
+    return {
+      toggle(name, on) {
+        if (on) names.add(name);
+        else names.delete(name);
+      },
+      contains: (name) => names.has(name),
+    };
+  };
+  const element = (extra = {}) => ({
+    textContent: '',
+    dataset: {},
+    style: {},
+    hidden: false,
+    classList: classList(),
+    ...extra,
+  });
+  const children = new Map([
+    ['[data-hypoxia-text]', element()],
+    ['[data-hypoxia-note]', element()],
+  ]);
+  const alert = element({ querySelector: (selector) => children.get(selector) ?? null });
+  const announce = element();
+  const cards = { player: element(), ai: element() };
+  const breath = { player: element(), ai: element() };
+  const singles = new Map([
+    ['[data-hypoxia-alert]', alert],
+    ['[data-hypoxia-announce]', announce],
+  ]);
+  const lists = new Map();
+  for (const actor of ['player', 'ai']) {
+    lists.set(`[data-breath="${actor}"]`, [breath[actor]]);
+    lists.set(`[data-supply-card="${actor}"]`, [cards[actor]]);
+  }
+  return {
+    document: {
+      querySelector: (selector) => singles.get(selector) ?? null,
+      querySelectorAll: (selector) => lists.get(selector) ?? [],
+    },
+    alert,
+    announce,
+    cards,
+    children,
+    breath,
+  };
+}
+
+test('hypoxia warning appears only in the final grace seconds and names the consequence', () => {
+  const calm = createGame({ random: () => 0.41 }).getState();
+  assert.equal(hypoxiaAlert(calm, 'zh'), null);
+  assert.match(battleMarkup(calm, view), /data-hypoxia-alert[^>]*\shidden[ >]/);
+
+  const game = createGame({ random: () => 0.41 });
+  const start = game.getState();
+  game.dispatch({
+    type: 'elapse',
+    sessionId: start.sessionId,
+    elapsedMs: 25 * CANISTER_MS + 6000,
+  });
+  const state = game.getState();
+  assert.equal(state.phase, 'endurance');
+  assert.equal(hypoxiaAlert(state, 'zh').sentence, '双方缺氧宽限 4 秒');
+  assert.equal(hypoxiaAlert(state, 'zh').tone, 'warning');
+  const html = battleMarkup(state, view);
+  assert.doesNotMatch(html, /data-hypoxia-alert[^>]*\shidden[ >]/);
+  assert.match(html, /双方缺氧宽限 4 秒/);
+  assert.match(html, /同一刻耗尽判平局/);
+  assert.match(html, /class="battle-resource is-hypoxia" data-supply-card="player"/);
+
+  const solo = structuredClone(state);
+  solo.respiration.ai = { remainingMs: 120000, shortageMs: 0, opened: 25 };
+  assert.equal(hypoxiaAlert(solo, 'zh').sentence, '你的缺氧宽限 4 秒');
+  assert.equal(hypoxiaAlert(solo, 'en').sentence, 'Your grace period: 4s');
+
+  const critical = structuredClone(solo);
+  critical.respiration.player = { remainingMs: 0, shortageMs: 9000, opened: 25 };
+  assert.equal(hypoxiaAlert(critical, 'zh').tone, 'critical');
+  assert.match(battleMarkup(critical, view), /is-hypoxia is-critical/);
+});
+
+test('breathing updates pulse the warning without re-announcing every tick', () => {
+  const game = createGame({ random: () => 0.41 });
+  const start = game.getState();
+  game.dispatch({
+    type: 'elapse',
+    sessionId: start.sessionId,
+    elapsedMs: 25 * CANISTER_MS + 6000,
+  });
+  const state = game.getState();
+  const dom = fakeBattleDom();
+  updateBattleBreathing(dom.document, state, 'zh');
+  assert.equal(dom.alert.hidden, false);
+  assert.equal(dom.alert.dataset.tone, 'warning');
+  assert.equal(dom.children.get('[data-hypoxia-text]').textContent, '双方缺氧宽限 4 秒');
+  assert.equal(dom.cards.player.classList.contains('is-hypoxia'), true);
+  assert.equal(dom.cards.player.classList.contains('is-critical'), false);
+  assert.match(dom.announce.textContent, /缺氧宽限只剩 5 秒以内/);
+  assert.match(dom.breath.player.textContent, /缺氧宽限/);
+
+  dom.announce.textContent = 'sentinel';
+  updateBattleBreathing(dom.document, state, 'zh');
+  assert.equal(dom.announce.textContent, 'sentinel');
+
+  const safe = createGame({ random: () => 0.41 }).getState();
+  updateBattleBreathing(dom.document, safe, 'zh');
+  assert.equal(dom.alert.hidden, true);
+  assert.equal(dom.cards.player.classList.contains('is-hypoxia'), false);
+  assert.equal(dom.announce.dataset.state, 'idle');
 });
