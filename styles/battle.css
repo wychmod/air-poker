@@ -85,6 +85,71 @@
   color: #686b63;
   letter-spacing: 0.08em;
 }
+/* The final seconds of hypoxia grace read as an interruption, not decoration. */
+.battle-resource.is-hypoxia .battle-supply {
+  color: #7d2626;
+  font-weight: 700;
+  animation: battle-hypoxia-pulse 1.6s ease-in-out infinite;
+}
+.battle-resource.is-critical .battle-supply {
+  animation-duration: 0.85s;
+}
+.battle-hypoxia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin: 0;
+  padding: 9px 28px 10px;
+  border-bottom: 1px solid #cbb2ac;
+  background: #f7ebe8;
+  color: #7d2626;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.battle-hypoxia[hidden] {
+  display: none;
+}
+.battle-hypoxia-mark {
+  font-size: 10px;
+  animation: battle-hypoxia-pulse 1.6s ease-in-out infinite;
+}
+.battle-hypoxia-text {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.battle-hypoxia-note {
+  font-size: 12px;
+  color: #6e4b46;
+}
+.battle-hypoxia[data-tone='critical'] {
+  background: #f2dcd7;
+  border-bottom-color: #b4897f;
+  box-shadow: inset 3px 0 0 #9c3737;
+}
+.battle-hypoxia[data-tone='critical'] .battle-hypoxia-mark {
+  animation-duration: 0.85s;
+}
+@keyframes battle-hypoxia-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.38;
+  }
+}
+.battle-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
 .battle-table {
   padding: 28px 32px 0;
   background: #f8f7f2ee;
@@ -900,6 +965,14 @@
   }
   .battle-supply {
     font-size: 10px;
+  }
+  .battle-hypoxia {
+    padding: 8px 12px 9px;
+    font-size: 12px;
+    gap: 2px 8px;
+  }
+  .battle-hypoxia-note {
+    font-size: 11px;
   }
   .battle-table {
     padding: 22px 16px 0;

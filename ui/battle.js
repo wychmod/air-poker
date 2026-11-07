@@ -64,6 +64,62 @@ function supplyText(state, actor, lang) {
     : copy(lang, '缺氧宽限 ', 'Grace ') + clock(HYPOXIA_MS - supply.shortageMs);
 }
 
+// Grace only starts once the active canister is empty; zero unopened AIR is not drowning.
+export const HYPOXIA_ALERT_MS = 5000;
+
+function graceLeftMs(state, actor) {
+  const supply = state.respiration[actor];
+  return supply.remainingMs > 0 ? null : Math.max(0, HYPOXIA_MS - supply.shortageMs);
+}
+
+export function hypoxiaAlert(state, lang) {
+  const entries = ['player', 'ai']
+    .map((actor) => ({ actor, left: graceLeftMs(state, actor) }))
+    .filter((entry) => entry.left !== null && entry.left <= HYPOXIA_ALERT_MS);
+  if (!entries.length) return null;
+  const seconds = Math.max(1, Math.ceil(Math.min(...entries.map((entry) => entry.left)) / 1000));
+  const both = entries.length === 2;
+  const sentence = both
+    ? copy(lang, `双方缺氧宽限 ${seconds} 秒`, `Both grace periods: ${seconds}s`)
+    : entries[0].actor === 'player'
+      ? copy(lang, `你的缺氧宽限 ${seconds} 秒`, `Your grace period: ${seconds}s`)
+      : copy(lang, `对手缺氧宽限 ${seconds} 秒`, `Opponent grace: ${seconds}s`);
+  const consequence = copy(
+    lang,
+    both ? '同一刻耗尽判平局，否则先耗尽的一方失败。' : '耗尽后立即结束对局，不再进入下一回合。',
+    both
+      ? 'Same instant is a draw; otherwise the first to run out loses.'
+      : 'At zero the match ends at once, with no further round.',
+  );
+  return {
+    tone: seconds <= 2 ? 'critical' : 'warning',
+    sentence,
+    consequence,
+    announcement: copy(
+      lang,
+      `缺氧宽限只剩 ${HYPOXIA_ALERT_MS / 1000} 秒以内，耗尽后立即结束对局。`,
+      `Under ${HYPOXIA_ALERT_MS / 1000} seconds of grace left; the match ends when it runs out.`,
+    ),
+  };
+}
+
+function hypoxiaAlertMarkup(state, lang) {
+  const alert = hypoxiaAlert(state, lang);
+  return (
+    '<p class="battle-hypoxia" data-hypoxia-alert data-tone="' +
+    (alert?.tone ?? 'warning') +
+    '" aria-hidden="true"' +
+    (alert ? '' : ' hidden') +
+    '><span class="battle-hypoxia-mark">◍</span><span class="battle-hypoxia-text" data-hypoxia-text>' +
+    esc(alert?.sentence ?? '') +
+    '</span><span class="battle-hypoxia-note" data-hypoxia-note>' +
+    esc(alert?.consequence ?? '') +
+    '</span></p><span class="battle-sr" data-hypoxia-announce role="status" aria-live="polite" data-state="' +
+    (alert ? 'active' : 'idle') +
+    '"></span>'
+  );
+}
+
 function supplyRatio(state, actor) {
   const supply = state.respiration[actor];
   return Math.max(
@@ -80,22 +136,34 @@ function supplyRatio(state, actor) {
 function resources(state, view) {
   const lang = view.lang;
   const opponent = opponentOf(view);
-  const actor = (id, name) =>
-    '<div class="battle-resource"><span class="battle-resource-name">' +
-    name +
-    '<small>' +
-    copy(lang, '未开储备', 'UNOPENED') +
-    '</small></span><strong data-air="' +
-    id +
-    '"><span data-air-value="' +
-    id +
-    '">' +
-    state[id + 'Air'] +
-    '</span><small>AIR</small></strong><span class="battle-supply" data-breath="' +
-    id +
-    '">' +
-    supplyText(state, id, lang) +
-    '</span></div>';
+  const actor = (id, name) => {
+    const grace = graceLeftMs(state, id);
+    const stateClass =
+      grace === null ? '' : grace <= 2000 ? ' is-hypoxia is-critical' : ' is-hypoxia';
+    return (
+      '<div class="battle-resource' +
+      stateClass +
+      '" data-supply-card="' +
+      id +
+      '"><span class="battle-resource-name">' +
+      name +
+      '<small>' +
+      copy(lang, '未开储备', 'UNOPENED') +
+      '</small></span><strong data-air="' +
+      id +
+      '"><span data-air-value="' +
+      id +
+      '">' +
+      state[id + 'Air'] +
+      '</span><small>AIR</small></strong><span class="battle-supply' +
+      (grace === null ? '' : ' is-shortage') +
+      '" data-breath="' +
+      id +
+      '">' +
+      supplyText(state, id, lang) +
+      '</span></div>'
+    );
+  };
   return (
     '<div class="battle-resources">' +
     actor('ai', opponent.name) +
@@ -1095,6 +1163,7 @@ export function battleMarkup(state, view) {
     '">' +
     directorMarkup(state, view) +
     resources(state, view) +
+    hypoxiaAlertMarkup(state, view.lang) +
     modeStrip(state, view) +
     '<div class="battle-table">' +
     (content ? content(state, view) : '') +
@@ -1110,9 +1179,14 @@ export function battleMarkup(state, view) {
 
 export function updateBattleBreathing(document, state, lang) {
   for (const actor of ['player', 'ai']) {
+    const grace = graceLeftMs(state, actor);
     document.querySelectorAll('[data-breath="' + actor + '"]').forEach((node) => {
       node.textContent = supplyText(state, actor, lang);
-      node.classList.toggle('is-shortage', state.respiration[actor].remainingMs <= 0);
+      node.classList.toggle('is-shortage', grace !== null);
+    });
+    document.querySelectorAll('[data-supply-card="' + actor + '"]').forEach((node) => {
+      node.classList.toggle('is-hypoxia', grace !== null);
+      node.classList.toggle('is-critical', grace !== null && grace <= 2000);
     });
     document.querySelectorAll('[data-supply-level="' + actor + '"]').forEach((node) => {
       node.style.height = supplyRatio(state, actor) * 100 + '%';
@@ -1120,6 +1194,27 @@ export function updateBattleBreathing(document, state, lang) {
     document.querySelectorAll('[data-supply-progress="' + actor + '"]').forEach((node) => {
       node.value = supplyRatio(state, actor);
     });
+  }
+  const alert = hypoxiaAlert(state, lang);
+  const box = document.querySelector('[data-hypoxia-alert]');
+  if (box) {
+    box.hidden = !alert;
+    box.dataset.tone = alert?.tone ?? 'warning';
+    const set = (selector, value) => {
+      const node = box.querySelector(selector);
+      if (node && node.textContent !== value) node.textContent = value;
+    };
+    set('[data-hypoxia-text]', alert?.sentence ?? '');
+    set('[data-hypoxia-note]', alert?.consequence ?? '');
+  }
+  // Announce once when the countdown starts; per-second updates stay visual only.
+  const announce = document.querySelector('[data-hypoxia-announce]');
+  if (announce) {
+    const status = alert ? 'active' : 'idle';
+    if (announce.dataset.state !== status) {
+      announce.dataset.state = status;
+      announce.textContent = alert ? alert.announcement : '';
+    }
   }
 }
 
