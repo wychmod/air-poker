@@ -275,7 +275,7 @@ const I18N = {
     betKicker: '下注 // 读取空气',
     betTitle: '现在，轮到空气发言',
     betCopy:
-      '双方轮流行动；跟注后可继续，连续两次过牌或全押匹配后摊牌。加注先跟齐，再增加至多半池。',
+      '双方轮流行动；跟注即摊牌，只有加注才让对手继续回应；连续两次过牌或全押匹配也摊牌。加注先跟齐，再增加至多半池。',
     showdownKicker: '摊牌 // 结算',
     showdownTitle: '每个选择都有回声',
     showdownCopy: '下注结束，隐藏选择现在承担结果。',
@@ -451,7 +451,7 @@ const I18N = {
     betKicker: 'BET // READ THE AIR',
     betTitle: 'Now let the air speak',
     betCopy:
-      'Take turns. Calling keeps betting open; two checks or matched all-in end it. Match first, then raise by at most half the matched pot.',
+      'Take turns. Calling reveals at once; only a raise keeps betting open. Two checks or a matched all-in also reveal. Match first, then raise by at most half the matched pot.',
     showdownKicker: 'SHOWDOWN // SETTLEMENT',
     showdownTitle: 'Every choice echoes',
     showdownCopy: 'Betting is over. Hidden choices now carry their cost.',
