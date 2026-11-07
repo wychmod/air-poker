@@ -30,7 +30,9 @@ export function estimateShowdown(hand, opponentTarget, discard, history = [], pr
 }
 
 // Expected additional AIR relative to folding now; sunk contributions remain
-// in the pot. Assume a raise is called, with no speculative fold-equity bonus.
+// in the pot. Raising assumes a call, which closes betting by rule, so no
+// speculative fold equity enters. Approving the outstanding call also ends the
+// round, so the raise = 0 case is the exact call-and-showdown value.
 export function betValue(model, options, raise = 0) {
   const cost = options.toCall + raise;
   const pot = options.potAfterCall + 2 * raise;
