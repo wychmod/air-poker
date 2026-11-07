@@ -1,4 +1,4 @@
-﻿import { evaluateContract, isContractId } from '../game/contracts.js';
+import { evaluateContract, isContractId } from '../game/contracts.js';
 import { DIFFICULTY_IDS, normalizeDifficulty, isDifficultyId } from '../game/difficulty.js';
 const pick = (lang, zh, en) => (lang === 'en' ? en : zh);
 const DEFAULT_OPPONENT = 'analyst';
@@ -80,13 +80,13 @@ export const OPPONENT_COPY = Object.freeze({
       name: '深渊',
       latin: 'THE ABYSS',
       trait: '持续施压 · 少弃牌',
-      read: '被跟注后仍会继续加注。',
+      read: '被加注后仍会继续反击。',
     }),
     en: Object.freeze({
       name: 'The Abyss',
       latin: 'THE ABYSS',
       trait: 'Relentless pressure. Fewer folds.',
-      read: 'Keeps raising after being called.',
+      read: 'Keeps raising when you raise at it.',
     }),
   }),
   mirror: Object.freeze({

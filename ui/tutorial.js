@@ -65,6 +65,7 @@ export function createTutorial() {
     complete: false,
     increment: 2,
     paid: 0,
+    betMove: null,
     scenario: null,
     seen: [],
     breath: 0,
@@ -109,6 +110,7 @@ export function tutorialAction(current, action, data = {}) {
       state.increment = Number(data.value);
     if (action === 'tutorial-call' || action === 'tutorial-raise') {
       state.paid = action === 'tutorial-call' ? 2 : 2 + state.increment;
+      state.betMove = action === 'tutorial-call' ? 'call' : 'raise';
       state.complete = true;
     }
   }
@@ -246,7 +248,7 @@ function betExercise(state, c) {
     <p class="lesson-hint">${c('本轮你已投 2，对手已投 4。需要跟齐 2；跟齐后底池 8，最多再加 4。', 'You invested 2 and your opponent 4. Call 2; the pot after calling is 8, so the maximum raise increment is 4.')}</p>
     <div class="lesson-raise-options"><span>${c('再加金额', 'Raise increment')}</span>${[1, 2, 4].map((n) => `<button class="button secondary ${state.increment === n ? 'is-selected' : ''}" data-action="tutorial-increment" data-value="${n}" aria-pressed="${state.increment === n}" ${state.complete ? 'disabled' : ''}>${n}</button>`).join('')}</div>
     <p class="lesson-equation">${c('应跟', 'Call')} <b>2</b> + ${c('再加', 'Raise')} <b>${state.increment}</b> = ${c('本次支付', 'Pay')} <strong>${pay} AIR</strong></p><p>${c('若加注，支付后未开储备', 'Reserve after this raise')}: <b>${22 - pay} AIR</b></p>
-    ${state.complete ? `<div class="lesson-feedback">✓ ${c(`实际支付 ${state.paid} AIR，轮到对手。跟注并不直接结束下注。正式局只接受当前行动方的合法操作。`, `Paid ${state.paid} AIR. It is now the opponent’s turn. Calling does not itself end betting. The real game only accepts legal actions from the current actor.`)}</div>` : `<div class="lesson-actions"><button class="button secondary" data-action="tutorial-call">${c('跟注', 'Call')} · 2 AIR</button><button class="button primary" data-action="tutorial-raise">${c('加注', 'Raise')} · ${pay} AIR →</button></div>`}`;
+    ${state.complete ? `<div class="lesson-feedback">✓ ${c(`实际支付 ${state.paid} AIR。${state.betMove === 'call' ? '跟注已补齐差额，本手立即摊牌，对手不能再加注。' : '加注先跟齐再加注，对手仍可继续回应。'}正式局只接受当前行动方的合法操作。`, `Paid ${state.paid} AIR. ${state.betMove === 'call' ? 'Calling matched the difference, so the hand reveals at once and the opponent cannot raise again.' : 'A raise matches first, then adds; the opponent may still respond.'} The real game only accepts legal actions from the current actor.`)}</div>` : `<div class="lesson-actions"><button class="button secondary" data-action="tutorial-call">${c('跟注', 'Call')} · 2 AIR</button><button class="button primary" data-action="tutorial-raise">${c('加注', 'Raise')} · ${pay} AIR →</button></div>`}`;
 }
 
 function riskExercise(state, c, opponentName) {

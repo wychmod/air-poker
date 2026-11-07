@@ -726,10 +726,12 @@ function bet(state, view) {
         ? copy(
             lang,
             options.toCall
-              ? '应跟 ' + options.toCall + ' AIR。跟注后仍会继续交替行动。'
+              ? '应跟 ' + options.toCall + ' AIR。跟注即摊牌；只有加注才会让对手继续回应。'
               : '当前无需跟注。连续两次过牌才结束下注。',
             options.toCall
-              ? 'Call ' + options.toCall + ' AIR. Calling passes the action; betting may continue.'
+              ? 'Call ' +
+                  options.toCall +
+                  ' AIR. Calling reveals now; only a raise keeps betting open.'
               : 'No call due. Two consecutive checks finish betting.',
           )
         : copy(
