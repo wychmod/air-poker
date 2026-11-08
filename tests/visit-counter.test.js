@@ -36,11 +36,11 @@ function fixture(siteUrl = 'https://player.github.io/air-poker/') {
   return { root, image, status, counter, options, listeners, tasks, requests };
 }
 
-test('counts one project URL regardless of query, fragment or repeated mounts', () => {
+test('counts into the shared counter regardless of query, fragment or repeated mounts', () => {
   const f = fixture('https://player.github.io/air-poker/?language=en#home');
   const url = new URL(f.requests[0]);
   assert.equal(url.origin, 'https://hits.sh');
-  assert.equal(url.pathname, '/player.github.io/air-poker.svg');
+  assert.equal(url.pathname, '/air-poker.views.svg');
   assert.equal(url.hash, '');
   assert.equal(url.searchParams.has('language'), false);
   createVisitCounter(f.options);
@@ -54,9 +54,24 @@ test('counts one project URL regardless of query, fragment or repeated mounts', 
   createVisitCounter(f.options);
   assert.equal(f.requests.length, 1);
   assert.equal(f.image.hidden, false);
-  const other = fixture('https://player.github.io/another-project/');
-  assert.notEqual(other.requests[0], f.requests[0]);
-  other.counter.destroy();
+  f.counter.destroy();
+});
+
+test('every deployment location shares one counter, so views accumulate across hosts', () => {
+  const sites = [
+    'https://wychmod.github.io/air-poker/',
+    'https://player.github.io/another-project/',
+    'https://air-poker.example.cn/',
+    'https://cdn.example.com/games/air-poker/index.html',
+  ];
+  const requests = sites.map((siteUrl) => {
+    const f = fixture(siteUrl);
+    f.counter.destroy();
+    return f.requests[0];
+  });
+  for (const request of requests)
+    assert.equal(request, requests[0], 'deployments must share one counter');
+  assert.match(requests[0], /hits\.sh\/air-poker\.views\.svg/);
 });
 
 test('local development and non-HTTPS previews never contact the counter service', () => {

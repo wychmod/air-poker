@@ -1,5 +1,12 @@
 const mountedCounters = new WeakMap();
 
+// Counter key is fixed on purpose: every deployment of this project (GitHub Pages, a
+// mirror, a custom domain) must read and increment the same counter. It therefore
+// cannot be derived from the current host or path. Hits requires the key to be a valid
+// URI, so a bare word such as `air-poker` is rejected with "Not a valid URI";
+// `air-poker.views` parses as host + TLD and is accepted.
+const COUNTER_KEY = 'air-poker.views';
+
 function counterUrl(siteUrl) {
   const site = new URL(siteUrl);
   const hostname = site.hostname;
@@ -10,8 +17,7 @@ function counterUrl(siteUrl) {
     hostname === '[::1]' ||
     /^(?:0\.|10\.|127\.|169\.254\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(hostname);
   if (site.protocol !== 'https:' || local) return null;
-  const key = site.host + site.pathname.replace(/\/+$/, '');
-  const url = new URL(`https://hits.sh/${key}.svg`);
+  const url = new URL(`https://hits.sh/${COUNTER_KEY}.svg`);
   url.search = new URLSearchParams({
     style: 'flat-square',
     label: 'PV',
