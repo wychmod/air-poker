@@ -57,7 +57,7 @@ test('share cards use validated completed facts, reconstruct trends, and exclude
     for (const lang of ['zh', 'en']) {
       const svg = shareImageSvg(model, lang);
       assert.match(svg, /width="1080" height="1440"/);
-      for (const title of ['THE BIGGEST WAGER', 'THE TURNING POINT', 'THE LAST BREATH'])
+      for (const title of ['THE BIGGEST WAGER', 'THE OTHER DECISION', 'THE LAST BREATH'])
         assert.ok(svg.includes(title));
       assert.ok(svg.includes(lang === 'zh' ? '噬谎者' : 'USOGUI'));
       assert.ok(svg.includes(lang === 'zh' ? '未开空气储备' : 'UNOPENED AIR'));
@@ -107,8 +107,36 @@ test('share comic uses the largest public bet and the next decisive action', () 
   const svg = shareImageSvg(model, 'zh');
   assert.ok(svg.includes('R02 · 加注'));
   assert.ok(svg.includes('R04 · 决定'));
+  assert.ok(svg.includes('当时底池 '));
   assert.ok(!svg.includes('987654'));
   assert.ok(!svg.includes('ZZ'));
+});
+
+test('share card names a failed final hand instead of claiming it was never recorded', () => {
+  const record = structuredClone(completedMatch('player'));
+  const finalRound = record.rounds.filter((round) => round.status === 'settled').at(-1);
+  const attempt = finalRound.attempts.at(-1);
+  attempt.player = { valid: false, reason: 'wrong-sum', hand: null };
+
+  const model = shareSummary(record);
+  assert.ok(model);
+  assert.equal(model.comic.final.failed, true);
+  assert.equal(model.comic.final.round, finalRound.number);
+  assert.equal(model.comic.final.hand.length, 0);
+  for (const lang of ['zh', 'en']) {
+    const svg = shareImageSvg(model, lang);
+    assert.ok(svg.includes(lang === 'zh' ? '最终成手失败' : 'FINAL HAND FAILED'));
+    assert.ok(!svg.includes(lang === 'zh' ? '未记录最终成手' : 'NO FINAL HAND RECORDED'));
+  }
+});
+
+test('share card invitation is an open challenge in both languages', () => {
+  const model = shareSummary(completedMatch('player'));
+  for (const lang of ['zh', 'en']) {
+    const svg = shareImageSvg(model, lang);
+    assert.ok(svg.includes(lang === 'zh' ? '欢迎你来挑战。' : 'COME TAKE THE CHALLENGE.'));
+    assert.ok(!svg.includes(lang === 'zh' ? '敢坐下' : 'YOUR SEAT IS WAITING'));
+  }
 });
 
 test('share card can carry the recorded opponent and contract result', () => {

@@ -35,7 +35,8 @@ export function comicFacts(record) {
   const rounds = record.rounds ?? [];
   const finalRound =
     rounds.filter((round) => round.status === 'settled').at(-1) ?? rounds.at(-1) ?? null;
-  const hand = finalRound?.attempts?.at(-1)?.player?.hand ?? [];
+  const lastAttempt = finalRound?.attempts?.at(-1) ?? null;
+  const hand = lastAttempt?.player?.hand ?? [];
   return {
     wager: biggest
       ? {
@@ -57,8 +58,10 @@ export function comicFacts(record) {
       : null,
     final: {
       winner: record.result.winner,
+      round: finalRound?.number ?? null,
       settlement: finalRound?.settlement?.winner ?? null,
       hand: hand.map((card) => ({ rank: card.rank, suit: card.suit })),
+      failed: Boolean(lastAttempt?.player && lastAttempt.player.valid === false),
       finalAir: { ...record.result.finalAir },
     },
   };
@@ -214,13 +217,15 @@ function stamp(x, y, label, color, width) {
 
 const widthOfPanel = 304;
 
-function comicHand(hand, x, y, lang) {
+function comicHand(hand, x, y, lang, failed = false) {
   if (!hand.length)
     return text(
       x + widthOfPanel / 2,
       y + 30,
       14,
-      copy(lang, '未记录最终成手', 'NO FINAL HAND RECORDED'),
+      failed
+        ? copy(lang, '最终成手失败', 'FINAL HAND FAILED')
+        : copy(lang, '未记录最终成手', 'NO FINAL HAND RECORDED'),
       'text-anchor="middle" fill="#c9c9c0"',
     );
   const cardWidth = 34,
@@ -258,8 +263,10 @@ function comicStrip(model, lang) {
   const comic = model.comic ?? {};
   const final = comic.final ?? {
     winner: model.winner,
+    round: null,
     settlement: null,
     hand: [],
+    failed: false,
     finalAir: model.finalAir ?? { player: 0, ai: 0 },
   };
   const c = (zh, en) => copy(lang, zh, en);
@@ -393,7 +400,7 @@ function comicStrip(model, lang) {
         14,
         c('目标 ', 'TARGET ') +
           (wager.target ?? '—') +
-          c(' · 底池 ', ' · POT ') +
+          c(' · 当时底池 ', ' · POT THEN ') +
           (wager.pot ?? '—'),
         'fill="#555a53"',
       ) +
@@ -486,13 +493,19 @@ function comicStrip(model, lang) {
       c('最终成手', 'FINAL HAND'),
       'font-weight="700" letter-spacing="1.3" fill="#b9beb2"',
     ) +
-    comicHand(final.hand ?? [], x(2), top + 104, lang) +
-    text(x(2) + 18, top + 182, 12, settlementText(final.settlement, lang), 'fill="#c9c9c0"') +
+    comicHand(final.hand ?? [], x(2), top + 104, lang, final.failed) +
+    text(
+      x(2) + 18,
+      top + 182,
+      12,
+      (final.round ? 'R' + pad2(final.round) + ' · ' : '') + settlementText(final.settlement, lang),
+      'fill="#c9c9c0"',
+    ) +
     text(
       x(2) + 18,
       top + 205,
       13,
-      c('最终 AIR ', 'FINAL AIR ') +
+      c('终局未开 ', 'FINAL RESERVE ') +
         (final.finalAir?.player ?? model.finalAir.player) +
         ' / ' +
         (final.finalAir?.ai ?? model.finalAir.ai),
@@ -503,7 +516,7 @@ function comicStrip(model, lang) {
   return (
     content +
     frame(0, 'THE BIGGEST WAGER', false, wagerBody) +
-    frame(1, 'THE TURNING POINT', false, turnBody) +
+    frame(1, 'THE OTHER DECISION', false, turnBody) +
     frame(2, 'THE LAST BREATH', true, finalBody)
   );
 }
@@ -698,7 +711,7 @@ export function shareImageSvg(model, lang = 'zh', meta = null) {
     ),
     'fill="#62695e"',
   );
-  body += text(72, 1278, 32, c('下一位，敢坐下吗？', 'YOUR SEAT IS WAITING.'), 'font-weight="700"');
+  body += text(72, 1278, 32, c('欢迎你来挑战。', 'COME TAKE THE CHALLENGE.'), 'font-weight="700"');
   body += text(
     72,
     1316,
