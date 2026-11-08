@@ -1383,16 +1383,20 @@ html[data-motion='off'] .battle *::after {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 3px 9px 4px;
+  padding: 4px 9px;
   border: 1px solid #cfd0c6;
   background: #f8f7f2;
   color: #4d514a;
 }
 .battle-mode-strip b {
   font:
-    700 8px/1 ui-monospace,
+    700 8px ui-monospace,
     'Courier New',
     monospace;
+  /* `line-height: 1` cropped the mono label's line box to its em square and
+     pushed the glyph ink ~1px above centre; `normal` lets the font metrics
+     centre the glyphs inside the flex row instead. */
+  line-height: normal;
   letter-spacing: 0.14em;
   color: #5f635b;
 }
