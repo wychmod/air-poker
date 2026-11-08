@@ -1,6 +1,6 @@
 # 中文旁白 V2 制作与试听
 
-[旁白版 MP4](../releases/portrait-v2/zh/air-poker-douyin-voice-v2.mp4) · [纯音频 M4A](../releases/portrait-v2/zh/voice-v2-preview.m4a) · [评审与迭代记录](../../doc/promo/audio-iteration-v2.md)。
+[旁白版 MP4](../releases/portrait-v2/zh/air-poker-douyin-voice-v2.mp4) · [纯音频 M4A](../releases/portrait-v2/zh/voice-v2-preview.m4a) · [评审与迭代记录](../../doc/promo/audio-iteration-v2.md)。两处成片媒体不纳入版本库，链接仅在本地工作区有效。
 
 本版沿用 30 秒竖屏画面，新增云希 AI 男声旁白、120 BPM 原创配乐、独立音效和自动压低背景的混音。只更新中文版。视频流直接复制，未重复压缩画面。V1 和 V2 以独立目录保存。
 
