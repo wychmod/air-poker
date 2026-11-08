@@ -233,15 +233,15 @@ function heading(kicker, title, detail, timer, lang) {
 function targetSlots(state, view) {
   const lang = view.lang;
   return (
-    '<div class="battle-targets"><span>' +
+    '<div class="battle-targets"><span class="battle-target" data-side="ai"><small class="battle-target-name">' +
     opponentOf(view).name +
-    ' <b data-target-slot="ai">' +
+    '</small><b data-target-slot="ai">' +
     (state.aiTarget ?? '—') +
-    '</b><small>' +
+    '</b><small class="battle-target-note">' +
     copy(lang, '成手隐藏', 'HAND HIDDEN') +
-    '</small></span><span>' +
+    '</small></span><span class="battle-target" data-side="player"><small class="battle-target-name">' +
     copy(lang, '你的目标', 'YOUR TARGET') +
-    ' <b data-target-slot="player">' +
+    '</small><b data-target-slot="player">' +
     (state.playerTarget ?? '—') +
     '</b></span></div>'
   );
