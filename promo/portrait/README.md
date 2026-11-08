@@ -1,6 +1,6 @@
 # 空气扑克：30 秒竖屏制作工具
 
-**当前交付：中英文两版均保留原来的背景音乐与音效，不含人声旁白。** 开场第 0 帧已显示《噬谎者》来源，使用 Portrait V4 成片：[中文视频](../releases/portrait-v4-source/zh/air-poker-douyin-30s.mp4) · [英文视频](../releases/portrait-v4-source/en/air-poker-tiktok-30s.mp4) · [配乐版预览](music.html)。
+**当前交付：中英文两版均保留原来的背景音乐与音效，不含人声旁白。** 开场第 0 帧已显示《噬谎者》来源，使用 Portrait V4 成片：[中文视频](../releases/portrait-v4-source/zh/air-poker-douyin-30s.mp4) · [英文视频](../releases/portrait-v4-source/en/air-poker-tiktok-30s.mp4) · [配乐版预览](music.html)。成片媒体不纳入版本库，链接仅在本地工作区有效。
 
 中文抖音版与英文 TikTok 版各 30 秒，1080×1920、9:16、30 fps。独立构图、独立本地化字幕与实机截图，带原创程序音乐和音效，无人声旁白。完整项目分析、双语分镜、节奏、口播稿与投稿文案见 [制作方案](../../doc/promo/portrait-production.md)，执行证据见 [验收记录](../../doc/promo/portrait-validation.md)。
 
