@@ -22,7 +22,8 @@
 | engine                                                                          | rules、cards、deal、ai、betting、breathing、records、ai-observation              |
 | i18n                                                                            | 无运行模块依赖                                                                   |
 | ui                                                                              | ui、share-ui、data、rules、cards、engine、breathing、i18n、contracts、difficulty |
-| share-ui（ui/share.js）                                                         | records；校验完成局并生成有限公开分享模型                                        |
+| share-qr（ui/share-qr.js）                                                      | 无运行模块依赖；固定试玩链接及其自带静区的 QR 矩阵                               |
+| share-ui（ui/share.js）                                                         | records、share-qr；校验完成局并生成有限公开分享模型                              |
 | app                                                                             | engine、browser、archive、ui、share-ui、i18n、opponents、contracts、difficulty   |
 
 ui 只消费快照和只读函数，不创建第二份对局状态或自行下注结算。计时器、事件与语言存储属于入口层；game 不使用 DOM、网络、平台时钟或存储。新增模块要明确职责并更新矩阵与说明。
@@ -110,7 +111,7 @@ npm run evaluate:strategy 默认使用 100 个独立种子、每个交换持牌�
 
 ## 分享与首次初始化
 
-ui/share.js 属于明确的 share-ui 层，只依赖 records：拒绝未完成或损坏记录，从 ledger 重建趋势，输出不含牌面/目标/记录 ID 的有限模型与 SVG。browser/share.js 无运行模块依赖，只负责 PNG 转换、对象 URL 生命周期、下载和用户主动触发的分享/剪贴板效果；app 负责当前记录、语言和事件。取消、权限失败、不支持文件分享都保留下载或链接回退。
+ui/share.js 属于明确的 share-ui 层，只依赖 records 与 share-qr：拒绝未完成或损坏记录，从 ledger 重建趋势，输出不含对手牌面/目标/记录 ID 的有限模型与 SVG。ui/share-qr.js 无运行模块依赖，保存固定中英文试玩链接及对应版本 4、纠错 Q、含四模块静区的 QR 矩阵；战报以整数倍矢量路径绘制二维码，不请求远程生成服务。browser/share.js 无运行模块依赖，只负责 PNG 转换、对象 URL 生命周期、下载和用户主动触发的分享/剪贴板效果；app 负责当前记录、语言和事件。取消、权限失败、不支持文件分享都保留下载或链接回退。
 
 首页、介绍和教学不创建引擎，空闲快照只有 phase=idle/sessionId=0；首次开始才 createGame，之后 reset 仍复用原实例保持动作编号递增。独立教学复用 hand-builder 和 battle 的纯编辑器模板，不 dispatch 正式动作。
 

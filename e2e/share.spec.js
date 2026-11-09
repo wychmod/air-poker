@@ -13,6 +13,104 @@ async function openArchiveShare(page, record) {
   await expect(page.locator('#saveShareImage')).toBeEnabled();
 }
 
+async function expectQrPixels(page, lang) {
+  const result = await page.locator('#sharePreview').evaluate((image) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    const pixel = (x, y) => [...context.getImageData(x, y, 1, 1).data];
+    return {
+      quietZone: pixel(816, 1177),
+      finder: pixel(833, 1194),
+      url: document.getElementById('shareLink').value,
+    };
+  });
+  expect(result.quietZone).toEqual([255, 254, 248, 255]);
+  expect(result.finder).toEqual([21, 26, 23, 255]);
+  expect(result.url).toBe(
+    'https://wychmod.github.io/air-poker/' + (lang === 'en' ? 'en.html' : ''),
+  );
+}
+
+async function expectShareTextGeometry(page, record, lang) {
+  const result = await page.evaluate(
+    async ({ match, language }) => {
+      const { shareSummary, shareImageSvg } = await import('./ui/share.js');
+      const { modeSummary, contractResultFor, contractResultCopy } = await import('./ui/modes.js');
+      const withMode = { ...match, mode: { opponent: 'hard', contract: 'perfect' } };
+      const summary = modeSummary(withMode, language);
+      const meta = {
+        ...summary,
+        contractResult: contractResultCopy(contractResultFor(withMode), language, summary.kind),
+      };
+      const svgText = shareImageSvg(shareSummary(match), language, meta);
+      const svg = new DOMParser().parseFromString(svgText, 'image/svg+xml').documentElement;
+      svg.style.cssText = 'position:fixed;left:-2000px;top:0;width:1080px;height:1440px';
+      document.body.append(svg);
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const boxes = [...svg.querySelectorAll('text')].map((node) => {
+        const style = getComputedStyle(node);
+        const anchor = node.getAttribute('text-anchor');
+        context.font = [style.fontStyle, style.fontWeight, style.fontSize, style.fontFamily].join(
+          ' ',
+        );
+        context.letterSpacing = style.letterSpacing === 'normal' ? '0px' : style.letterSpacing;
+        context.textAlign = anchor === 'middle' ? 'center' : anchor === 'end' ? 'right' : 'left';
+        const value = node.textContent.trim();
+        const metrics = context.measureText(value);
+        const x = Number(node.getAttribute('x'));
+        const y = Number(node.getAttribute('y'));
+        const ink = {
+          x: x - metrics.actualBoundingBoxLeft,
+          y: y - metrics.actualBoundingBoxAscent,
+          right: x + metrics.actualBoundingBoxRight,
+          bottom: y + metrics.actualBoundingBoxDescent,
+        };
+        const matrix = node.getCTM();
+        const corners = [
+          [ink.x, ink.y],
+          [ink.right, ink.y],
+          [ink.x, ink.bottom],
+          [ink.right, ink.bottom],
+        ].map(([pointX, pointY]) => ({
+          x: matrix.a * pointX + matrix.c * pointY + matrix.e,
+          y: matrix.b * pointX + matrix.d * pointY + matrix.f,
+        }));
+        return {
+          value: node.textContent.trim(),
+          x: Math.min(...corners.map((corner) => corner.x)),
+          y: Math.min(...corners.map((corner) => corner.y)),
+          right: Math.max(...corners.map((corner) => corner.x)),
+          bottom: Math.max(...corners.map((corner) => corner.y)),
+        };
+      });
+      const outside = boxes.filter(
+        (box) => box.x < 28 || box.y < 28 || box.right > 1052 || box.bottom > 1412,
+      );
+      const overlaps = [];
+      for (let i = 0; i < boxes.length; i++)
+        for (let j = i + 1; j < boxes.length; j++) {
+          const a = boxes[i];
+          const b = boxes[j];
+          if (
+            Math.min(a.right, b.right) - Math.max(a.x, b.x) > 1 &&
+            Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) > 1
+          )
+            overlaps.push([a.value, b.value]);
+        }
+      svg.remove();
+      return { count: boxes.length, outside, overlaps };
+    },
+    { match: record, language: lang },
+  );
+  expect(result.count).toBeGreaterThan(20);
+  expect(result.outside).toEqual([]);
+  expect(result.overlaps).toEqual([]);
+}
+
 test('当前终局和旧归档可生成双语 PNG，快速换语言不会保存旧图', async ({ page }, testInfo) => {
   await startHand(page);
   await completeMatch(page);
@@ -61,6 +159,8 @@ test('胜利、失败、平局归档的中英战报可预览并下载', async ({
     for (const lang of ['zh', 'en']) {
       await page.locator('#shareDialog [data-lang="' + lang + '"]').click();
       await expect(page.locator('#saveShareImage')).toBeEnabled();
+      await expectQrPixels(page, lang);
+      await expectShareTextGeometry(page, record, lang);
       const downloaded = page.waitForEvent('download');
       await page.locator('#saveShareImage').click();
       const download = await downloaded;

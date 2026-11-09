@@ -4,6 +4,7 @@ import { createGame } from '../game/engine.js';
 import { shareSummary, shareCopy, shareImageSvg, shareCoverSvg } from '../ui/share.js';
 import { contractCopy, contractResultCopy, opponentCopy } from '../ui/modes.js';
 import { completedMatch } from './fixtures/completed-match.js';
+import { QR_MODULE_COUNT, shareQrPath, shareUrl } from '../ui/share-qr.js';
 
 test('sharing rejects unfinished, damaged and unsupported records', () => {
   assert.equal(shareSummary(null), null);
@@ -181,6 +182,50 @@ test('share card labels new difficulties separately while keeping legacy persona
   const legacy = opponentCopy('mirror', 'en');
   const legacySvg = shareImageSvg(model, 'en', { kind: 'persona', opponent: legacy });
   assert.ok(legacySvg.includes('OPPONENT · The Mirror / THE MIRROR'));
+});
+
+test('victory and defeat cards embed the exact bilingual play-link QR with a quiet zone', () => {
+  assert.equal(QR_MODULE_COUNT, 41);
+  assert.notEqual(shareQrPath('zh'), shareQrPath('en'));
+  for (const outcome of ['player', 'ai']) {
+    const model = shareSummary(completedMatch(outcome));
+    for (const lang of ['zh', 'en']) {
+      const svg = shareImageSvg(model, lang);
+      const url = shareUrl(lang);
+      assert.equal(shareCopy(model, lang).url, url);
+      assert.ok(
+        svg.includes('data-outcome="' + (outcome === 'player' ? 'victory' : 'defeat') + '"'),
+      );
+      assert.ok(svg.includes('data-share-url="' + url + '"'));
+      assert.ok(svg.includes('data-qr-error-correction="Q"'));
+      assert.ok(svg.includes('<path d="' + shareQrPath(lang) + '" transform="scale(5)"'));
+      assert.ok(
+        svg.includes('width="' + QR_MODULE_COUNT * 5 + '" height="' + QR_MODULE_COUNT * 5 + '"'),
+      );
+      assert.ok(svg.includes('shape-rendering="crispEdges"'));
+      assert.doesNotMatch(svg, /<image|<script|foreignObject/);
+    }
+  }
+});
+
+test('share cards lead with a large localized game title', () => {
+  const model = shareSummary(completedMatch('player'));
+  for (const lang of ['zh', 'en']) {
+    const svg = shareImageSvg(model, lang);
+    const title = lang === 'zh' ? '空气扑克' : 'AIR POKER';
+    const other = lang === 'zh' ? 'AIR POKER' : '空气扑克';
+    const match = svg.match(
+      new RegExp(
+        '<text[^>]*font-size="(\\d+)"[^>]*data-game-title="true"[^>]*>' + title + '</text>',
+      ),
+    );
+    assert.ok(match);
+    assert.ok(Number(match[1]) >= 56);
+    assert.ok(!svg.includes('>' + other + '</text>'));
+    assert.ok(
+      svg.includes(lang === 'zh' ? '生存战报 · MATCH REPORT' : 'SURVIVAL REPORT · MATCH CARD'),
+    );
+  }
 });
 
 test('share cover is a standalone bilingual SVG without remote resources', () => {

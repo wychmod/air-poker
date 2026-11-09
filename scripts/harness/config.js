@@ -89,7 +89,8 @@ export const LAYERS = [
   { name: 'archive', path: 'browser/record-store.js', allows: ['records'] },
   { name: 'browser', prefix: 'browser/', allows: [] },
   { name: 'i18n', path: 'i18n.js', allows: [] },
-  { name: 'share-ui', path: 'ui/share.js', allows: ['records'] },
+  { name: 'share-qr', path: 'ui/share-qr.js', allows: [] },
+  { name: 'share-ui', path: 'ui/share.js', allows: ['records', 'share-qr'] },
   {
     name: 'ui',
     prefix: 'ui/',
