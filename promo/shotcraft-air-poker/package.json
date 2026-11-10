@@ -1,0 +1,24 @@
+{
+  "name": "air-poker-shotcraft-film",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "remotion render src/index.ts AirPokerPromo out/air-poker-promo.mp4 && node scripts/finalize.mjs",
+    "render:clean": "node scripts/finalize.mjs --clean",
+    "still": "remotion still src/index.ts AirPokerPromo",
+    "verify": "node scripts/verify.mjs",
+    "audio": "node scripts/audio.mjs",
+    "capture": "node scripts/capture.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.484",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "remotion": "4.0.484"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3"
+  }
+}

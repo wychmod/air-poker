@@ -1,0 +1,331 @@
+{
+  "captured": [
+    {
+      "file": "home.jpg",
+      "sha256": "b5b83222b2bf8a5fcc836131f661d7ed39b369d5a5d8b2e50667474cf17a29ed",
+      "bytes": 919818,
+      "dpr": 2,
+      "cssViewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "pageCssHeight": 1080,
+      "fullPage": false,
+      "scrollY": 0,
+      "pixelSize": {
+        "width": 3840,
+        "height": 2160
+      }
+    },
+    {
+      "file": "introduction.jpg",
+      "sha256": "699e50eabe1a2699792790be724960fea85e049c60dedf39f5c5273e7cea8b7c",
+      "bytes": 750665,
+      "dpr": 2,
+      "cssViewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "pageCssHeight": 1282,
+      "fullPage": false,
+      "scrollY": 0,
+      "pixelSize": {
+        "width": 3840,
+        "height": 2160
+      }
+    },
+    {
+      "file": "target.jpg",
+      "sha256": "fe09db8e8926ad32b313b3460c4cc4a16785a789ce1c99c3319535506fbe7f24",
+      "bytes": 784295,
+      "dpr": 2,
+      "cssViewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "pageCssHeight": 1080,
+      "fullPage": false,
+      "scrollY": 0,
+      "pixelSize": {
+        "width": 3840,
+        "height": 2160
+      }
+    },
+    {
+      "file": "hand.jpg",
+      "sha256": "dd05c5baf70a818f389636c939375bafe4e4cb209e664b6dc9fcc0a0520fa85b",
+      "bytes": 751048,
+      "dpr": 2,
+      "cssViewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "pageCssHeight": 1675,
+      "fullPage": false,
+      "scrollY": 0,
+      "pixelSize": {
+        "width": 3840,
+        "height": 2160
+      }
+    },
+    {
+      "file": "bet.jpg",
+      "sha256": "f058df141c5b1e0634ea24d0f1e62fecb9189dc8de34a1c6201cf51b7b15bdc9",
+      "bytes": 777936,
+      "dpr": 2,
+      "cssViewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "pageCssHeight": 1080,
+      "fullPage": false,
+      "scrollY": 0,
+      "pixelSize": {
+        "width": 3840,
+        "height": 2160
+      }
+    },
+    {
+      "file": "showdown.jpg",
+      "sha256": "54f2fe3804b3579ad8528075711d045d471131ff95847b3e5067384bd2132c7b",
+      "bytes": 755320,
+      "dpr": 2,
+      "cssViewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "pageCssHeight": 1080,
+      "fullPage": false,
+      "scrollY": 0,
+      "pixelSize": {
+        "width": 3840,
+        "height": 2160
+      }
+    },
+    {
+      "file": "result.jpg",
+      "sha256": "61b530850950b21c79b93a3139f532661aae30c5f20ad447e6eeec5e21eef5f9",
+      "bytes": 1507821,
+      "dpr": 2,
+      "cssViewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "pageCssHeight": 1520,
+      "fullPage": false,
+      "scrollY": 0,
+      "pixelSize": {
+        "width": 3840,
+        "height": 2160
+      }
+    },
+    {
+      "file": "review.jpg",
+      "sha256": "70913ba2955f96139bce74ffc489c0621634155c67f6c7833213efcb2ba9aad8",
+      "bytes": 424776,
+      "dpr": 2,
+      "cssViewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "pageCssHeight": 1520,
+      "fullPage": false,
+      "scrollY": 0,
+      "pixelSize": {
+        "width": 3840,
+        "height": 2160
+      }
+    }
+  ],
+  "elements": {
+    "air-resources": {
+      "selector": ".battle-resources",
+      "file": "air-resources.png",
+      "box": {
+        "x": 370,
+        "y": 100,
+        "width": 1180,
+        "height": 102.828125
+      },
+      "scrollY": 0,
+      "sha256": "a1fcc693dfb6d2698e1e0efb6c2e4f10d0ad9887422c2401d9c5344e2615f4d1",
+      "bytes": 31851
+    },
+    "hand-workbench": {
+      "selector": ".hand-workbench",
+      "file": "hand-workbench.png",
+      "box": {
+        "x": 403,
+        "y": 506.3125,
+        "width": 1114,
+        "height": 225.1875
+      },
+      "scrollY": 0,
+      "sha256": "1ecdf6be5f5bc0e2a41c06395e6bffecb56296520e3bf96b5eab819e7a472f85",
+      "bytes": 36635
+    },
+    "five-card-hand": {
+      "selector": "[data-hand-draft]",
+      "file": "five-card-hand.png",
+      "box": {
+        "x": 691.5,
+        "y": 576.3125,
+        "width": 365,
+        "height": 92
+      },
+      "scrollY": 0,
+      "sha256": "15cce9372aadc59c2894abef2cc4c772b1c735b349cd92480e64af556dbdbddc",
+      "bytes": 11688
+    },
+    "target-pair": {
+      "selector": ".battle-targets",
+      "file": "target-pair.png",
+      "box": {
+        "x": 403,
+        "y": 275.828125,
+        "width": 1114,
+        "height": 69.296875
+      },
+      "scrollY": 0,
+      "sha256": "c23c104de5a3b61c51137e5be4e8cf494006e0198850479b12c1b374c9d58540",
+      "bytes": 20232
+    },
+    "hand-card-01": {
+      "selector": ".hand-draft-card .battle-card",
+      "file": "hand-card-01.png",
+      "box": {
+        "x": 691.5,
+        "y": 576.3125,
+        "width": 65,
+        "height": 92
+      },
+      "sha256": "690d1a0d34077ed2260f51411f707468ca2581ba8d09ed0bffafc0794af3298c",
+      "bytes": 3989
+    },
+    "hand-card-02": {
+      "selector": ".hand-draft-card .battle-card",
+      "file": "hand-card-02.png",
+      "box": {
+        "x": 766.5,
+        "y": 576.3125,
+        "width": 65,
+        "height": 92
+      },
+      "sha256": "a2c4892772302e3f9da17f40ebce20c99bc0257fe939f94f4830afdb47a766ef",
+      "bytes": 3558
+    },
+    "hand-card-03": {
+      "selector": ".hand-draft-card .battle-card",
+      "file": "hand-card-03.png",
+      "box": {
+        "x": 841.5,
+        "y": 576.3125,
+        "width": 65,
+        "height": 92
+      },
+      "sha256": "ac0f75c94a272618dd1471ef140bfeb52f491eedc7001c90d71cb96e3629fc1c",
+      "bytes": 3407
+    },
+    "hand-card-04": {
+      "selector": ".hand-draft-card .battle-card",
+      "file": "hand-card-04.png",
+      "box": {
+        "x": 916.5,
+        "y": 576.3125,
+        "width": 65,
+        "height": 92
+      },
+      "sha256": "b8b393860fd6da385be7f31f0f7b2e31a4b71dfcd448f56e3522e6be40107cca",
+      "bytes": 3687
+    },
+    "hand-card-05": {
+      "selector": ".hand-draft-card .battle-card",
+      "file": "hand-card-05.png",
+      "box": {
+        "x": 991.5,
+        "y": 576.3125,
+        "width": 65,
+        "height": 92
+      },
+      "sha256": "39d31cfa11f04a8ada2ea8ee198e2b551bf434c6d6d54f914c716932994c5a5f",
+      "bytes": 3667
+    },
+    "bet-resources": {
+      "selector": ".battle-resources",
+      "file": "bet-resources.png",
+      "box": {
+        "x": 370,
+        "y": 100,
+        "width": 1180,
+        "height": 102.828125
+      },
+      "scrollY": 0,
+      "sha256": "472e8f60139d127aefba542de054996995667e744a4d76b09bab39a405c592e9",
+      "bytes": 33230
+    },
+    "bet-hands": {
+      "selector": ".battle-duel",
+      "file": "bet-hands.png",
+      "box": {
+        "x": 630,
+        "y": 415.015625,
+        "width": 660,
+        "height": 250
+      },
+      "scrollY": 0,
+      "sha256": "824df97ded6b07aa9c2b4d3480fb82f694c7782a43e5aaca92ffcf498595ae69",
+      "bytes": 32639
+    },
+    "hidden-opponent-hand": {
+      "selector": ".battle-hidden-hand",
+      "file": "hidden-opponent-hand.png",
+      "box": {
+        "x": 630,
+        "y": 444.015625,
+        "width": 660,
+        "height": 58
+      },
+      "scrollY": 0,
+      "sha256": "337f56b089d1b3d3f61767eb747e9f23ed458e5c23e0e275809c217238d0c352",
+      "bytes": 4411
+    },
+    "result-heading": {
+      "selector": ".result-page h1",
+      "file": "result-heading.png",
+      "box": {
+        "x": 409,
+        "y": 320.765625,
+        "width": 477.25,
+        "height": 79.1875
+      },
+      "scrollY": 0,
+      "sha256": "f4f270ac3b66c98c05d17f969d2ecf182450c4229362183a4f64a39168c20a74",
+      "bytes": 21057
+    },
+    "review-totals": {
+      "selector": ".review-totals",
+      "file": "review-totals.png",
+      "box": {
+        "x": 576,
+        "y": 652,
+        "width": 988,
+        "height": 85.484375
+      },
+      "scrollY": 0,
+      "sha256": "ceca830352f11cd710e05e4ee57ad354a14a6e21fe765b57a999dd6f602ffad4",
+      "bytes": 22538
+    }
+  },
+  "viewport": {
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 2,
+    "pageCamPageHeightCss": 1080
+  },
+  "browser": "151.0.7922.34",
+  "seed": 73,
+  "matchMethod": "Fresh local match played through real data-action buttons; no injected engine state or local archive loaded.",
+  "provenance": "Illustrative local demo match; no visitor/customer/personal/live data. Rule illustration separately derived by game rule functions.",
+  "rulesProof": "Current game pure functions; illustrative scenario, not a recorded match",
+  "errors": []
+}
