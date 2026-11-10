@@ -248,7 +248,7 @@ AI-assisted development is welcome, but the submitter remains responsible for th
 - Thanks to Toshio Sako for _Usogui_ and the Air Poker arc that inspired the rules.
 - Thanks to everyone who has audited rules, playtested builds, reproduced bugs or added tests.
 - The game uses the native web platform. Development and delivery rely on Node.js, Prettier, Acorn, GitHub Actions and GitHub Pages.
-- Sources and usage boundaries for visual assets are documented in the [runtime asset notes](assets/generated/air-poker-v2/README.md) and [reference asset notes](assets/reference/usogui-air-poker/README.md).
+- Sources and usage boundaries for visual assets are documented in the [runtime asset notes](assets/generated/air-poker-v2/README.md). Original reference images stay local and are not distributed with the repository.
 
 If this project earns another match, consider starring the repository. If something feels wrong, open an issue with a reproducible case; that is far more useful than a vague verdict.
 

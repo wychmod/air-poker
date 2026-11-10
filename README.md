@@ -251,7 +251,7 @@ flowchart LR
 - 感谢迫稔雄创作《噬谎者》，以及「空气扑克」篇提供的规则灵感。
 - 感谢所有参与规则核对、试玩反馈、缺陷复现与测试补充的人。
 - 游戏使用原生 Web 平台构建；开发与交付依赖 Node.js、Prettier、Acorn、GitHub Actions 与 GitHub Pages。
-- 视觉素材的来源与使用范围记录在[运行素材说明](assets/generated/air-poker-v2/README.md)与[参考素材说明](assets/reference/usogui-air-poker/README.md)。
+- 视觉素材的来源与使用范围记录在[运行素材说明](assets/generated/air-poker-v2/README.md)。原作参考图仅保留在本地，不随仓库分发。
 
 如果这个项目让你愿意多打一局，欢迎在仓库点一个 Star。发现问题也可以直接开 Issue；比起“感觉不对”，更希望看到能复现的具体场景。
 
