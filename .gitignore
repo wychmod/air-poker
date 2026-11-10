@@ -26,6 +26,9 @@ output/
 # WorkBuddy local workspace memory
 .workbuddy/
 
+# WorkBuddy published-app marker
+.wbapp_*.genie
+
 # Literal, unexpanded environment-variable directory written by tooling
 %SystemDrive%/
 

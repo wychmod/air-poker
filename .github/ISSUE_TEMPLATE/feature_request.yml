@@ -1,0 +1,49 @@
+name: 功能建议
+description: 玩法、界面或工程流程的改进建议
+title: '[Feature] '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        涉及规则改动时，请先看[当前规则](https://github.com/wychmod/air-poker/blob/main/doc/rules/current.md)，
+        说清楚是补充现有规则，还是改变它。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你遇到了什么问题
+      description: 描述现状哪里不够好。先讲问题，不必急着给方案。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 你希望怎么改
+      description: 如果有多个方案，可以都写出来并说明取舍。
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 涉及范围
+      options:
+        - 玩法规则
+        - 对手策略与难度
+        - 界面与动效
+        - 教学与引导
+        - 复盘与记录
+        - 工程与文档
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: 对现有规则的影响
+      description: 是否影响账目守恒、下注上限、行动时限或归档格式？没有就写「无」。
+    validations:
+      required: false

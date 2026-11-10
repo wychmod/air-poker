@@ -1,0 +1,77 @@
+name: 缺陷报告
+description: 游戏行为、界面表现或工程流程出现异常
+title: '[Bug] '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。涉及规则或空气账目的问题，附上「查看复盘」导出的 JSON 会让定位快很多。
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际发生了什么
+      description: 尽量带上具体数字、牌面、轮次或金额，不要只写“感觉不对”。
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望的结果
+      description: 你认为按当前规则应该发生什么。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 首页选择「困难」
+        2. 第一轮目标数字选 17
+        3. 构造 A/2/3/4/7 并确认出牌
+        4. …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影响范围
+      options:
+        - 规则与结算
+        - 下注与呼吸
+        - 界面与动效
+        - 复盘与记录
+        - 计时与超时
+        - 构建与工程检查
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: 运行环境
+      description: 浏览器与版本、操作系统，以及是本地运行还是线上站点。
+      placeholder: Chrome 130 / Windows 11 / https://wychmod.github.io/air-poker/
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 截图、录屏或记录 JSON
+      description: 可以做拖拽上传，也可以直接粘贴文本。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 已搜索现有 Issue，没有发现重复
+          required: true

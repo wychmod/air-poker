@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 玩法与当前规则
+    url: https://github.com/wychmod/air-poker/blob/main/doc/rules/current.md
+    about: 先确认你要反馈的行为是否已在规则中定义
+  - name: 开发与验收流程
+    url: https://github.com/wychmod/air-poker/blob/main/doc/harness/workflow.md
+    about: 提交代码前的修改、测试与浏览器验收要求
+  - name: 工程约定
+    url: https://github.com/wychmod/air-poker/blob/main/AGENTS.md
+    about: 模块边界、依赖规则与必须守住的游戏性质
