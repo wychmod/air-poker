@@ -40,6 +40,14 @@ export const CODE_ROOTS = [
 ];
 export const BROWSER_ROOTS = ['app.js', 'i18n.js', 'game', 'browser', 'ui'];
 
+// The standalone video project keeps its source under promo, but its installed
+// packages and generated frames are not repository JavaScript source.
+export const CODE_EXCLUDES = [
+  'promo/shotcraft-air-poker/node_modules',
+  'promo/shotcraft-air-poker/out',
+  'promo/shotcraft-air-poker/.remotion',
+];
+
 export const FORMAT_TARGETS = [
   ...CODE_ROOTS,
   'styles',
