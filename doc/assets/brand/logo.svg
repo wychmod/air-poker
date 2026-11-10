@@ -1,0 +1,43 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+  fill="none"
+  role="img"
+  aria-labelledby="apLogoTitle"
+>
+  <title id="apLogoTitle">Air Poker logo</title>
+  <defs>
+    <pattern id="apLogoDots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.65" fill="#171717" opacity="0.18" />
+    </pattern>
+    <clipPath id="apLogoClip">
+      <rect x="10" y="10" width="492" height="492" rx="82" />
+    </clipPath>
+  </defs>
+
+  <rect width="512" height="512" rx="92" fill="#FAF9F6" />
+  <g clip-path="url(#apLogoClip)">
+    <rect x="10" y="10" width="492" height="492" fill="url(#apLogoDots)" />
+  </g>
+  <rect x="15" y="15" width="482" height="482" rx="78" stroke="#171717" stroke-width="8" />
+
+  <g transform="rotate(-7 256 218)">
+    <rect x="178" y="96" width="156" height="236" rx="12" fill="#171717" />
+    <path d="M256 138 318 218 256 298 194 218Z" fill="#FAF9F6" />
+    <path
+      d="M230 246 256 184 282 246M236 231h40"
+      stroke="#171717"
+      stroke-width="9"
+      stroke-linecap="square"
+      stroke-linejoin="miter"
+    />
+  </g>
+
+  <g stroke="#171717" fill="none" stroke-linecap="round">
+    <circle cx="248" cy="386" r="15" stroke-width="8" opacity="0.72" />
+    <circle cx="290" cy="432" r="8" stroke-width="6" opacity="0.45" />
+    <circle cx="222" cy="446" r="5.5" stroke-width="5" opacity="0.34" />
+  </g>
+</svg>

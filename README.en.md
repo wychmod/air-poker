@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="doc/assets/readme-cover.svg" alt="Air Poker: five cards, an underwater table and rising bubbles in an original monochrome cover" width="100%">
+  <img src="doc/assets/brand/banner.svg" alt="Air Poker: five cards, an underwater table and rising bubbles in an original monochrome banner" width="100%">
 </p>
 
 <h1 align="center">Air Poker</h1>
@@ -16,44 +16,48 @@
 </p>
 
 <p align="center">
-  <a href="https://wychmod.github.io/air-poker/"><strong>Play now →</strong></a> ·
-  <a href="#core-gameplay">Gameplay</a> ·
-  <a href="#architecture-and-engineering">Engineering</a> ·
-  <a href="#contributing">Contributing</a>
+  <a href="https://wychmod.github.io/air-poker/en.html"><img alt="Play Air Poker" src="https://img.shields.io/badge/PLAY_NOW-wychmod.github.io-111111?style=for-the-badge&logo=githubpages&logoColor=white"></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/wychmod/air-poker/actions/workflows/ci.yml"><img alt="Project checks" src="https://github.com/wychmod/air-poker/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="https://github.com/wychmod/air-poker/actions/workflows/pages.yml"><img alt="GitHub Pages" src="https://github.com/wychmod/air-poker/actions/workflows/pages.yml/badge.svg?branch=main"></a>
-  <img alt="Node.js 22+" src="https://img.shields.io/badge/Node.js-22%2B-111111?style=flat-square&logo=nodedotjs&logoColor=white">
   <img alt="Runtime dependencies: 0" src="https://img.shields.io/badge/runtime_dependencies-0-111111?style=flat-square">
+  <img alt="Tests: 202" src="https://img.shields.io/badge/tests-202_passing-111111?style=flat-square">
+  <img alt="Node.js 22+" src="https://img.shields.io/badge/Node.js-22%2B-111111?style=flat-square&logo=nodedotjs&logoColor=white">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-111111?style=flat-square"></a>
+</p>
+
+<p align="center">
+  <a href="#thirty-seconds">Demo</a> ·
+  <a href="#core-gameplay">Gameplay</a> ·
+  <a href="#interface">Interface</a> ·
+  <a href="#engineering">Engineering</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#contributing">Contributing</a>
 </p>
 
 ---
 
-## Overview
-
-**Air is both your stake and your time to survive.**
-
-You and the Opponent each hold five private number cards. Build poker hands from a shared deck, decide when to press or retreat, and preserve the cards and air you will need later. Each number sets the required sum of a five-card hand. Poker ranks decide the showdown, while every wager changes your reserve for future breaths. After five rounds, play moves into endurance; the outcome follows actual air supply and survival time.
+## Air is your stake. Air is your time.
 
 Most poker games ask one question: is this hand strong enough?
 
 Air Poker asks a second: **how much time do you have left?**
 
-The 25 canisters each side receives play both roles. They are chips on the table and air in your lungs. Winning the pot does not mean winning the match.
+You and the Opponent each hold five private number cards and build hands from a shared deck. Numbers set the required sum, poker ranks decide the showdown, and every wager rewrites the reserve you need for your next breath. After five rounds the match moves into endurance, where actual air supply and survival time decide the winner.
 
-Built with native HTML, CSS and JavaScript, the game runs entirely in your local browser without an account or game backend. **The interface supports Chinese and English; this README is available in Chinese, English and Japanese.**
+**The 25 canisters play both roles.** They are chips on the table and air in your lungs. Winning the pot has never meant winning the match.
 
-## Interface
+This is a purely static site: native HTML, CSS and JavaScript, with all match logic running in the local browser. Zero runtime dependencies, no account, no game backend. The interface ships in Chinese and English; this README is available in Chinese, English and Japanese.
 
-|                                                                Showdown                                                                 |                                                           Match review                                                           |
-| :-------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="doc/assets/readme/showdown.png" alt="Air Poker showdown interface with revealed cards, stakes and AIR accounts" width="100%"> | <img src="doc/assets/readme/review.png" alt="Air Poker match review interface with round facts and event timeline" width="100%"> |
-|                                             Revealed cards, actual stakes and AIR accounts                                              |                                     Round facts, individual transfers and an event timeline                                      |
+## Thirty seconds
 
-The interface uses paper white as its ground and ink black as its structure, preserving line art, halftones, paper grain and underwater light. Every number, card, control and ledger entry is rendered from real state. No full-page mockup with sample data is presented as a playable screen.
+<p align="center">
+  <img src="doc/assets/readme/demo.gif" alt="Recorded match: locking a hand, alternating bets, the showdown and a calamity" width="100%">
+</p>
+
+<p align="center"><sub>A recorded match · lock a hand → bet → reveal · no sample data</sub></p>
 
 ## Core gameplay
 
@@ -83,6 +87,39 @@ Getting the sum right is only the first step. The hand must also consist of five
 
 Giving up, timing out or submitting an invalid hand counts as a construction failure and consumes no physical cards. If nobody folds, a single failure loses the pot; two failures repeat the same round without another ante or betting phase. If both numbers are mathematically impossible, investments are refunded and endurance begins. See the [current digital rules](doc/rules/current.md) for full cases.
 
+### Three levels of Opponent
+
+Choose **Novice / Medium / Hard** at the start; Medium is the default. All three share the same hand-strength, cost and calamity judgement, and differ in construction planning depth, bet sizing and use of public information. Hard also adapts to the bets already revealed this match. The Opponent locks its pick before you choose, and never reads your unrevealed numbers, drafts or private cards.
+
+Each level carries its own goal: Novice is a standard match, Medium requires you to win after trailing, and Hard requires you to win every settled round and the match. Old contract preferences do not affect new matches; completed archives keep their original persona, goal and result.
+
+## Interface
+
+<p align="center">
+  <img src="doc/assets/readme/en/showdown.png" alt="Air Poker showdown interface with both revealed hands, stakes and AIR accounts" width="100%">
+</p>
+
+<p align="center"><sub>Showdown and calamity · revealed cards, actual stakes and AIR movements, all rendered from match state</sub></p>
+
+|                                                           Build five cards                                                           |                                                     Alternating bets                                                      |
+| :----------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------: |
+| <img src="doc/assets/readme/en/build.png" alt="Air Poker hand construction: target number, hand and recommended ranks" width="100%"> | <img src="doc/assets/readme/en/bet.png" alt="Air Poker betting: amount to call, raise cap and AIR accounts" width="100%"> |
+|                                          Target, live card-value sum and recommended hands                                           |                                      Amount to call, raise cap and unopened reserve                                       |
+
+<p align="center">
+  <img src="doc/assets/readme/en/review.png" alt="Air Poker match review interface with round facts, ledger and event timeline" width="100%">
+</p>
+
+<p align="center"><sub>Match review · round facts, individual transfers and an event timeline, exportable as JSON to reconcile all 50 canisters</sub></p>
+
+<p align="center">
+  <img src="doc/assets/readme/en/mobile.png" alt="Air Poker hand construction on a phone" width="280">
+</p>
+
+<p align="center"><sub>Eight views adapt between 320px and 1440px; phone, tablet and desktop share one state and one rule set</sub></p>
+
+The interface uses paper white as its ground and ink black as its structure, preserving line art, halftones, paper grain and underwater light. Every number, card, control and ledger entry is rendered from real state. No full-page mockup with sample data is presented as a playable screen.
+
 ## Features
 
 | Feature                         | What it brings                                                                                                                                                                |
@@ -96,37 +133,7 @@ Giving up, timing out or submitting an invalid hand counts as a construction fai
 
 Only the **most recent completed match** is saved locally, and it is replaced when another match finishes. Refreshing does not restore an unfinished game. Disabling motion, viewing rules or records, switching language or moving to the background does not pause breathing or reset action deadlines.
 
-## Origin and inspiration
-
-This project adapts the **Air Poker arc in volumes 40–43 of Toshio Sako's manga Usogui (嘘喰い / 噬谎者)**. It is a noncommercial fan learning project that brings the tension of number-based hand construction, limited information and air wagers into an interactive browser experience.
-
-Its visual direction is a moving manga on white paper: panels, line work and underwater light create atmosphere, while readable cards, numbers and controls stay in the foreground.
-
-The digital adaptation combines the original upper- and lower-level roles into one player. Automatic canister replacement, fixed construction deadlines, a fixed grace period and the transition to endurance when both targets are impossible are explicit digital conventions. See the [source and adaptation audit](doc/rules/audit.md) for references and differences.
-
-## Quick start
-
-Install **Node.js 22 or later** with npm, and use a modern browser that supports ES modules.
-
-```sh
-git clone https://github.com/wychmod/air-poker.git
-cd air-poker
-npm ci
-npm start
-```
-
-Open **[http://127.0.0.1:4180](http://127.0.0.1:4180)** in your browser. If you already downloaded the repository, run `npm ci` and `npm start` from its root. Set the `AIR_POKER_PORT` environment variable to use a different port.
-
-Access the game through the local HTTP server so that ES modules load correctly. There is no code compilation step and no third-party game runtime package. The home-page visit counter uses a remote image.
-
-### Your first match
-
-1. Choose “How to play” on the home page to explore numbers, wagers and calamity.
-2. Choose “Try the tutorial” to practise in an independent tutorial.
-3. Choose “Enter the match”, select and confirm a number, then build a hand, bet and reveal.
-4. After the match, open the review to inspect decisions and air movements or export a record. “Last completed match” on the home page reopens the saved result.
-
-## Architecture and engineering
+## Engineering
 
 The game core is strictly separated from the browser environment. `game/` does not access the DOM, network, storage, timers or Node platform APIs, so it can be imported and tested without a browser. Views consume public snapshots only; browser modules own clocks, archives and render scheduling.
 
@@ -181,6 +188,8 @@ flowchart LR
 - `dispatch(action)` accepts legal actions for the current phase. Repeated confirmations, illegal phases and stale actions cannot change state or charge twice.
 - `reset()` starts a new match, with action IDs continuing across restarts.
 
+### Seven design constraints
+
 - **Rules are pure functions; state has one source of truth.** Hand ranking, betting legality, air supply and ledger facts run without a browser, so tests do not depend on the page.
 - **Privacy is enforced at the data boundary.** `getState()` never gives the view the Opponent's future numbers, unrevealed hand or proof hands. The presentation layer cannot "peek."
 - **Actions carry identity; timeouts fire once.** `sessionId`, `attemptId` and `turnId` fence restarts, rebuilds and stale callbacks, preventing duplicate confirmation and settlement.
@@ -191,7 +200,39 @@ flowchart LR
 
 See the [architecture and rule boundaries](doc/harness/architecture.md) for the full state flow, dependency matrix and platform constraints.
 
-## Development and deployment
+### By the numbers
+
+| Item                    | Value                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| Runtime dependencies    | **0** — no third-party game library, no build step, no backend                                    |
+| Automated tests         | **202** `node:test` cases across rules, engine, accounting and engineering checkers               |
+| Application source      | **≈9,100 lines** of ES modules; `game/` imports in plain Node                                     |
+| Release output          | **2.5 MB across 56 files**, including every scene and share asset, gated by an explicit allowlist |
+| Real-browser regression | Playwright on phone (390 / 320) and desktop (1280), at both root and project subpaths             |
+
+## Quick start
+
+Install **Node.js 22 or later** with npm, and use a modern browser that supports ES modules.
+
+```sh
+git clone https://github.com/wychmod/air-poker.git
+cd air-poker
+npm ci
+npm start
+```
+
+Open **[http://127.0.0.1:4180](http://127.0.0.1:4180)** in your browser. If you already downloaded the repository, run `npm ci` and `npm start` from its root. Set the `AIR_POKER_PORT` environment variable to use a different port.
+
+Access the game through the local HTTP server so that ES modules load correctly. There is no code compilation step and no third-party game runtime package. The home-page visit counter uses a remote image.
+
+### Your first match
+
+1. Choose “How to play” on the home page to explore numbers, wagers and calamity.
+2. Choose “Try the tutorial” to practise in an independent tutorial.
+3. Choose “Enter the match”, select and confirm a number, then build a hand, bet and reveal.
+4. After the match, open the review to inspect decisions and air movements or export a record. “Last completed match” on the home page reopens the saved result.
+
+### Commands
 
 | Command                | Purpose                                                                                                                 |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -206,7 +247,13 @@ Run `npm run check` before deployment, then publish the generated **`dist/site/`
 
 The full check report is written to `output/harness/latest.json`. HTTP resource checks do not execute page scripts; interaction changes also need the relevant [browser acceptance checks](doc/harness/acceptance.md).
 
-### Project structure
+### Browser regression and sharing
+
+After `npm ci`, install Chromium with `npx playwright install chromium`, then run `npm run check:browser`. This builds and tests the real site on mobile and desktop at both root and project paths; CI and Pages require this gate. Reports and failure traces are in `output/e2e/`.
+
+Completed matches and the last archive offer bilingual share-card previews, PNG downloads and user-initiated sharing, with copy-link/download fallbacks. Static English metadata is served at `en.html`. Optimized runtime images and explicit asset budgets keep the public build small. See [implementation and validation](doc/optimization/README.md).
+
+## Project structure
 
 | Path                  | Responsibility                                                                                                               |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -217,6 +264,14 @@ The full check report is written to `output/harness/latest.json`. HTTP resource 
 | `styles/` / `assets/` | Styles and visual assets; runtime resources follow an explicit release list.                                                 |
 | `tests/` / `scripts/` | Regression tests, the local server, formatting checks and static site staging.                                               |
 | `doc/`                | Current rules, architecture, acceptance evidence and historical design records.                                              |
+
+## Origin and inspiration
+
+This project adapts the **Air Poker arc in volumes 40–43 of Toshio Sako's manga Usogui (嘘喰い / 噬谎者)**. It is a noncommercial fan learning project that brings the tension of number-based hand construction, limited information and air wagers into an interactive browser experience.
+
+Its visual direction is a moving manga on white paper: panels, line work and underwater light create atmosphere, while readable cards, numbers and controls stay in the foreground.
+
+The digital adaptation combines the original upper- and lower-level roles into one player. Automatic canister replacement, fixed construction deadlines, a fixed grace period and the transition to endurance when both targets are impossible are explicit digital conventions. See the [source and adaptation audit](doc/rules/audit.md) for references and differences.
 
 ## Contributing
 
@@ -252,6 +307,10 @@ AI-assisted development is welcome, but the submitter remains responsible for th
 
 If this project earns another match, consider starring the repository. If something feels wrong, open an issue with a reproducible case; that is far more useful than a vague verdict.
 
+<p align="center">
+  <a href="https://github.com/wychmod/air-poker"><img alt="Star Air Poker" src="https://img.shields.io/badge/★_STAR_THIS_REPO-111111?style=for-the-badge&logo=github&logoColor=white"></a>
+</p>
+
 ## License
 
 Code is released under the [MIT License](LICENSE), Copyright © 2026 tots-and.
@@ -265,9 +324,3 @@ This is an unofficial, noncommercial fan project with no affiliation with or aut
 <p align="center">
   <a href="README.md">简体中文</a> · <strong>English</strong> · <a href="README.ja.md">日本語</a>
 </p>
-
-## Browser regression and sharing
-
-After `npm ci`, install Chromium with `npx playwright install chromium`, then run `npm run check:browser`. This builds and tests the real site on mobile and desktop at both root and project paths; CI and Pages require this gate. Reports and failure traces are in `output/e2e/`.
-
-Completed matches and the last archive offer bilingual share-card previews, PNG downloads and user-initiated sharing, with copy-link/download fallbacks. Static English metadata is served at `en.html`. Optimized runtime images and explicit asset budgets keep the public build small. See [implementation and validation](doc/optimization/README.md).

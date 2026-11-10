@@ -1,0 +1,198 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1440"
+  height="480"
+  viewBox="0 0 1440 480"
+  fill="none"
+  role="img"
+  aria-labelledby="apBannerTitle apBannerDesc"
+>
+  <title id="apBannerTitle">Air Poker</title>
+  <desc id="apBannerDesc">
+    An original ink-and-paper banner: the Air Poker mark, a serif wordmark, and five playing cards fanned
+    over an underwater table while air canisters and bubbles rise behind them.
+  </desc>
+
+  <defs>
+    <pattern id="halftone" width="9" height="9" patternUnits="userSpaceOnUse">
+      <circle cx="1.2" cy="1.2" r="0.72" fill="#171717" opacity="0.2" />
+    </pattern>
+    <pattern id="paper" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#FAF9F6" />
+      <circle cx="1" cy="3" r="0.4" fill="#171717" opacity="0.05" />
+    </pattern>
+    <linearGradient id="fadeRight" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#FAF9F6" stop-opacity="1" />
+      <stop offset="1" stop-color="#FAF9F6" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1440" height="480" fill="url(#paper)" />
+
+  <!-- frame -->
+  <path d="M56 46h1328M56 434h1328" stroke="#171717" stroke-opacity="0.26" />
+  <path d="M56 46h52M56 46v34M1384 434h-52M1384 434v-34" stroke="#171717" stroke-width="2" />
+
+  <!-- brand mark -->
+  <g transform="translate(58 66)">
+    <rect width="42" height="42" rx="7" fill="#FAF9F6" stroke="#171717" stroke-width="2.4" />
+    <path d="M21 12 31.5 25.5 21 39 10.5 25.5Z" fill="#171717" />
+    <path d="M17 30 21 20 25 30M18.6 27h4.8" stroke="#FAF9F6" stroke-width="2" />
+  </g>
+  <text
+    x="116"
+    y="82"
+    fill="#171717"
+    font-family="Georgia, 'Times New Roman', 'Songti SC', serif"
+    font-size="15"
+    letter-spacing="4.5"
+  >
+    AIR POKER
+  </text>
+  <text
+    x="116"
+    y="100"
+    fill="#8A857D"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="9.5"
+    letter-spacing="2.6"
+  >
+    BENEATH THE SURFACE
+  </text>
+
+  <!-- wordmark -->
+  <text
+    x="56"
+    y="236"
+    fill="#171717"
+    font-family="Georgia, 'Times New Roman', 'Songti SC', serif"
+    font-size="102"
+    letter-spacing="1"
+  >
+    AIR POKER
+  </text>
+  <path d="M60 270h76" stroke="#171717" stroke-width="2.6" />
+  <text
+    x="60"
+    y="306"
+    fill="#373632"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="17"
+    letter-spacing="4.4"
+  >
+    FIVE TARGETS. ONE LAST BREATH.
+  </text>
+
+  <!-- meta chips -->
+  <g font-family="Arial, Helvetica, sans-serif" font-size="9.5" letter-spacing="2.8">
+    <g fill="none" stroke="#171717" stroke-opacity="0.34">
+      <rect x="60" y="336" width="94" height="27" />
+      <rect x="162" y="336" width="74" height="27" />
+      <rect x="244" y="336" width="62" height="27" />
+      <rect x="314" y="336" width="108" height="27" />
+    </g>
+    <g fill="#4A4741" text-anchor="middle">
+      <text x="107" y="354">NUMBER</text>
+      <text x="199" y="354">HAND</text>
+      <text x="275" y="354">AIR</text>
+      <text x="368" y="354">ENDURANCE</text>
+    </g>
+  </g>
+
+  <text
+    x="60"
+    y="406"
+    fill="#8A857D"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="10"
+    letter-spacing="3"
+  >
+    SINGLE PLAYER · INK AND PAPER · ZERO RUNTIME DEPENDENCIES
+  </text>
+
+  <!-- divider -->
+  <path d="M772 60v360" stroke="#171717" stroke-opacity="0.12" />
+
+  <!-- table -->
+  <g>
+    <ellipse cx="1096" cy="344" rx="248" ry="56" fill="url(#halftone)" />
+    <ellipse cx="1096" cy="344" rx="248" ry="56" stroke="#171717" stroke-opacity="0.42" />
+    <ellipse cx="1096" cy="344" rx="222" ry="42" stroke="#171717" stroke-opacity="0.2" />
+    <path
+      d="M848 344v9c0 31 111 56 248 56s248-25 248-56v-9"
+      stroke="#171717"
+      stroke-opacity="0.32"
+    />
+    <path d="M874 330c46-14 118-24 222-24s176 10 222 24" stroke="#171717" stroke-opacity="0.12" />
+  </g>
+
+  <!-- air canisters -->
+  <g stroke="#171717" stroke-width="1.6">
+    <g transform="translate(846 246)">
+      <rect width="26" height="98" rx="13" fill="#FAF9F6" />
+      <path d="M0 26h26" stroke-opacity="0.5" />
+      <circle cx="13" cy="60" r="7" stroke-opacity="0.55" />
+      <path d="M13 60 13 54" stroke-opacity="0.55" />
+      <path d="M9 12h8" stroke-opacity="0.55" />
+    </g>
+    <g transform="translate(1320 246)">
+      <rect width="26" height="98" rx="13" fill="#171717" />
+      <path d="M0 26h26" stroke="#FAF9F6" stroke-opacity="0.55" />
+      <circle cx="13" cy="60" r="7" stroke="#FAF9F6" stroke-opacity="0.6" />
+      <path d="M13 60 13 54" stroke="#FAF9F6" stroke-opacity="0.6" />
+      <path d="M9 12h8" stroke="#FAF9F6" stroke-opacity="0.6" />
+    </g>
+  </g>
+  <g
+    fill="#8A857D"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="9"
+    letter-spacing="2"
+    text-anchor="middle"
+  >
+    <text x="859" y="234">25 AIR</text>
+    <text x="1333" y="234">25 AIR</text>
+  </g>
+
+  <!-- five fanned cards -->
+  <g stroke="#171717" stroke-width="1.6">
+    <g transform="translate(958 190) rotate(-21 44 64)">
+      <rect width="88" height="128" rx="4" fill="#FAF9F6" />
+      <rect x="8" y="8" width="72" height="112" fill="url(#halftone)" stroke-opacity="0.18" />
+      <path d="M44 48 57 66 44 84 31 66Z" fill="#171717" />
+    </g>
+    <g transform="translate(1013 170) rotate(-10 44 64)">
+      <rect width="88" height="128" rx="4" fill="#FAF9F6" />
+      <rect x="8" y="8" width="72" height="112" fill="url(#halftone)" stroke-opacity="0.18" />
+      <path d="M44 48 57 66 44 84 31 66Z" fill="#171717" />
+    </g>
+    <g transform="translate(1054 162)">
+      <rect width="88" height="128" rx="4" fill="#171717" />
+      <rect x="8" y="8" width="72" height="112" stroke="#FAF9F6" stroke-opacity="0.45" />
+      <path d="M44 48 57 66 44 84 31 66Z" fill="#FAF9F6" />
+    </g>
+    <g transform="translate(1095 170) rotate(10 44 64)">
+      <rect width="88" height="128" rx="4" fill="#FAF9F6" />
+      <rect x="8" y="8" width="72" height="112" fill="url(#halftone)" stroke-opacity="0.18" />
+      <path d="M44 48 57 66 44 84 31 66Z" fill="#171717" />
+    </g>
+    <g transform="translate(1150 190) rotate(21 44 64)">
+      <rect width="88" height="128" rx="4" fill="#FAF9F6" />
+      <rect x="8" y="8" width="72" height="112" fill="url(#halftone)" stroke-opacity="0.18" />
+      <path d="M44 48 57 66 44 84 31 66Z" fill="#171717" />
+    </g>
+  </g>
+
+  <!-- rising bubbles -->
+  <g stroke="#171717" stroke-opacity="0.3" stroke-width="1.4">
+    <circle cx="906" cy="176" r="11" />
+    <circle cx="936" cy="126" r="5" />
+    <circle cx="900" cy="96" r="3" />
+    <circle cx="1284" cy="168" r="8" />
+    <circle cx="1252" cy="118" r="4.5" />
+    <circle cx="1292" cy="88" r="2.6" />
+    <path d="M901 170c1-2 3-3 5-3M1281 164l2-1" stroke-linecap="round" />
+  </g>
+
+  <rect x="1180" y="60" width="204" height="380" fill="url(#fadeRight)" opacity="0.35" />
+</svg>
