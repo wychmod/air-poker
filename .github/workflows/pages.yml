@@ -47,7 +47,7 @@ jobs:
 
       - name: Save browser report and failure traces
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: browser-report-pages
           path: output/e2e/
@@ -56,7 +56,7 @@ jobs:
 
       - name: Save harness report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: harness-report-pages
           path: output/harness/latest.json
