@@ -23,11 +23,13 @@ test-results/
 # Anything worth keeping long term belongs in doc/ or assets/ instead.
 output/
 
-# Promotional film renders stay local (too heavy for the repository).
-# Only manifests, subtitles, covers and SHA-256 records are versioned.
-promo/releases/**/*.mp4
-promo/releases/**/*.wav
-promo/releases/**/*.m4a
+# Video production lives on the local machine only and is not part of this repository.
+promo/
+scripts/promo/
+doc/promo/
+tests/promo.test.js
+tests/promo-portrait.test.js
+tests/promo-voice.test.js
 
 # WorkBuddy local workspace memory
 .workbuddy/

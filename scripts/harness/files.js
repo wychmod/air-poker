@@ -3,15 +3,12 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ROOT } from './config.js';
 
-export async function listFiles(paths, root = ROOT, excludedPaths = []) {
+export async function listFiles(paths, root = ROOT) {
   const files = [];
-  const excluded = new Set(excludedPaths.map((path) => resolve(root, path)));
   async function visit(path) {
-    if (excluded.has(resolve(root, path))) return;
     const info = await stat(resolve(root, path));
     if (info.isDirectory()) {
       for (const entry of await readdir(resolve(root, path), { withFileTypes: true })) {
-        if (excluded.has(resolve(root, path, entry.name))) continue;
         if (entry.isSymbolicLink())
           throw new Error(`Symlinks are not supported: ${path}/${entry.name}`);
         await visit(`${path}/${entry.name}`);

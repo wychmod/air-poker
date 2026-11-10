@@ -8,13 +8,7 @@
 
 [手机体验、浏览器回归与分享](optimization/README.md)：真实浏览器 CI、终局战报 PNG、双语分享摘要/封面、运行素材瘦身与实践教学；[实施验收](optimization/results.md)。
 
-[当前宣传片交付：中英文配乐字幕版](../promo/releases/README.md)：两版从第 0 帧起显示《噬谎者》来源，使用原来的背景音乐与音效，不含人声旁白；[成片预览](../promo/portrait/music.html)。
-
-[中文旁白 V2 与音频迭代](promo/audio-iteration-v2.md)：评审结果、九句口播、分轨混音、同位置试听比较及下一步优化优先级；[制作命令](../promo/portrait/VOICE.md)。
-
-[抖音 / TikTok 竖屏制作方案](promo/portrait-production.md)与[验收记录](promo/portrait-validation.md)：30 秒中英双版、1080×1920、逐帧动画、手机实机截图和 FFmpeg 音画合成；[执行命令与代码入口](../promo/portrait/README.md)。
-
-[宣传片制作方案](promo/production.md)与[验收记录](promo/validation.md)：72 秒 B 站宣传片脚本、HTML/JS 动画、FFmpeg 导出及交付证据。正式视频见[成片归档](../promo/releases/README.md)。独立制作工具与归档视频不进入游戏发布产物。
+宣传片制作与成片归档不属于本仓库，相关目录仅保留在本地工作区。
 
 [发牌与对手策略](rules/strategy/spec.md)及[实施结果](rules/strategy/results.md)：固定种子整局基准、有限前瞻、底池与灾厄下注模型及发牌保留决策。
 

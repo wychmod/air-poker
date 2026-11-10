@@ -27,26 +27,8 @@ export const SITE_FILES = [
   'assets/share/favicon.svg',
 ];
 export const SITE_DIRECTORIES = ['game', 'browser', 'ui'];
-export const CODE_ROOTS = [
-  'app.js',
-  'i18n.js',
-  'game',
-  'browser',
-  'ui',
-  'scripts',
-  'tests',
-  'promo',
-  'e2e',
-];
+export const CODE_ROOTS = ['app.js', 'i18n.js', 'game', 'browser', 'ui', 'scripts', 'tests', 'e2e'];
 export const BROWSER_ROOTS = ['app.js', 'i18n.js', 'game', 'browser', 'ui'];
-
-// The standalone video project keeps its source under promo, but its installed
-// packages and generated frames are not repository JavaScript source.
-export const CODE_EXCLUDES = [
-  'promo/shotcraft-air-poker/node_modules',
-  'promo/shotcraft-air-poker/out',
-  'promo/shotcraft-air-poker/.remotion',
-];
 
 export const FORMAT_TARGETS = [
   ...CODE_ROOTS,
@@ -65,7 +47,6 @@ export const FORMAT_TARGETS = [
   'doc/maintainability',
   'doc/optimization',
   'doc/harness',
-  'doc/promo',
   'doc/rules',
 ];
 
