@@ -8,8 +8,6 @@
 
 [手机体验、浏览器回归与分享](optimization/README.md)：真实浏览器 CI、终局战报 PNG、双语分享摘要/封面、运行素材瘦身与实践教学；[实施验收](optimization/results.md)。
 
-宣传片制作与成片归档不属于本仓库，相关目录仅保留在本地工作区。
-
 [发牌与对手策略](rules/strategy/spec.md)及[实施结果](rules/strategy/results.md)：固定种子整局基准、有限前瞻、底池与灾厄下注模型及发牌保留决策。
 
 [八页动态漫画界面实施记录](harness/ui-v2-implementation.md)：已批准的 V2 界面、交互、实时动画和验证证据。
